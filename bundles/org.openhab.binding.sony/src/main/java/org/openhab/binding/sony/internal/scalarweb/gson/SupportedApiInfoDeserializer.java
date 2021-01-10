@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.Objects;
 
 import org.apache.commons.lang.StringUtils;
-import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.sony.internal.scalarweb.models.api.SupportedApiInfo;
 import org.openhab.binding.sony.internal.scalarweb.models.api.SupportedApiVersionInfo;
@@ -34,9 +33,7 @@ import com.google.gson.JsonParseException;
  *
  * @author Tim Roberts - Initial contribution
  */
-@NonNullByDefault
 public class SupportedApiInfoDeserializer implements JsonDeserializer<SupportedApiInfo> {
-    @Override
     public SupportedApiInfo deserialize(final @Nullable JsonElement je, final @Nullable Type type,
             final @Nullable JsonDeserializationContext context) throws JsonParseException {
         Objects.requireNonNull(je, "je cannot be null");

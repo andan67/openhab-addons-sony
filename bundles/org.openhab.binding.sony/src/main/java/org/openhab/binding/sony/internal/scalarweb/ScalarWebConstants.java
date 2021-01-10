@@ -13,8 +13,8 @@
 package org.openhab.binding.sony.internal.scalarweb;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.eclipse.smarthome.core.thing.ThingTypeUID;
 import org.openhab.binding.sony.internal.SonyBindingConstants;
+import org.openhab.core.thing.ThingTypeUID;
 
 /**
  * The class provides all the constants specific to the scalar system. Please note that protocol specific constants are

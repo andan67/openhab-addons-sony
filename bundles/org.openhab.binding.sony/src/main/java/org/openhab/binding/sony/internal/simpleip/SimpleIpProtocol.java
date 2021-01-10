@@ -32,20 +32,20 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.eclipse.smarthome.config.core.ConfigConstants;
-import org.eclipse.smarthome.core.library.types.OnOffType;
-import org.eclipse.smarthome.core.library.types.PercentType;
-import org.eclipse.smarthome.core.library.types.StringType;
-import org.eclipse.smarthome.core.thing.ThingStatus;
-import org.eclipse.smarthome.core.thing.ThingStatusDetail;
-import org.eclipse.smarthome.core.transform.TransformationException;
-import org.eclipse.smarthome.core.transform.TransformationService;
 import org.openhab.binding.sony.internal.SonyUtil;
 import org.openhab.binding.sony.internal.ThingCallback;
 import org.openhab.binding.sony.internal.net.NetUtil;
 import org.openhab.binding.sony.internal.net.SocketChannelSession;
 import org.openhab.binding.sony.internal.net.SocketSession;
 import org.openhab.binding.sony.internal.net.SocketSessionListener;
+import org.openhab.core.OpenHAB;
+import org.openhab.core.library.types.OnOffType;
+import org.openhab.core.library.types.PercentType;
+import org.openhab.core.library.types.StringType;
+import org.openhab.core.thing.ThingStatus;
+import org.openhab.core.thing.ThingStatusDetail;
+import org.openhab.core.transform.TransformationException;
+import org.openhab.core.transform.TransformationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -219,7 +219,7 @@ class SimpleIpProtocol implements SocketSessionListener, AutoCloseable {
                 return;
             }
 
-            final String filePath = ConfigConstants.getConfigFolder() + File.separator
+            final String filePath = OpenHAB.getConfigFolder() + File.separator
                     + TransformationService.TRANSFORM_FOLDER_NAME + File.separator + cmdMap;
             final Path file = Paths.get(filePath);
             if (file.toFile().exists()) {
@@ -235,7 +235,7 @@ class SimpleIpProtocol implements SocketSessionListener, AutoCloseable {
     /**
      * Called to refresh some of the state of the simple IP system (mainly state that either we won't get notifications
      * for whose state may commonly change due to remote actions.
-     * 
+     *
      * @param includePower true to refresh power status, false otherwise
      */
     void refreshState(boolean includePower) {

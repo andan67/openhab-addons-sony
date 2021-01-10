@@ -25,29 +25,13 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import javax.ws.rs.client.ClientBuilder;
+
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.eclipse.smarthome.core.common.ThreadPoolManager;
-import org.eclipse.smarthome.core.thing.Channel;
-import org.eclipse.smarthome.core.thing.ChannelUID;
-import org.eclipse.smarthome.core.thing.Thing;
-import org.eclipse.smarthome.core.thing.ThingRegistry;
-import org.eclipse.smarthome.core.thing.ThingTypeUID;
-import org.eclipse.smarthome.core.thing.ThingUID;
-import org.eclipse.smarthome.core.thing.binding.ThingTypeProvider;
-import org.eclipse.smarthome.core.thing.type.ChannelGroupType;
-import org.eclipse.smarthome.core.thing.type.ChannelGroupTypeProvider;
-import org.eclipse.smarthome.core.thing.type.ChannelGroupTypeUID;
-import org.eclipse.smarthome.core.thing.type.ChannelTypeUID;
-import org.eclipse.smarthome.core.thing.type.DynamicStateDescriptionProvider;
-import org.eclipse.smarthome.core.thing.type.ThingType;
-import org.eclipse.smarthome.core.thing.type.ThingTypeRegistry;
-import org.eclipse.smarthome.core.types.StateDescription;
-import org.eclipse.smarthome.core.types.StateDescriptionFragmentBuilder;
-import org.eclipse.smarthome.core.types.StateOption;
 import org.openhab.binding.sony.internal.SonyBindingConstants;
 import org.openhab.binding.sony.internal.providers.models.SonyDeviceCapability;
 import org.openhab.binding.sony.internal.providers.models.SonyThingChannelDefinition;
@@ -57,6 +41,24 @@ import org.openhab.binding.sony.internal.providers.sources.SonyFolderSource;
 import org.openhab.binding.sony.internal.providers.sources.SonyGithubSource;
 import org.openhab.binding.sony.internal.providers.sources.SonySource;
 import org.openhab.binding.sony.internal.scalarweb.models.ScalarWebService;
+import org.openhab.core.common.ThreadPoolManager;
+import org.openhab.core.thing.Channel;
+import org.openhab.core.thing.ChannelUID;
+import org.openhab.core.thing.Thing;
+import org.openhab.core.thing.ThingRegistry;
+import org.openhab.core.thing.ThingTypeUID;
+import org.openhab.core.thing.ThingUID;
+import org.openhab.core.thing.binding.ThingTypeProvider;
+import org.openhab.core.thing.type.ChannelGroupType;
+import org.openhab.core.thing.type.ChannelGroupTypeProvider;
+import org.openhab.core.thing.type.ChannelGroupTypeUID;
+import org.openhab.core.thing.type.ChannelTypeUID;
+import org.openhab.core.thing.type.DynamicStateDescriptionProvider;
+import org.openhab.core.thing.type.ThingType;
+import org.openhab.core.thing.type.ThingTypeRegistry;
+import org.openhab.core.types.StateDescription;
+import org.openhab.core.types.StateDescriptionFragmentBuilder;
+import org.openhab.core.types.StateOption;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -90,19 +92,23 @@ public class SonyDefinitionProviderImpl implements SonyDefinitionProvider, SonyD
     /** The thing registry used to lookup things */
     private final ThingTypeRegistry thingTypeRegistry;
 
+    /** The clientBuilder used in HttpRequest */
+    private final ClientBuilder clientBuilder;
+
     /** Scheduler used to schedule events */
     private final ScheduledExecutorService scheduler = ThreadPoolManager.getScheduledPool("SonyDefinitionProviderImpl");
 
     /**
      * Constructs the sony definition provider implmentation
-     * 
+     *
      * @param thingRegistry a non-null thing registry
      * @param thingTypeRegistry a non-null thing type registry
      * @param properties the OSGI properties
      */
     @Activate
     public SonyDefinitionProviderImpl(final @Reference ThingRegistry thingRegistry,
-            final @Reference ThingTypeRegistry thingTypeRegistry, final Map<String, String> properties) {
+            final @Reference ThingTypeRegistry thingTypeRegistry, final @Reference ClientBuilder clientBuilder,
+            final Map<String, String> properties) {
         Objects.requireNonNull(thingRegistry, "thingRegistry cannot be null");
         Objects.requireNonNull(thingTypeRegistry, "thingTypeRegistry cannot be null");
         Objects.requireNonNull(properties, "properties cannot be null");
@@ -115,8 +121,9 @@ public class SonyDefinitionProviderImpl implements SonyDefinitionProvider, SonyD
         if (BooleanUtils.isNotFalse(BooleanUtils.toBooleanObject(properties.get("local")))) {
             srcs.add(new SonyFolderSource(scheduler, properties));
         }
+        this.clientBuilder = clientBuilder;
         if (BooleanUtils.isNotFalse(BooleanUtils.toBooleanObject(properties.get("github")))) {
-            srcs.add(new SonyGithubSource(scheduler, properties));
+            srcs.add(new SonyGithubSource(scheduler, properties, this.clientBuilder));
         }
         this.sources = Collections.unmodifiableList(srcs);
     }
@@ -340,6 +347,7 @@ public class SonyDefinitionProviderImpl implements SonyDefinitionProvider, SonyD
 
         // Get the state channel that have a type (with no mapping)
         // ignore null warning as the filter makes sure it's not null
+        @Nullable
         final List<SonyThingChannelDefinition> chls = thing.getChannels().stream().filter(channelFilter).map(chl -> {
             final ChannelTypeUID ctuid = chl.getChannelTypeUID();
             return ctuid == null ? null

@@ -34,8 +34,8 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.http.HttpHeader;
 import org.eclipse.jetty.http.HttpStatus;
-import org.eclipse.smarthome.core.library.types.RawType;
 import org.openhab.binding.sony.internal.transports.SonyHttpTransport;
+import org.openhab.core.library.types.RawType;
 
 /**
  * This class provides utility methods related to general network activities

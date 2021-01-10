@@ -20,15 +20,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+import javax.ws.rs.client.ClientBuilder;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.http.HttpStatus;
-import org.eclipse.smarthome.core.library.types.OnOffType;
-import org.eclipse.smarthome.core.library.types.RawType;
-import org.eclipse.smarthome.core.thing.ThingStatusDetail;
-import org.eclipse.smarthome.core.types.UnDefType;
 import org.openhab.binding.sony.internal.AccessResult;
 import org.openhab.binding.sony.internal.CheckResult;
 import org.openhab.binding.sony.internal.LoginUnsuccessfulResponse;
@@ -48,6 +46,10 @@ import org.openhab.binding.sony.internal.transports.SonyTransport;
 import org.openhab.binding.sony.internal.transports.SonyTransportFactory;
 import org.openhab.binding.sony.internal.transports.TransportOptionAutoAuth;
 import org.openhab.binding.sony.internal.transports.TransportOptionHeader;
+import org.openhab.core.library.types.OnOffType;
+import org.openhab.core.library.types.RawType;
+import org.openhab.core.thing.ThingStatusDetail;
+import org.openhab.core.types.UnDefType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,7 +92,8 @@ class DialProtocol<T extends ThingCallback<String>> implements AutoCloseable {
      * @throws IOException if an ioexception is thrown
      * @throws URISyntaxException if a uri is malformed
      */
-    DialProtocol(final DialConfig config, final T callback) throws IOException, URISyntaxException {
+    DialProtocol(final DialConfig config, final T callback, final ClientBuilder clientBuilder)
+            throws IOException, URISyntaxException {
         Objects.requireNonNull(config, "config cannot be null");
         Objects.requireNonNull(callback, "callback cannot be null");
 
@@ -103,9 +106,9 @@ class DialProtocol<T extends ThingCallback<String>> implements AutoCloseable {
 
         this.callback = callback;
 
-        transport = SonyTransportFactory.createHttpTransport(deviceUrlStr);
+        transport = SonyTransportFactory.createHttpTransport(deviceUrlStr, clientBuilder);
 
-        final DialClient dialClient = DialClientFactory.get(this.deviceUrlStr);
+        final DialClient dialClient = DialClientFactory.get(this.deviceUrlStr, clientBuilder);
         if (dialClient == null) {
             throw new IOException("DialState could not be retrieved from " + deviceAddress);
         }

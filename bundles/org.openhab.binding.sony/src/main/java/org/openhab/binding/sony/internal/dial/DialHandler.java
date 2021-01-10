@@ -18,22 +18,24 @@ import java.net.URISyntaxException;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
+import javax.ws.rs.client.ClientBuilder;
+
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.eclipse.smarthome.core.library.types.OnOffType;
-import org.eclipse.smarthome.core.thing.Channel;
-import org.eclipse.smarthome.core.thing.ChannelUID;
-import org.eclipse.smarthome.core.thing.Thing;
-import org.eclipse.smarthome.core.thing.ThingStatus;
-import org.eclipse.smarthome.core.thing.ThingStatusDetail;
-import org.eclipse.smarthome.core.thing.binding.builder.ThingBuilder;
-import org.eclipse.smarthome.core.types.Command;
-import org.eclipse.smarthome.core.types.State;
 import org.openhab.binding.sony.internal.AbstractThingHandler;
 import org.openhab.binding.sony.internal.LoginUnsuccessfulResponse;
 import org.openhab.binding.sony.internal.SonyUtil;
 import org.openhab.binding.sony.internal.ThingCallback;
+import org.openhab.core.library.types.OnOffType;
+import org.openhab.core.thing.Channel;
+import org.openhab.core.thing.ChannelUID;
+import org.openhab.core.thing.Thing;
+import org.openhab.core.thing.ThingStatus;
+import org.openhab.core.thing.ThingStatusDetail;
+import org.openhab.core.thing.binding.builder.ThingBuilder;
+import org.openhab.core.types.Command;
+import org.openhab.core.types.State;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,13 +53,17 @@ public class DialHandler extends AbstractThingHandler<DialConfig> {
     /** The protocol handler being used - will be null if not initialized. */
     private final AtomicReference<@Nullable DialProtocol<ThingCallback<String>>> protocolHandler = new AtomicReference<>();
 
+    /** The clientBuilder used in HttpRequest */
+    private final ClientBuilder clientBuilder;
+
     /**
      * Constructs the handler from the {@link Thing}.
      *
      * @param thing a non-null {@link Thing} the handler is for
      */
-    public DialHandler(final Thing thing) {
+    public DialHandler(final Thing thing, final ClientBuilder clientBuilder) {
         super(thing, DialConfig.class);
+        this.clientBuilder = clientBuilder;
     }
 
     @Override
@@ -166,7 +172,7 @@ public class DialHandler extends AbstractThingHandler<DialConfig> {
                         public void setProperty(final String propertyName, final @Nullable String propertyValue) {
                             getThing().setProperty(propertyName, propertyValue);
                         }
-                    });
+                    }, clientBuilder);
 
             SonyUtil.checkInterrupt();
             final LoginUnsuccessfulResponse response = localProtocolHandler.login();

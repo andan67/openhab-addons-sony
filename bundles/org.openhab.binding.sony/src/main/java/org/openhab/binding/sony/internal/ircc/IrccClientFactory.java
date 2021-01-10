@@ -20,6 +20,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+import javax.ws.rs.client.ClientBuilder;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -53,8 +55,8 @@ public class IrccClientFactory {
     public static final String SRV_IRCC_SERVICETYPE = "urn:schemas-sony-com:service:IRCC:1";
 
     /** The typical IRCC values for TV and blurays */
-    private static final String LIKELY_TVAVR_SCPD = "/sony/ircc/IRCCSCPD.xml";
-    private static final String LIKELY_TVAVR_IRCC = "/sony/ircc";
+    private static final String LIKELY_TVAVR_SCPD = "/sony/IRCC/IRCCSCPD.xml";
+    private static final String LIKELY_TVAVR_IRCC = "/sony/IRCC";
     private static final int LIKELY_BLURAY_PORT = 50001;
     private static final String LIKELY_BLURAY_SCPD = "/IRCCSCPD.xml";
     private static final String LIKELY_BLURAY_IRCC = "/upnp/control/IRCC";
@@ -69,9 +71,10 @@ public class IrccClientFactory {
      * @throws IOException if an IO exception occurs
      * @throws URISyntaxException if a URL has an incorrect syntax
      */
-    public static IrccClient get(final String irccUrl) throws IOException, URISyntaxException {
+    public static IrccClient get(final String irccUrl, final ClientBuilder clientBuilder)
+            throws IOException, URISyntaxException {
         Validate.notEmpty(irccUrl, "irccUrl cannot be empty");
-        return get(new URL(irccUrl));
+        return get(new URL(irccUrl), clientBuilder);
     }
 
     /**
@@ -81,20 +84,21 @@ public class IrccClientFactory {
      * @throws IOException if an IO exception occurs getting information from the client
      * @throws URISyntaxException if a URL has an incorrect syntax
      */
-    public static IrccClient get(final URL irccUrl) throws IOException, URISyntaxException {
+    public static IrccClient get(final URL irccUrl, final ClientBuilder clientBuilder)
+            throws IOException, URISyntaxException {
         Objects.requireNonNull(irccUrl, "irccUrl cannot be null");
 
         final Logger logger = LoggerFactory.getLogger(IrccClientFactory.class);
 
         if (StringUtils.isEmpty(irccUrl.getPath())) {
-            return getDefaultClient(irccUrl, logger);
+            return getDefaultClient(irccUrl, logger, clientBuilder);
         } else {
             try {
-                final IrccClient client = queryIrccClient(irccUrl, logger);
-                return client == null ? getDefaultClient(irccUrl, logger) : client;
+                final IrccClient client = queryIrccClient(irccUrl, logger, clientBuilder);
+                return client == null ? getDefaultClient(irccUrl, logger, clientBuilder) : client;
             } catch (final IOException | URISyntaxException e) {
                 logger.debug("Exception occurred querying IRCC client - trying default client: {}", e.getMessage(), e);
-                return getDefaultClient(irccUrl, logger);
+                return getDefaultClient(irccUrl, logger, clientBuilder);
             }
         }
     }
@@ -109,8 +113,8 @@ public class IrccClientFactory {
      * @throws URISyntaxException if a URL has an inccorect syntax
      * @throws MalformedURLException if a URL is malformed
      */
-    private static IrccClient getDefaultClient(final URL irccUrl, final Logger logger)
-            throws URISyntaxException, MalformedURLException {
+    private static IrccClient getDefaultClient(final URL irccUrl, final Logger logger,
+            final ClientBuilder clientBuilder) throws URISyntaxException, MalformedURLException {
         Objects.requireNonNull(irccUrl, "irccUrl cannot be null");
         Objects.requireNonNull(logger, "logger cannot be null");
 
@@ -127,7 +131,7 @@ public class IrccClientFactory {
         URL baseUrl = irccUrl;
 
         logger.debug("Testing Default IRCC client to see if it's a TV/AVR or BLURAY: {}{}", baseUrl, LIKELY_TVAVR_SCPD);
-        try (SonyHttpTransport transport = SonyTransportFactory.createHttpTransport(baseUrl)) {
+        try (SonyHttpTransport transport = SonyTransportFactory.createHttpTransport(baseUrl, clientBuilder)) {
             final HttpResponse tvavr = transport.executeGet(new URL(baseUrl, LIKELY_TVAVR_SCPD).toExternalForm());
 
             String irccScpdResponse = null;
@@ -186,12 +190,12 @@ public class IrccClientFactory {
      * @throws URISyntaxException if a URL has an inccorect syntax
      * @throws MalformedURLException if a URL is malformed
      */
-    private static IrccClient queryIrccClient(final URL irccUrl, final Logger logger)
+    private static IrccClient queryIrccClient(final URL irccUrl, final Logger logger, final ClientBuilder clientBuilder)
             throws IOException, URISyntaxException {
         Objects.requireNonNull(irccUrl, "irccUrl cannot be null");
         Objects.requireNonNull(logger, "logger cannot be null");
 
-        try (SonyHttpTransport transport = SonyTransportFactory.createHttpTransport(irccUrl)) {
+        try (SonyHttpTransport transport = SonyTransportFactory.createHttpTransport(irccUrl, clientBuilder)) {
             logger.debug("Querying IRCC client {}", irccUrl);
             final HttpResponse resp = transport.executeGet(irccUrl.toExternalForm());
             if (resp.getHttpCode() != HttpStatus.OK_200) {

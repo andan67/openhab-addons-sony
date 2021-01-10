@@ -16,12 +16,12 @@ import java.util.Collection;
 import java.util.Collections;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.eclipse.smarthome.core.types.Command;
 import org.openhab.binding.sony.internal.ThingCallback;
 import org.openhab.binding.sony.internal.scalarweb.ScalarWebChannel;
 import org.openhab.binding.sony.internal.scalarweb.ScalarWebChannelDescriptor;
 import org.openhab.binding.sony.internal.scalarweb.ScalarWebContext;
 import org.openhab.binding.sony.internal.scalarweb.models.ScalarWebService;
+import org.openhab.core.types.Command;
 
 /**
  * The implementation of the protocol is a generic placeholder protocol that provides no active channels

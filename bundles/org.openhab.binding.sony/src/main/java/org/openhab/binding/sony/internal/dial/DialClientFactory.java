@@ -19,6 +19,8 @@ import java.net.URL;
 import java.util.Collections;
 import java.util.Objects;
 
+import javax.ws.rs.client.ClientBuilder;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -49,7 +51,7 @@ public class DialClientFactory {
      * @return the {@link DialClient} if found, null otherwise
      * @throws IOException if an IO exception occurs getting the client
      */
-    public static @Nullable DialClient get(final String dialUrl) throws IOException {
+    public static @Nullable DialClient get(final String dialUrl, final ClientBuilder clientBuilder) throws IOException {
         Validate.notEmpty(dialUrl, "dialUrl cannot be empty");
 
         final Logger logger = LoggerFactory.getLogger(DialClientFactory.class);
@@ -61,7 +63,7 @@ public class DialClientFactory {
                 return createDefaultClient(dialUrl);
             } else {
                 logger.debug("Querying DIAL client: {}", dialUrl);
-                return queryDialClient(dialUrl, logger);
+                return queryDialClient(dialUrl, logger, clientBuilder);
             }
         } catch (final URISyntaxException e) {
             logger.debug("Malformed DIAL URL: {}", dialUrl, e);
@@ -93,12 +95,12 @@ public class DialClientFactory {
      * @throws URISyntaxException if a URI exception occurred
      * @throws IOException if an IO exception occurred
      */
-    private static @Nullable DialClient queryDialClient(final String dialUrl, final Logger logger)
-            throws URISyntaxException, IOException {
+    private static @Nullable DialClient queryDialClient(final String dialUrl, final Logger logger,
+            final ClientBuilder clientBuilder) throws URISyntaxException, IOException {
         Validate.notEmpty(dialUrl, "dialUrl cannot be empty");
         Objects.requireNonNull(logger, "logger cannot be null");
 
-        try (SonyHttpTransport transport = SonyTransportFactory.createHttpTransport(dialUrl)) {
+        try (SonyHttpTransport transport = SonyTransportFactory.createHttpTransport(dialUrl, clientBuilder)) {
             final HttpResponse resp = transport.executeGet(dialUrl);
             if (resp.getHttpCode() != HttpStatus.OK_200) {
                 throw resp.createException();

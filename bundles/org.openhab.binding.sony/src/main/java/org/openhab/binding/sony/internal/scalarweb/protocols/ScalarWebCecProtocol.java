@@ -18,8 +18,6 @@ import java.util.List;
 import java.util.Objects;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.eclipse.smarthome.core.library.types.OnOffType;
-import org.eclipse.smarthome.core.types.Command;
 import org.openhab.binding.sony.internal.ThingCallback;
 import org.openhab.binding.sony.internal.scalarweb.ScalarWebChannel;
 import org.openhab.binding.sony.internal.scalarweb.ScalarWebChannelDescriptor;
@@ -28,6 +26,8 @@ import org.openhab.binding.sony.internal.scalarweb.models.ScalarWebMethod;
 import org.openhab.binding.sony.internal.scalarweb.models.ScalarWebService;
 import org.openhab.binding.sony.internal.scalarweb.models.api.Enabled;
 import org.openhab.binding.sony.internal.scalarweb.models.api.PowerSyncMode;
+import org.openhab.core.library.types.OnOffType;
+import org.openhab.core.types.Command;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

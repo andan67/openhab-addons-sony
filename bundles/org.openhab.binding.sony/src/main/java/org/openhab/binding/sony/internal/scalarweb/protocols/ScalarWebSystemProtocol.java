@@ -16,30 +16,19 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 import java.net.URLDecoder;
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
-import java.util.TimeZone;
+
+import javax.ws.rs.client.ClientBuilder;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.http.HttpStatus;
-import org.eclipse.smarthome.core.library.types.DateTimeType;
-import org.eclipse.smarthome.core.library.types.OnOffType;
-import org.eclipse.smarthome.core.library.types.StringType;
-import org.eclipse.smarthome.core.library.unit.MetricPrefix;
-import org.eclipse.smarthome.core.library.unit.SmartHomeUnits;
-import org.eclipse.smarthome.core.thing.ThingStatus;
-import org.eclipse.smarthome.core.thing.ThingStatusDetail;
-import org.eclipse.smarthome.core.transform.TransformationException;
-import org.eclipse.smarthome.core.transform.TransformationService;
-import org.eclipse.smarthome.core.types.Command;
 import org.openhab.binding.sony.internal.SonyUtil;
 import org.openhab.binding.sony.internal.ThingCallback;
 import org.openhab.binding.sony.internal.ircc.IrccClientFactory;
@@ -75,6 +64,16 @@ import org.openhab.binding.sony.internal.scalarweb.models.api.SystemInformation;
 import org.openhab.binding.sony.internal.scalarweb.models.api.WolMode;
 import org.openhab.binding.sony.internal.transports.SonyHttpTransport;
 import org.openhab.binding.sony.internal.transports.SonyTransportFactory;
+import org.openhab.core.library.types.DateTimeType;
+import org.openhab.core.library.types.OnOffType;
+import org.openhab.core.library.types.StringType;
+import org.openhab.core.library.unit.MetricPrefix;
+import org.openhab.core.library.unit.Units;
+import org.openhab.core.thing.ThingStatus;
+import org.openhab.core.thing.ThingStatusDetail;
+import org.openhab.core.transform.TransformationException;
+import org.openhab.core.transform.TransformationService;
+import org.openhab.core.types.Command;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -141,6 +140,9 @@ class ScalarWebSystemProtocol<T extends ThingCallback<String>> extends AbstractS
     /** The url for the IRCC service */
     private final @Nullable String irccUrl;
 
+    /** The clientBuilder used in HttpRequest */
+    private final @Nullable ClientBuilder clientBuilder;
+
     /** The notifications that are enabled */
     private final NotificationHelper notificationHelper;
 
@@ -154,7 +156,8 @@ class ScalarWebSystemProtocol<T extends ThingCallback<String>> extends AbstractS
      * @param irccUrl the possibly null, possibly empty ircc url
      */
     ScalarWebSystemProtocol(final ScalarWebProtocolFactory<T> factory, final ScalarWebContext context,
-            final ScalarWebService service, final T callback, final @Nullable String irccUrl) {
+            final ScalarWebService service, final T callback, final @Nullable String irccUrl,
+            final ClientBuilder clientBuilder) {
         super(factory, context, service, callback);
 
         this.irccUrl = irccUrl;
@@ -162,6 +165,8 @@ class ScalarWebSystemProtocol<T extends ThingCallback<String>> extends AbstractS
         notificationHelper = new NotificationHelper(
                 enableNotifications(ScalarWebEvent.NOTIFYPOWERSTATUS, ScalarWebEvent.NOTIFYSTORAGESTATUS,
                         ScalarWebEvent.NOTIFYSETTINGSUPDATE, ScalarWebEvent.NOTIFYSWUPDATEINFO));
+
+        this.clientBuilder = clientBuilder;
     }
 
     @Override
@@ -276,7 +281,7 @@ class ScalarWebSystemProtocol<T extends ThingCallback<String>> extends AbstractS
 
     /**
      * Add the storage list descriptors
-     * 
+     *
      * @param descriptors a non-null, possibly empty list of descriptors to add too
      * @throws IOException if an IO exception occurs
      */
@@ -419,7 +424,7 @@ class ScalarWebSystemProtocol<T extends ThingCallback<String>> extends AbstractS
     /**
      * Gets the channel ID from a given storage URI (commonly 'storage:xxx'). If the scheme is "storage", simply use the
      * source part. If the scheme is not storage - then reformat to 'scheme-src'
-     * 
+     *
      * @param uri a non-null, non-empty URI
      * @return a channel id for the uri
      */
@@ -566,10 +571,7 @@ class ScalarWebSystemProtocol<T extends ThingCallback<String>> extends AbstractS
     private void refreshCurrentTime() {
         try {
             final CurrentTime ct = execute(ScalarWebMethod.GETCURRENTTIME).as(CurrentTime.class);
-            stateChanged(CURRENTTIME,
-                    new DateTimeType(
-                            ZonedDateTime.ofInstant(ct.getDateTime().toCalendar(Locale.getDefault()).toInstant(),
-                                    TimeZone.getDefault().toZoneId()).withFixedOffsetZone()));
+            stateChanged(CURRENTTIME, new DateTimeType(ct.getDateTime()));
         } catch (final IOException e) {
             logger.debug("Cannot get the current time: {}", e.getMessage());
         }
@@ -873,7 +875,7 @@ class ScalarWebSystemProtocol<T extends ThingCallback<String>> extends AbstractS
             logger.debug("IRCC URL was not specified in configuration");
         } else {
             try {
-                final IrccClient irccClient = IrccClientFactory.get(localIrccUrl);
+                final IrccClient irccClient = IrccClientFactory.get(localIrccUrl, clientBuilder);
                 final ScalarWebContext context = getContext();
                 String localCmd = cmd;
 
@@ -885,7 +887,7 @@ class ScalarWebSystemProtocol<T extends ThingCallback<String>> extends AbstractS
                     try {
                         code = localTransformService.transform(cmdMap, cmd);
 
-                        if (StringUtils.isNotBlank(code)) {
+                        if (code != null && StringUtils.isNotBlank(code)) {
                             logger.debug("Transformed {} with map file '{}' to {}", cmd, cmdMap, code);
 
                             try {
@@ -909,7 +911,7 @@ class ScalarWebSystemProtocol<T extends ThingCallback<String>> extends AbstractS
                 // Always use an http transport to execute soap
                 HttpResponse httpResponse;
                 try (final SonyHttpTransport httpTransport = SonyTransportFactory
-                        .createHttpTransport(irccClient.getBaseUrl().toExternalForm())) {
+                        .createHttpTransport(irccClient.getBaseUrl().toExternalForm(), clientBuilder)) {
                     // copy all the options from the parent one (authentication options)
                     getService().getTransport().getOptions().stream().forEach(o -> httpTransport.setOption(o));
                     httpResponse = irccClient.executeSoap(httpTransport, localCmd);
@@ -1009,7 +1011,7 @@ class ScalarWebSystemProtocol<T extends ThingCallback<String>> extends AbstractS
 
     /**
      * Called when a power state notification (v1.0) is received
-     * 
+     *
      * @param status a non-null power status notification
      */
     private void notifyPowerStatus(final PowerStatusResult_1_0 status) {
@@ -1019,7 +1021,7 @@ class ScalarWebSystemProtocol<T extends ThingCallback<String>> extends AbstractS
 
     /**
      * Called when a power state notification (v1.1) is received
-     * 
+     *
      * @param status a non-null power status notification
      */
     private void notifyPowerStatus(final PowerStatusResult_1_1 status) {
@@ -1029,7 +1031,7 @@ class ScalarWebSystemProtocol<T extends ThingCallback<String>> extends AbstractS
 
     /**
      * Called when a storage status notification (v1.1) is received
-     * 
+     *
      * @param item a non-null item
      */
     private void notifyStorageStatus(final StorageListItem_1_1 item) {
@@ -1049,24 +1051,24 @@ class ScalarWebSystemProtocol<T extends ThingCallback<String>> extends AbstractS
         stateChanged(ST_FORMATTABLE, id, SonyUtil.newStringType(item.getFormattable()));
         stateChanged(ST_FORMATTING, id, SonyUtil.newStringType(item.getFormatting()));
         stateChanged(ST_FREECAPACITYMB, id,
-                SonyUtil.newQuantityType(item.getFreeCapacityMB(), MetricPrefix.MEGA(SmartHomeUnits.BYTE)));
+                SonyUtil.newQuantityType(item.getFreeCapacityMB(), MetricPrefix.MEGA(Units.BYTE)));
         stateChanged(ST_ISAVAILABLE, id, SonyUtil.newStringType(item.getIsAvailable()));
         stateChanged(ST_LUN, id, SonyUtil.newDecimalType(item.getLun()));
         stateChanged(ST_MOUNTED, id, SonyUtil.newStringType(item.getMounted()));
         stateChanged(ST_PERMISSION, id, SonyUtil.newStringType(item.getPermission()));
         stateChanged(ST_POSITION, id, SonyUtil.newStringType(item.getPosition()));
         stateChanged(ST_SYSTEMAREACAPACITYMB,
-                SonyUtil.newQuantityType(item.getSystemAreaCapacityMB(), MetricPrefix.MEGA(SmartHomeUnits.BYTE)));
+                SonyUtil.newQuantityType(item.getSystemAreaCapacityMB(), MetricPrefix.MEGA(Units.BYTE)));
         stateChanged(ST_TYPE, id, SonyUtil.newStringType(item.getType()));
         stateChanged(ST_URI, id, SonyUtil.newStringType(uri));
         stateChanged(ST_VOLUMELABEL, id, SonyUtil.newStringType(item.getVolumeLabel()));
         stateChanged(ST_WHOLECAPACITYMB, id,
-                SonyUtil.newQuantityType(item.getWholeCapacityMB(), MetricPrefix.MEGA(SmartHomeUnits.BYTE)));
+                SonyUtil.newQuantityType(item.getWholeCapacityMB(), MetricPrefix.MEGA(Units.BYTE)));
     }
 
     /**
      * Called when a storage status notification (v1.2) is received
-     * 
+     *
      * @param item a non-null item
      */
     private void notifyStorageStatus(final StorageListItem_1_2 item) {
@@ -1088,7 +1090,7 @@ class ScalarWebSystemProtocol<T extends ThingCallback<String>> extends AbstractS
         stateChanged(ST_FORMATSTATUS, id, SonyUtil.newStringType(item.getFormatStatus()));
         stateChanged(ST_FORMATTABLE, id, SonyUtil.newStringType(item.getFormattable()));
         stateChanged(ST_FREECAPACITYMB, id,
-                SonyUtil.newQuantityType(item.getFreeCapacityMB(), MetricPrefix.MEGA(SmartHomeUnits.BYTE)));
+                SonyUtil.newQuantityType(item.getFreeCapacityMB(), MetricPrefix.MEGA(Units.BYTE)));
         stateChanged(ST_HASNONSTANDARDDATA, id, SonyUtil.newStringType(item.getHasNonStandardData()));
         stateChanged(ST_HASUNSUPPORTEDCONTENTS, id, SonyUtil.newStringType(item.getHasUnsupportedContents()));
         stateChanged(ST_ISAVAILABLE, id, SonyUtil.newStringType(item.getIsAvailable()));
@@ -1105,22 +1107,21 @@ class ScalarWebSystemProtocol<T extends ThingCallback<String>> extends AbstractS
         stateChanged(ST_PROTOCOL, id, SonyUtil.newStringType(item.getProtocol()));
         stateChanged(ST_REGISTRATIONDATE, id, SonyUtil.newStringType(item.getRegistrationDate()));
         stateChanged(ST_SYSTEMAREACAPACITYMB, id,
-                SonyUtil.newQuantityType(item.getSystemAreaCapacityMB(), MetricPrefix.MEGA(SmartHomeUnits.BYTE)));
-        stateChanged(ST_TIMESECTOFINALIZE, id,
-                SonyUtil.newQuantityType(item.getTimeSecToFinalize(), SmartHomeUnits.SECOND));
+                SonyUtil.newQuantityType(item.getSystemAreaCapacityMB(), MetricPrefix.MEGA(Units.BYTE)));
+        stateChanged(ST_TIMESECTOFINALIZE, id, SonyUtil.newQuantityType(item.getTimeSecToFinalize(), Units.SECOND));
         stateChanged(ST_TIMESECTOGETCONTENTS, id,
-                SonyUtil.newQuantityType(item.getTimeSecToGetContents(), SmartHomeUnits.SECOND));
+                SonyUtil.newQuantityType(item.getTimeSecToGetContents(), Units.SECOND));
         stateChanged(ST_TYPE, id, SonyUtil.newStringType(item.getType()));
         stateChanged(ST_URI, id, SonyUtil.newStringType(uri));
         stateChanged(ST_USBDEVICETYPE, id, SonyUtil.newStringType(item.getUsbDeviceType()));
         stateChanged(ST_VOLUMELABEL, id, SonyUtil.newStringType(item.getVolumeLabel()));
         stateChanged(ST_WHOLECAPACITYMB, id,
-                SonyUtil.newQuantityType(item.getWholeCapacityMB(), MetricPrefix.MEGA(SmartHomeUnits.BYTE)));
+                SonyUtil.newQuantityType(item.getWholeCapacityMB(), MetricPrefix.MEGA(Units.BYTE)));
     }
 
     /**
      * Called when a software update notification has been done
-     * 
+     *
      * @param update a non-null software update
      */
     private void notifySoftwareUpdate(final SoftwareUpdate update) {

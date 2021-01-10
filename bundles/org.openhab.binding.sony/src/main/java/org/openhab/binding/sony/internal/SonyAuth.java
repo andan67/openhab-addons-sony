@@ -46,7 +46,7 @@ import com.google.gson.Gson;
 
 /**
  * This class contains all the logic to authorized against a sony device (either Scalar or IRCC)
- * 
+ *
  * @author Tim Roberts - Initial contribution
  */
 @NonNullByDefault
@@ -61,14 +61,14 @@ public class SonyAuth {
     private final @Nullable IrccClientProvider irccClientProvider;
 
     /** The activation URL */
-    private final String activationUrl;
+    private final @Nullable String activationUrl;
 
     /** The activation URL version */
     private final String activationVersion;
 
     /**
      * Constructs the authentication from a SCALAR URL
-     * 
+     *
      * @param url a non-null URL
      */
     public SonyAuth(final URL url) {
@@ -81,7 +81,7 @@ public class SonyAuth {
 
     /**
      * Constructs the authentication with a callback for a IRCC client
-     * 
+     *
      * @param irccClientProvider a non-null callback
      */
     public SonyAuth(final IrccClientProvider irccClientProvider) {
@@ -90,7 +90,7 @@ public class SonyAuth {
 
     /**
      * Constructs the authentication witha callback for a IRCC client and a scalar access control service
-     * 
+     *
      * @param getIrccClient a non-null IRCC client
      * @param accessControlService a possibly null access control service
      */
@@ -112,7 +112,7 @@ public class SonyAuth {
 
     /**
      * Helper method to get the device id header name (X-CERS-DEVICE-ID generally)
-     * 
+     *
      * @return a non-null device id header name
      */
     private String getDeviceIdHeaderName() {
@@ -124,7 +124,7 @@ public class SonyAuth {
 
     /**
      * Helper method to get the IRCC registration mode (or null if none)
-     * 
+     *
      * @return a integer specifying the registration mode or null if none
      */
     private @Nullable Integer getRegistrationMode() {
@@ -134,7 +134,7 @@ public class SonyAuth {
 
     /**
      * Helper method to get the IRCC registration URL (or null if none)
-     * 
+     *
      * @return a non-empty URL if found, null if not
      */
     private @Nullable String getRegistrationUrl() {
@@ -145,7 +145,7 @@ public class SonyAuth {
 
     /**
      * Helper method to get the IRCC activation URL (or null if none)
-     * 
+     *
      * @return a non-empty URL if found, null if not
      */
     private @Nullable String getActivationUrl() {
@@ -304,7 +304,7 @@ public class SonyAuth {
 
     /**
      * Helper method to initiate an IRCC renewal
-     * 
+     *
      * @param transport a non-null transport to use
      * @return the non-null HttpResponse of the renewal
      */
@@ -355,7 +355,7 @@ public class SonyAuth {
 
     /**
      * Sets the authentication header for all specified transports (generally used for preshared keys)
-     * 
+     *
      * @param accessCode a non-null, non-empty access code
      * @param transports the transports to set header authentication
      */
@@ -369,7 +369,7 @@ public class SonyAuth {
 
     /**
      * Sets up cookie authorization on all specified transports
-     * 
+     *
      * @param transports the transports to set cookie authentication
      */
     public static void setupCookie(final SonyTransport... transports) {
@@ -385,7 +385,7 @@ public class SonyAuth {
     public interface IrccClientProvider {
         /**
          * Called when an IRCC client is needed
-         * 
+         *
          * @return a potentially null IRCC client
          */
         @Nullable

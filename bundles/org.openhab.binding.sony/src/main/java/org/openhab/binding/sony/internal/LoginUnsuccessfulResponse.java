@@ -16,7 +16,7 @@ import java.util.Objects;
 
 import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.eclipse.smarthome.core.thing.ThingStatusDetail;
+import org.openhab.core.thing.ThingStatusDetail;
 
 /**
  * This class represents a login response to a sony device if the login was unsuccessful

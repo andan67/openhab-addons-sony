@@ -25,16 +25,13 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import javax.ws.rs.client.ClientBuilder;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.WordUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.eclipse.smarthome.core.library.types.OnOffType;
-import org.eclipse.smarthome.core.library.types.RawType;
-import org.eclipse.smarthome.core.library.types.StringType;
-import org.eclipse.smarthome.core.types.Command;
-import org.eclipse.smarthome.core.types.UnDefType;
 import org.openhab.binding.sony.internal.SonyUtil;
 import org.openhab.binding.sony.internal.ThingCallback;
 import org.openhab.binding.sony.internal.net.NetUtil;
@@ -50,6 +47,11 @@ import org.openhab.binding.sony.internal.scalarweb.models.api.TextFormResult;
 import org.openhab.binding.sony.internal.scalarweb.models.api.WebAppStatus;
 import org.openhab.binding.sony.internal.transports.SonyHttpTransport;
 import org.openhab.binding.sony.internal.transports.SonyTransportFactory;
+import org.openhab.core.library.types.OnOffType;
+import org.openhab.core.library.types.RawType;
+import org.openhab.core.library.types.StringType;
+import org.openhab.core.types.Command;
+import org.openhab.core.types.UnDefType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -98,6 +100,9 @@ class ScalarWebAppControlProtocol<T extends ThingCallback<String>> extends Abstr
     /** The active app. */
     private @Nullable WebAppStatus webAppStatus = null;
 
+    /** The clientBuilder used in HttpRequest */
+    private final @Nullable ClientBuilder clientBuilder;
+
     /**
      * Instantiates a new scalar web app control protocol.
      *
@@ -107,8 +112,9 @@ class ScalarWebAppControlProtocol<T extends ThingCallback<String>> extends Abstr
      * @param callback the non-null callback to use
      */
     ScalarWebAppControlProtocol(final ScalarWebProtocolFactory<T> factory, final ScalarWebContext context,
-            final ScalarWebService service, final T callback) {
+            final ScalarWebService service, final T callback, final ClientBuilder clientBuilder) {
         super(factory, context, service, callback);
+        this.clientBuilder = clientBuilder;
     }
 
     @Override
@@ -344,7 +350,7 @@ class ScalarWebAppControlProtocol<T extends ThingCallback<String>> extends Abstr
                 callback.stateChanged(channelId, UnDefType.UNDEF);
             } else {
                 try (SonyHttpTransport transport = SonyTransportFactory
-                        .createHttpTransport(getService().getTransport().getBaseUri().toString())) {
+                        .createHttpTransport(getService().getTransport().getBaseUri().toString(), clientBuilder)) {
                     final RawType rawType = NetUtil.getRawType(transport, iconUrl);
                     callback.stateChanged(channelId, rawType == null ? UnDefType.UNDEF : rawType);
                 } catch (final URISyntaxException e) {

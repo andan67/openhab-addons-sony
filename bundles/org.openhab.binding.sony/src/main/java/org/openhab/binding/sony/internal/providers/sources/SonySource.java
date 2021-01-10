@@ -16,13 +16,13 @@ import java.util.Collection;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.eclipse.smarthome.core.thing.ThingTypeUID;
-import org.eclipse.smarthome.core.thing.type.ChannelGroupType;
-import org.eclipse.smarthome.core.thing.type.ChannelGroupTypeUID;
-import org.eclipse.smarthome.core.thing.type.ThingType;
 import org.openhab.binding.sony.internal.providers.SonyModelProvider;
 import org.openhab.binding.sony.internal.providers.models.SonyDeviceCapability;
 import org.openhab.binding.sony.internal.providers.models.SonyThingDefinition;
+import org.openhab.core.thing.ThingTypeUID;
+import org.openhab.core.thing.type.ChannelGroupType;
+import org.openhab.core.thing.type.ChannelGroupTypeUID;
+import org.openhab.core.thing.type.ThingType;
 
 /**
  * This interface defines the contract for a sony thing type source.

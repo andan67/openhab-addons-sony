@@ -20,7 +20,6 @@ import java.util.Objects;
 
 import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.eclipse.smarthome.core.types.Command;
 import org.openhab.binding.sony.internal.SonyUtil;
 import org.openhab.binding.sony.internal.ThingCallback;
 import org.openhab.binding.sony.internal.scalarweb.ScalarWebChannel;
@@ -34,6 +33,7 @@ import org.openhab.binding.sony.internal.scalarweb.models.api.Mode;
 import org.openhab.binding.sony.internal.scalarweb.models.api.Position;
 import org.openhab.binding.sony.internal.scalarweb.models.api.Screen;
 import org.openhab.binding.sony.internal.scalarweb.models.api.Value;
+import org.openhab.core.types.Command;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

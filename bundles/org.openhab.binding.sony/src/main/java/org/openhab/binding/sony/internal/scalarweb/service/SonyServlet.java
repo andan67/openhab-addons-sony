@@ -23,19 +23,20 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.ws.rs.client.ClientBuilder;
 
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.websocket.client.WebSocketClient;
-import org.eclipse.smarthome.core.common.ThreadPoolManager;
-import org.eclipse.smarthome.io.net.http.WebSocketFactory;
 import org.openhab.binding.sony.internal.scalarweb.gson.GsonUtilities;
 import org.openhab.binding.sony.internal.scalarweb.models.ScalarWebRequest;
 import org.openhab.binding.sony.internal.scalarweb.models.ScalarWebResult;
 import org.openhab.binding.sony.internal.transports.SonyTransport;
 import org.openhab.binding.sony.internal.transports.SonyTransportFactory;
 import org.openhab.binding.sony.internal.transports.TransportOptionAutoAuth;
+import org.openhab.core.common.ThreadPoolManager;
+import org.openhab.core.io.net.http.WebSocketFactory;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
@@ -76,6 +77,9 @@ public class SonyServlet extends HttpServlet {
     /** The websocket client to use */
     private final WebSocketClient webSocketClient;
 
+    /** The clientBuilder used in HttpRequest */
+    private final ClientBuilder clientBuilder;
+
     /** The GSON to use for serialization */
     private final Gson gson = GsonUtilities.getApiGson();
 
@@ -89,12 +93,14 @@ public class SonyServlet extends HttpServlet {
      * @param httpService a non-null http service
      */
     @Activate
-    public SonyServlet(final @Reference WebSocketFactory webSocketFactory, final @Reference HttpService httpService) {
+    public SonyServlet(final @Reference WebSocketFactory webSocketFactory, final @Reference HttpService httpService,
+            final @Reference ClientBuilder clientBuilder) {
         Objects.requireNonNull(webSocketFactory, "webSocketFactory cannot be null");
         Objects.requireNonNull(httpService, "httpService cannot be null");
 
         this.webSocketClient = webSocketFactory.getCommonWebSocketClient();
         this.httpService = httpService;
+        this.clientBuilder = clientBuilder;
     }
 
     @Activate
@@ -157,7 +163,7 @@ public class SonyServlet extends HttpServlet {
         }
 
         final SonyTransportFactory factory = new SonyTransportFactory(new URL(baseUrl), gson, webSocketClient,
-                scheduler);
+                scheduler, clientBuilder);
 
         try (final SonyTransport transport = factory.getSonyTransport(serviceName, transportName)) {
             if (transport == null) {

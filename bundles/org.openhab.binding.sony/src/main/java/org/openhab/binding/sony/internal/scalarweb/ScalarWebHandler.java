@@ -1,13 +1,13 @@
 /**
  * Copyright (c) 2010-2020 Contributors to the openHAB project
- *
+ * <p>
  * See the NOTICE file(s) distributed with this work for additional
  * information.
- *
+ * <p>
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License 2.0 which is available at
  * http://www.eclipse.org/legal/epl-2.0
- *
+ * <p>
  * SPDX-License-Identifier: EPL-2.0
  */
 package org.openhab.binding.sony.internal.scalarweb;
@@ -23,26 +23,13 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import javax.ws.rs.client.ClientBuilder;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.websocket.client.WebSocketClient;
-import org.eclipse.smarthome.config.core.Configuration;
-import org.eclipse.smarthome.core.thing.Channel;
-import org.eclipse.smarthome.core.thing.ChannelUID;
-import org.eclipse.smarthome.core.thing.Thing;
-import org.eclipse.smarthome.core.thing.ThingStatus;
-import org.eclipse.smarthome.core.thing.ThingStatusDetail;
-import org.eclipse.smarthome.core.thing.ThingTypeUID;
-import org.eclipse.smarthome.core.thing.ThingUID;
-import org.eclipse.smarthome.core.thing.binding.builder.ThingBuilder;
-import org.eclipse.smarthome.core.thing.type.ChannelKind;
-import org.eclipse.smarthome.core.transform.TransformationService;
-import org.eclipse.smarthome.core.types.Command;
-import org.eclipse.smarthome.core.types.RefreshType;
-import org.eclipse.smarthome.core.types.State;
 import org.openhab.binding.sony.internal.AbstractThingHandler;
 import org.openhab.binding.sony.internal.AccessResult;
 import org.openhab.binding.sony.internal.SonyBindingConstants;
@@ -58,6 +45,20 @@ import org.openhab.binding.sony.internal.scalarweb.models.ScalarWebService;
 import org.openhab.binding.sony.internal.scalarweb.protocols.ScalarWebLoginProtocol;
 import org.openhab.binding.sony.internal.scalarweb.protocols.ScalarWebProtocol;
 import org.openhab.binding.sony.internal.scalarweb.protocols.ScalarWebProtocolFactory;
+import org.openhab.core.config.core.Configuration;
+import org.openhab.core.thing.Channel;
+import org.openhab.core.thing.ChannelUID;
+import org.openhab.core.thing.Thing;
+import org.openhab.core.thing.ThingStatus;
+import org.openhab.core.thing.ThingStatusDetail;
+import org.openhab.core.thing.ThingTypeUID;
+import org.openhab.core.thing.ThingUID;
+import org.openhab.core.thing.binding.builder.ThingBuilder;
+import org.openhab.core.thing.type.ChannelKind;
+import org.openhab.core.transform.TransformationService;
+import org.openhab.core.types.Command;
+import org.openhab.core.types.RefreshType;
+import org.openhab.core.types.State;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
@@ -70,38 +71,65 @@ import org.xml.sax.SAXException;
  */
 @NonNullByDefault
 public class ScalarWebHandler extends AbstractThingHandler<ScalarWebConfig> {
-    /** The logger */
+    /**
+     * The logger
+     */
     private final Logger logger = LoggerFactory.getLogger(ScalarWebHandler.class);
 
-    /** The tracker */
+    /**
+     * The tracker
+     */
     private final ScalarWebChannelTracker tracker = new ScalarWebChannelTracker();
 
-    /** The protocol handler being used - will be null if not initialized. */
+    /**
+     * The protocol handler being used - will be null if not initialized.
+     */
     private final AtomicReference<@Nullable ScalarWebClient> scalarClient = new AtomicReference<>(null);
 
-    /** The protocol handler being used - will be null if not initialized. */
+    /**
+     * The protocol handler being used - will be null if not initialized.
+     */
     private final AtomicReference<@Nullable ScalarWebProtocolFactory<ThingCallback<String>>> protocolFactory = new AtomicReference<>(
             null);
 
-    /** The thing callback */
+    /**
+     * The thing callback
+     */
     private final ThingCallback<String> callback;
 
-    /** The transformation service to use */
+    /**
+     * The transformation service to use
+     */
     private final @Nullable TransformationService transformationService;
 
-    /** The websocket client to use */
+    /**
+     * The websocket client to use
+     */
     private final WebSocketClient webSocketClient;
 
-    /** The definition provider to use */
+    /**
+     * The clientBuilder used in HttpRequest
+     */
+    private final ClientBuilder clientBuilder;
+
+    /**
+     * The definition provider to use
+     */
     private final SonyDefinitionProvider sonyDefinitionProvider;
 
-    /** The dynamic state provider to use */
+    /**
+     * The dynamic state provider to use
+     */
     private final SonyDynamicStateProvider sonyDynamicStateProvider;
 
-    /** The definition listener */
+    /**
+     * The definition listener
+     */
     private final DefinitionListener definitionListener = new DefinitionListener();
 
-    /** The OSGI properties for things */
+    /**
+     * The OSGI properties for things
+     */
     private final Map<String, String> osgiProperties;
 
     /**
@@ -116,7 +144,8 @@ public class ScalarWebHandler extends AbstractThingHandler<ScalarWebConfig> {
      */
     public ScalarWebHandler(final Thing thing, final @Nullable TransformationService transformationService,
             final WebSocketClient webSocketClient, final SonyDefinitionProvider sonyDefinitionProvider,
-            final SonyDynamicStateProvider sonyDynamicStateProvider, final Map<String, String> osgiProperties) {
+            final SonyDynamicStateProvider sonyDynamicStateProvider, final Map<String, String> osgiProperties,
+            final ClientBuilder clientBuilder) {
         super(thing, ScalarWebConfig.class);
 
         Objects.requireNonNull(thing, "thing cannot be null");
@@ -130,6 +159,7 @@ public class ScalarWebHandler extends AbstractThingHandler<ScalarWebConfig> {
         this.sonyDefinitionProvider = sonyDefinitionProvider;
         this.sonyDynamicStateProvider = sonyDynamicStateProvider;
         this.osgiProperties = osgiProperties;
+        this.clientBuilder = clientBuilder;
 
         callback = new ThingCallback<String>() {
             @Override
@@ -189,7 +219,7 @@ public class ScalarWebHandler extends AbstractThingHandler<ScalarWebConfig> {
 
     /**
      * Handles a command from the system. This will determine the protocol to send the command to
-     * 
+     *
      * @param channelUID a non-null channel UID
      * @param command a non-null command
      */
@@ -242,18 +272,18 @@ public class ScalarWebHandler extends AbstractThingHandler<ScalarWebConfig> {
             final ScalarWebContext context = new ScalarWebContext(() -> getThing(), config, tracker, scheduler,
                     sonyDynamicStateProvider, webSocketClient, transformationService, osgiProperties);
 
-            final ScalarWebClient client = ScalarWebClientFactory.get(scalarWebUrl, context);
+            final ScalarWebClient client = ScalarWebClientFactory.get(scalarWebUrl, context, clientBuilder);
             scalarClient.set(client);
 
             final ScalarWebLoginProtocol<ThingCallback<String>> loginHandler = new ScalarWebLoginProtocol<>(client,
-                    config, callback, transformationService);
+                    config, callback, transformationService, clientBuilder);
 
             final AccessResult result = loginHandler.login();
             SonyUtil.checkInterrupt();
 
             if (result == AccessResult.OK) {
                 final ScalarWebProtocolFactory<ThingCallback<String>> factory = new ScalarWebProtocolFactory<>(context,
-                        client, callback);
+                        client, callback, clientBuilder);
 
                 SonyUtil.checkInterrupt();
 

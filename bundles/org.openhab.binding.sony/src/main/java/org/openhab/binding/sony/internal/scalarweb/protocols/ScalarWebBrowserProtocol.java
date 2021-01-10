@@ -1,13 +1,13 @@
 /**
  * Copyright (c) 2010-2020 Contributors to the openHAB project
- *
+ * <p>
  * See the NOTICE file(s) distributed with this work for additional
  * information.
- *
+ * <p>
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License 2.0 which is available at
  * http://www.eclipse.org/legal/epl-2.0
- *
+ * <p>
  * SPDX-License-Identifier: EPL-2.0
  */
 package org.openhab.binding.sony.internal.scalarweb.protocols;
@@ -19,14 +19,12 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
+import javax.ws.rs.client.ClientBuilder;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.eclipse.smarthome.core.library.types.RawType;
-import org.eclipse.smarthome.core.library.types.StringType;
-import org.eclipse.smarthome.core.types.Command;
-import org.eclipse.smarthome.core.types.UnDefType;
 import org.openhab.binding.sony.internal.SonyUtil;
 import org.openhab.binding.sony.internal.ThingCallback;
 import org.openhab.binding.sony.internal.net.NetUtil;
@@ -40,19 +38,25 @@ import org.openhab.binding.sony.internal.scalarweb.models.api.BrowserControl;
 import org.openhab.binding.sony.internal.scalarweb.models.api.TextUrl;
 import org.openhab.binding.sony.internal.transports.SonyHttpTransport;
 import org.openhab.binding.sony.internal.transports.SonyTransportFactory;
+import org.openhab.core.library.types.RawType;
+import org.openhab.core.library.types.StringType;
+import org.openhab.core.types.Command;
+import org.openhab.core.types.UnDefType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * The implementation of the protocol handles the Browser service
  *
- * @author Tim Roberts - Initial contribution
  * @param <T> the generic type for the callback
+ * @author Tim Roberts - Initial contribution
  */
 @NonNullByDefault
 class ScalarWebBrowserProtocol<T extends ThingCallback<String>> extends AbstractScalarWebProtocol<T> {
 
-    /** The logger */
+    /**
+     * The logger
+     */
     private final Logger logger = LoggerFactory.getLogger(ScalarWebBrowserProtocol.class);
 
     // Constants used by this protocol
@@ -63,6 +67,11 @@ class ScalarWebBrowserProtocol<T extends ThingCallback<String>> extends Abstract
     private static final String TEXTFAVICON = "textfavicon";
 
     /**
+     * The clientBuilder used in HttpRequest
+     */
+    private ClientBuilder clientBuilder;
+
+    /**
      * Instantiates a new scalar web browser protocol.
      *
      * @param factory the non-null factory
@@ -71,8 +80,9 @@ class ScalarWebBrowserProtocol<T extends ThingCallback<String>> extends Abstract
      * @param callback the non-null callback
      */
     ScalarWebBrowserProtocol(final ScalarWebProtocolFactory<T> factory, final ScalarWebContext context,
-            final ScalarWebService service, final T callback) {
+            final ScalarWebService service, final T callback, final ClientBuilder clientBuilder) {
         super(factory, context, service, callback);
+        this.clientBuilder = clientBuilder;
     }
 
     @Override
@@ -156,7 +166,7 @@ class ScalarWebBrowserProtocol<T extends ThingCallback<String>> extends Abstract
                 callback.stateChanged(TEXTFAVICON, UnDefType.UNDEF);
             } else {
                 try (SonyHttpTransport transport = SonyTransportFactory
-                        .createHttpTransport(getService().getTransport().getBaseUri().toString())) {
+                        .createHttpTransport(getService().getTransport().getBaseUri().toString(), clientBuilder)) {
                     final RawType rawType = NetUtil.getRawType(transport, iconUrl);
                     callback.stateChanged(TEXTFAVICON, rawType == null ? UnDefType.UNDEF : rawType);
                 } catch (final URISyntaxException e) {

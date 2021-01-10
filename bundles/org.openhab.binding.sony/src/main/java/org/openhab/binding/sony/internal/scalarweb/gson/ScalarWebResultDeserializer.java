@@ -15,7 +15,6 @@ package org.openhab.binding.sony.internal.scalarweb.gson;
 import java.lang.reflect.Type;
 import java.util.Objects;
 
-import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.sony.internal.scalarweb.models.ScalarWebResult;
 
@@ -30,9 +29,7 @@ import com.google.gson.JsonParseException;
  *
  * @author Tim Roberts - Initial contribution
  */
-@NonNullByDefault
 public class ScalarWebResultDeserializer implements JsonDeserializer<ScalarWebResult> {
-    @Override
     public ScalarWebResult deserialize(final @Nullable JsonElement je, final @Nullable Type type,
             final @Nullable JsonDeserializationContext context) throws JsonParseException {
         Objects.requireNonNull(je, "je cannot be null");

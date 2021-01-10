@@ -20,6 +20,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import javax.ws.rs.client.ClientBuilder;
+
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -59,11 +61,12 @@ public class SonyHttpTransport extends AbstractSonyTransport {
      * @param gson a non-null GSON to use for serialzation
      * @throws URISyntaxException if the base URL has a bad syntax
      */
-    public SonyHttpTransport(final String baseUrl, final Gson gson) throws URISyntaxException {
+    public SonyHttpTransport(final String baseUrl, final Gson gson, final ClientBuilder clientBuilder)
+            throws URISyntaxException {
         super(new URI(baseUrl));
         Objects.requireNonNull(gson, "gson cannot be null");
 
-        requestor = new HttpRequest();
+        requestor = new HttpRequest(clientBuilder);
 
         requestor.addHeader("User-Agent", SonyBindingConstants.NET_USERAGENT);
         requestor.addHeader("X-CERS-DEVICE-INFO", SonyBindingConstants.NET_USERAGENT);
@@ -75,7 +78,7 @@ public class SonyHttpTransport extends AbstractSonyTransport {
             final boolean authNeeded = getOptions(TransportOptionAutoAuth.class).stream()
                     .anyMatch(e -> e == TransportOptionAutoAuth.TRUE);
             return authNeeded;
-        }));
+        }, clientBuilder));
         this.setOption(TransportOptionAutoAuth.FALSE);
 
         this.gson = gson;

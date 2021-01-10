@@ -16,14 +16,11 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.Objects;
 
+import javax.ws.rs.client.ClientBuilder;
+
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.eclipse.smarthome.config.discovery.DiscoveryResult;
-import org.eclipse.smarthome.config.discovery.DiscoveryResultBuilder;
-import org.eclipse.smarthome.config.discovery.upnp.UpnpDiscoveryParticipant;
-import org.eclipse.smarthome.core.thing.ThingTypeUID;
-import org.eclipse.smarthome.core.thing.ThingUID;
 import org.jupnp.model.meta.RemoteDevice;
 import org.jupnp.model.meta.RemoteDeviceIdentity;
 import org.jupnp.model.meta.RemoteService;
@@ -35,6 +32,11 @@ import org.openhab.binding.sony.internal.UidUtils;
 import org.openhab.binding.sony.internal.dial.models.DialClient;
 import org.openhab.binding.sony.internal.net.NetUtil;
 import org.openhab.binding.sony.internal.providers.SonyDefinitionProvider;
+import org.openhab.core.config.discovery.DiscoveryResult;
+import org.openhab.core.config.discovery.DiscoveryResultBuilder;
+import org.openhab.core.config.discovery.upnp.UpnpDiscoveryParticipant;
+import org.openhab.core.thing.ThingTypeUID;
+import org.openhab.core.thing.ThingUID;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -47,14 +49,20 @@ import org.osgi.service.component.annotations.Reference;
 @NonNullByDefault
 @Component(immediate = true, configurationPid = "discovery.sony-dial")
 public class DialDiscoveryParticipant extends AbstractDiscoveryParticipant implements UpnpDiscoveryParticipant {
+
+    /** The clientBuilder used in HttpRequest */
+    private final ClientBuilder clientBuilder;
+
     /**
      * Creates the discovery participant
      * 
      * @param sonyDefinitionProvider a non-null sony definition provider
      */
     @Activate
-    public DialDiscoveryParticipant(final @Reference SonyDefinitionProvider sonyDefinitionProvider) {
+    public DialDiscoveryParticipant(final @Reference SonyDefinitionProvider sonyDefinitionProvider,
+            final @Reference ClientBuilder clientBuilder) {
         super(SonyBindingConstants.DIAL_THING_TYPE_PREFIX, sonyDefinitionProvider);
+        this.clientBuilder = clientBuilder;
     }
 
     @Override
@@ -80,7 +88,7 @@ public class DialDiscoveryParticipant extends AbstractDiscoveryParticipant imple
 
         String deviceId;
         try {
-            final DialClient dialClient = DialClientFactory.get(dialURL.toString());
+            final DialClient dialClient = DialClientFactory.get(dialURL.toString(), clientBuilder);
             if (dialClient == null || !dialClient.hasDialService()) {
                 logger.debug(
                         "DIAL device couldn't be created or didn't implement any device information - ignoring: {}",

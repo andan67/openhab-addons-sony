@@ -19,6 +19,8 @@ import java.util.TreeMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.stream.Collectors;
 
+import javax.ws.rs.client.ClientBuilder;
+
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
@@ -52,7 +54,8 @@ public class ScalarWebProtocolFactory<T extends ThingCallback<String>> implement
      * @param client the non-null state
      * @param callback the non-null callback
      */
-    public ScalarWebProtocolFactory(final ScalarWebContext context, final ScalarWebClient client, final T callback) {
+    public ScalarWebProtocolFactory(final ScalarWebContext context, final ScalarWebClient client, final T callback,
+            final ClientBuilder clientBuilder) {
         Objects.requireNonNull(context, "context cannot be null");
         Objects.requireNonNull(client, "client cannot be null");
         Objects.requireNonNull(callback, "callback cannot be null");
@@ -62,7 +65,7 @@ public class ScalarWebProtocolFactory<T extends ThingCallback<String>> implement
             switch (serviceName) {
                 case ScalarWebService.APPCONTROL:
                     protocols.put(ScalarWebService.APPCONTROL,
-                            new ScalarWebAppControlProtocol<T>(this, context, service, callback));
+                            new ScalarWebAppControlProtocol<T>(this, context, service, callback, clientBuilder));
                     break;
                 case ScalarWebService.AUDIO:
                     protocols.put(ScalarWebService.AUDIO,
@@ -71,12 +74,12 @@ public class ScalarWebProtocolFactory<T extends ThingCallback<String>> implement
 
                 case ScalarWebService.AVCONTENT:
                     protocols.put(ScalarWebService.AVCONTENT,
-                            new ScalarWebAvContentProtocol<T>(this, context, service, callback));
+                            new ScalarWebAvContentProtocol<T>(this, context, service, callback, clientBuilder));
                     break;
 
                 case ScalarWebService.BROWSER:
                     protocols.put(ScalarWebService.BROWSER,
-                            new ScalarWebBrowserProtocol<T>(this, context, service, callback));
+                            new ScalarWebBrowserProtocol<T>(this, context, service, callback, clientBuilder));
                     break;
 
                 case ScalarWebService.CEC:
@@ -90,7 +93,7 @@ public class ScalarWebProtocolFactory<T extends ThingCallback<String>> implement
 
                 case ScalarWebService.SYSTEM:
                     protocols.put(ScalarWebService.SYSTEM, new ScalarWebSystemProtocol<T>(this, context, service,
-                            callback, context.getConfig().getIrccUrl()));
+                            callback, context.getConfig().getIrccUrl(), clientBuilder));
                     break;
 
                 case ScalarWebService.VIDEO:

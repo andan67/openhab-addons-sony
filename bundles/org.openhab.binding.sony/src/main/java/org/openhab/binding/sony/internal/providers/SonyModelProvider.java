@@ -13,7 +13,7 @@
 package org.openhab.binding.sony.internal.providers;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.eclipse.smarthome.core.thing.ThingTypeUID;
+import org.openhab.core.thing.ThingTypeUID;
 
 /**
  * Defines the contract for any provider that wished to manage model to thing type relations (and provide callback to a

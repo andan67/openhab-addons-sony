@@ -15,11 +15,11 @@ package org.openhab.binding.sony.internal.providers;
 import java.util.function.Predicate;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.eclipse.smarthome.core.thing.Channel;
-import org.eclipse.smarthome.core.thing.Thing;
-import org.eclipse.smarthome.core.thing.binding.ThingTypeProvider;
-import org.eclipse.smarthome.core.thing.type.ChannelGroupTypeProvider;
 import org.openhab.binding.sony.internal.providers.models.SonyDeviceCapability;
+import org.openhab.core.thing.Channel;
+import org.openhab.core.thing.Thing;
+import org.openhab.core.thing.binding.ThingTypeProvider;
+import org.openhab.core.thing.type.ChannelGroupTypeProvider;
 
 /**
  * Defines the contract for a sony definition provider. A definition provider create thing types, channel group types

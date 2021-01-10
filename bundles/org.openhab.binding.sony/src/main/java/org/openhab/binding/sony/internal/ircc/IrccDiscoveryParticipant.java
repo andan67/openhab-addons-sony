@@ -17,14 +17,11 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Objects;
 
+import javax.ws.rs.client.ClientBuilder;
+
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.eclipse.smarthome.config.discovery.DiscoveryResult;
-import org.eclipse.smarthome.config.discovery.DiscoveryResultBuilder;
-import org.eclipse.smarthome.config.discovery.upnp.UpnpDiscoveryParticipant;
-import org.eclipse.smarthome.core.thing.ThingTypeUID;
-import org.eclipse.smarthome.core.thing.ThingUID;
 import org.jupnp.model.meta.RemoteDevice;
 import org.jupnp.model.meta.RemoteDeviceIdentity;
 import org.jupnp.model.meta.RemoteService;
@@ -36,6 +33,11 @@ import org.openhab.binding.sony.internal.UidUtils;
 import org.openhab.binding.sony.internal.ircc.models.IrccClient;
 import org.openhab.binding.sony.internal.ircc.models.IrccSystemInformation;
 import org.openhab.binding.sony.internal.providers.SonyDefinitionProvider;
+import org.openhab.core.config.discovery.DiscoveryResult;
+import org.openhab.core.config.discovery.DiscoveryResultBuilder;
+import org.openhab.core.config.discovery.upnp.UpnpDiscoveryParticipant;
+import org.openhab.core.thing.ThingTypeUID;
+import org.openhab.core.thing.ThingUID;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -49,13 +51,20 @@ import org.osgi.service.component.annotations.Reference;
 @Component(immediate = true, configurationPid = "discovery.sony-ircc")
 public class IrccDiscoveryParticipant extends AbstractDiscoveryParticipant implements UpnpDiscoveryParticipant {
     /**
+     * The clientBuilder used in HttpRequest
+     */
+    private final ClientBuilder clientBuilder;
+
+    /**
      * Constructs the participant
      * 
      * @param sonyDefinitionProvider a non-null sony definition provider
      */
     @Activate
-    public IrccDiscoveryParticipant(final @Reference SonyDefinitionProvider sonyDefinitionProvider) {
+    public IrccDiscoveryParticipant(final @Reference SonyDefinitionProvider sonyDefinitionProvider,
+            final @Reference ClientBuilder clientBuilder) {
         super(SonyBindingConstants.IRCC_THING_TYPE_PREFIX, sonyDefinitionProvider);
+        this.clientBuilder = clientBuilder;
     }
 
     @Override
@@ -82,7 +91,7 @@ public class IrccDiscoveryParticipant extends AbstractDiscoveryParticipant imple
         String sysWolAddress = null;
 
         try {
-            final IrccClient irccClient = IrccClientFactory.get(irccURL);
+            final IrccClient irccClient = IrccClientFactory.get(irccURL, clientBuilder);
             final IrccSystemInformation systemInformation = irccClient.getSystemInformation();
             sysWolAddress = systemInformation.getWolMacAddress();
         } catch (IOException | URISyntaxException e) {

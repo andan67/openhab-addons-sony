@@ -30,20 +30,13 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
+import javax.ws.rs.client.ClientBuilder;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.http.HttpStatus;
-import org.eclipse.smarthome.config.core.ConfigConstants;
-import org.eclipse.smarthome.core.library.types.DateTimeType;
-import org.eclipse.smarthome.core.library.types.OnOffType;
-import org.eclipse.smarthome.core.library.types.RawType;
-import org.eclipse.smarthome.core.thing.ThingStatus;
-import org.eclipse.smarthome.core.thing.ThingStatusDetail;
-import org.eclipse.smarthome.core.transform.TransformationException;
-import org.eclipse.smarthome.core.transform.TransformationService;
-import org.eclipse.smarthome.core.types.UnDefType;
 import org.openhab.binding.sony.internal.AccessResult;
 import org.openhab.binding.sony.internal.CheckResult;
 import org.openhab.binding.sony.internal.LoginUnsuccessfulResponse;
@@ -67,6 +60,15 @@ import org.openhab.binding.sony.internal.transports.SonyHttpTransport;
 import org.openhab.binding.sony.internal.transports.SonyTransport;
 import org.openhab.binding.sony.internal.transports.SonyTransportFactory;
 import org.openhab.binding.sony.internal.transports.TransportOptionAutoAuth;
+import org.openhab.core.OpenHAB;
+import org.openhab.core.library.types.DateTimeType;
+import org.openhab.core.library.types.OnOffType;
+import org.openhab.core.library.types.RawType;
+import org.openhab.core.thing.ThingStatus;
+import org.openhab.core.thing.ThingStatusDetail;
+import org.openhab.core.transform.TransformationException;
+import org.openhab.core.transform.TransformationService;
+import org.openhab.core.types.UnDefType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -126,8 +128,8 @@ class IrccProtocol<T extends ThingCallback<String>> implements AutoCloseable {
      * @param callback a non-null {@link ThingCallback} to use as a callback
      * @throws IOException if an io exception occurs to the IRCC device
      */
-    IrccProtocol(final IrccConfig config, final @Nullable TransformationService transformService, final T callback)
-            throws IOException, URISyntaxException {
+    IrccProtocol(final IrccConfig config, final @Nullable TransformationService transformService, final T callback,
+            final ClientBuilder clientBuilder) throws IOException, URISyntaxException {
         Objects.requireNonNull(config, "config cannot be null");
         Objects.requireNonNull(callback, "callback cannot be null");
 
@@ -136,8 +138,9 @@ class IrccProtocol<T extends ThingCallback<String>> implements AutoCloseable {
 
         this.transformService = transformService;
 
-        this.irccClient = IrccClientFactory.get(config.getDeviceUrl());
-        this.transport = SonyTransportFactory.createHttpTransport(irccClient.getBaseUrl().toExternalForm());
+        this.irccClient = IrccClientFactory.get(config.getDeviceUrl(), clientBuilder);
+        this.transport = SonyTransportFactory.createHttpTransport(irccClient.getBaseUrl().toExternalForm(),
+                clientBuilder);
         this.sonyAuth = new SonyAuth(() -> irccClient);
     }
 
@@ -267,7 +270,7 @@ class IrccProtocol<T extends ThingCallback<String>> implements AutoCloseable {
                 return;
             }
 
-            final String filePath = ConfigConstants.getConfigFolder() + File.separator
+            final String filePath = OpenHAB.getConfigFolder() + File.separator
                     + TransformationService.TRANSFORM_FOLDER_NAME + File.separator + cmdMap;
             final Path file = Paths.get(filePath);
             if (file.toFile().exists()) {

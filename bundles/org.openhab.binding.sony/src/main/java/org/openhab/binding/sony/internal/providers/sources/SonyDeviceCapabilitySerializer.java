@@ -18,10 +18,7 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.sony.internal.providers.models.SonyDeviceCapability;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonSerializationContext;
-import com.google.gson.JsonSerializer;
+import com.google.gson.*;
 
 /**
  * This class represents the serializer for a SonyDeviceCapability that will remove the baseURL (private information)
@@ -31,11 +28,10 @@ import com.google.gson.JsonSerializer;
  */
 @NonNullByDefault
 public class SonyDeviceCapabilitySerializer implements JsonSerializer<SonyDeviceCapability> {
-    @Override
-    public @Nullable JsonElement serialize(SonyDeviceCapability src, @Nullable Type typeOfSrc,
+    public JsonElement serialize(SonyDeviceCapability src, @Nullable Type typeOfSrc,
             @Nullable JsonSerializationContext context) {
         if (context == null) {
-            return null;
+            return JsonNull.INSTANCE;
         }
 
         final JsonElement je = context.serialize(src, typeOfSrc);
@@ -44,6 +40,6 @@ public class SonyDeviceCapabilitySerializer implements JsonSerializer<SonyDevice
             jo.remove("baseURL");
             return jo;
         }
-        return je;
+        return JsonNull.INSTANCE;
     }
 }

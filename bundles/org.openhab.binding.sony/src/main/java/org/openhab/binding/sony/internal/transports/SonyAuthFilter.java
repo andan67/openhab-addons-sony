@@ -72,6 +72,11 @@ public class SonyAuthFilter implements ClientRequestFilter, ClientResponseFilter
     private final AutoAuth autoAuth;
 
     /**
+     * The clientBuilder used in HttpRequest
+     */
+    private final ClientBuilder clientBuilder;
+
+    /**
      * A boolean to determine if we've already tried the authorization and failed (true to continue trying, false
      * otherwise)
      */
@@ -83,11 +88,12 @@ public class SonyAuthFilter implements ClientRequestFilter, ClientResponseFilter
      * @param baseUri the non-null, base URI for the access control service
      * @param autoAuth the non-null auto auth callback
      */
-    public SonyAuthFilter(final URI baseUri, final AutoAuth autoAuth) {
+    public SonyAuthFilter(final URI baseUri, final AutoAuth autoAuth, final ClientBuilder clientBuilder) {
         Objects.requireNonNull(baseUri, "baseUrl cannot be empty");
         Objects.requireNonNull(autoAuth, "autoAuth cannot be null");
         this.baseUri = baseUri;
         this.autoAuth = autoAuth;
+        this.clientBuilder = clientBuilder;
     }
 
     @Override
@@ -119,7 +125,7 @@ public class SonyAuthFilter implements ClientRequestFilter, ClientResponseFilter
 
         if (authNeeded && tryAuth.get() && autoAuth.isAutoAuth()) {
             logger.debug("Trying to renew our authorization cookie");
-            final Client client = ClientBuilder.newClient();
+            final Client client = clientBuilder.build();
             // client.register(new LoggingFilter());
 
             final String actControlUrl = NetUtil.getSonyUri(baseUri, ScalarWebService.ACCESSCONTROL);

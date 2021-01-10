@@ -14,9 +14,9 @@ package org.openhab.binding.sony.internal.providers;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.eclipse.smarthome.core.thing.ThingUID;
-import org.eclipse.smarthome.core.thing.type.DynamicStateDescriptionProvider;
-import org.eclipse.smarthome.core.types.StateDescription;
+import org.openhab.core.thing.ThingUID;
+import org.openhab.core.thing.type.DynamicStateDescriptionProvider;
+import org.openhab.core.types.StateDescription;
 
 /**
  * This interface extends the {@link DynamicStateDescriptionProvider} to allow adding of state overrides and retrieval

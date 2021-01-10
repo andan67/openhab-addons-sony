@@ -32,10 +32,10 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.eclipse.smarthome.config.core.ConfigConstants;
 import org.openhab.binding.sony.internal.SonyUtil;
 import org.openhab.binding.sony.internal.providers.models.SonyDeviceCapability;
 import org.openhab.binding.sony.internal.providers.models.SonyThingDefinition;
+import org.openhab.core.OpenHAB;
 
 import com.google.gson.JsonSyntaxException;
 
@@ -48,7 +48,7 @@ import com.google.gson.JsonSyntaxException;
 @NonNullByDefault
 public class SonyFolderSource extends AbstractSonySource {
     /** The base folder to use */
-    private static final String FOLDERBASE = ConfigConstants.getUserDataFolder() + File.separator + "sony";
+    private static final String FOLDERBASE = OpenHAB.getUserDataFolder() + File.separator + "sony";
 
     /** Various property keys used by this source */
     private static final String PROP_WATCHDOG_INTERVAL = "SonyFolderSource.WatchDog.Interval";
@@ -69,7 +69,7 @@ public class SonyFolderSource extends AbstractSonySource {
 
     /**
      * Constructs the source and starts the various threads
-     * 
+     *
      * @param scheduler a non-null scheduler to use
      * @param properties a non-null, possibly empty map of properties
      */

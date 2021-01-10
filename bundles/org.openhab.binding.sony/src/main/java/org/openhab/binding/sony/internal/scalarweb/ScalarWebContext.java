@@ -20,10 +20,10 @@ import java.util.function.Supplier;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.websocket.client.WebSocketClient;
-import org.eclipse.smarthome.core.thing.Thing;
-import org.eclipse.smarthome.core.thing.ThingUID;
-import org.eclipse.smarthome.core.transform.TransformationService;
 import org.openhab.binding.sony.internal.providers.SonyDynamicStateProvider;
+import org.openhab.core.thing.Thing;
+import org.openhab.core.thing.ThingUID;
+import org.openhab.core.transform.TransformationService;
 
 /**
  * Represents the context for scalar web classes to use. The context will contain various properties that are unique to

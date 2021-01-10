@@ -29,14 +29,13 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+import javax.ws.rs.client.ClientBuilder;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.http.HttpStatus;
-import org.eclipse.smarthome.config.core.ConfigConstants;
-import org.eclipse.smarthome.core.transform.TransformationService;
 import org.openhab.binding.sony.internal.AccessResult;
 import org.openhab.binding.sony.internal.CheckResult;
 import org.openhab.binding.sony.internal.SonyAuth;
@@ -65,6 +64,8 @@ import org.openhab.binding.sony.internal.transports.SonyHttpTransport;
 import org.openhab.binding.sony.internal.transports.SonyTransport;
 import org.openhab.binding.sony.internal.transports.SonyTransportFactory;
 import org.openhab.binding.sony.internal.transports.TransportOptionAutoAuth;
+import org.openhab.core.OpenHAB;
+import org.openhab.core.transform.TransformationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xml.sax.SAXException;
@@ -93,6 +94,9 @@ public class ScalarWebLoginProtocol<T extends ThingCallback<String>> {
     /** The transformation service */
     private final @Nullable TransformationService transformService;
 
+    /** The clientBuilder used in HttpRequest */
+    private final ClientBuilder clientBuilder;
+
     /** The sony authentication */
     private final SonyAuth sonyAuth;
 
@@ -106,7 +110,8 @@ public class ScalarWebLoginProtocol<T extends ThingCallback<String>> {
      * @throws IOException
      */
     public ScalarWebLoginProtocol(final ScalarWebClient client, final ScalarWebConfig config, final T callback,
-            final @Nullable TransformationService transformService) throws IOException {
+            final @Nullable TransformationService transformService, final ClientBuilder clientBuilder)
+            throws IOException {
         Objects.requireNonNull(client, "client cannot be null");
         Objects.requireNonNull(config, "config cannot be null");
         Objects.requireNonNull(callback, "callback cannot be null");
@@ -115,6 +120,7 @@ public class ScalarWebLoginProtocol<T extends ThingCallback<String>> {
         this.config = config;
         this.callback = callback;
         this.transformService = transformService;
+        this.clientBuilder = clientBuilder;
 
         final ScalarWebService accessControlService = scalarClient.getService(ScalarWebService.ACCESSCONTROL);
 
@@ -122,7 +128,8 @@ public class ScalarWebLoginProtocol<T extends ThingCallback<String>> {
             final String irccUrl = config.getIrccUrl();
             try {
                 SonyUtil.sendWakeOnLan(logger, config.getDeviceIpAddress(), config.getDeviceMacAddress());
-                return irccUrl == null || StringUtils.isEmpty(irccUrl) ? null : IrccClientFactory.get(irccUrl);
+                return irccUrl == null || StringUtils.isEmpty(irccUrl) ? null
+                        : IrccClientFactory.get(irccUrl, clientBuilder);
             } catch (IOException | URISyntaxException e) {
                 logger.debug("Cannot create IRCC Client: {}", e.getMessage());
                 return null;
@@ -164,6 +171,7 @@ public class ScalarWebLoginProtocol<T extends ThingCallback<String>> {
 
         // turn off auto authorization for all services
         Arrays.stream(transports).forEach(t -> t.setOption(TransportOptionAutoAuth.FALSE));
+        // Arrays.stream(transports).forEach(t -> t.setOption(TransportOptionAutoAuth.TRUE));
 
         SonyUtil.sendWakeOnLan(logger, config.getDeviceIpAddress(), config.getDeviceMacAddress());
 
@@ -229,7 +237,7 @@ public class ScalarWebLoginProtocol<T extends ThingCallback<String>> {
                 return new AccessResult(AccessResult.OTHER, "Access code cannot be blank");
             } else {
                 try (SonyHttpTransport httpTransport = SonyTransportFactory.createHttpTransport(baseUrl,
-                        ScalarWebService.ACCESSCONTROL)) {
+                        ScalarWebService.ACCESSCONTROL, clientBuilder)) {
                     final AccessResult res = sonyAuth.requestAccess(httpTransport,
                             StringUtils.equalsIgnoreCase(ScalarWebConstants.ACCESSCODE_RQST, accessCode) ? null
                                     : accessCode);
@@ -248,7 +256,7 @@ public class ScalarWebLoginProtocol<T extends ThingCallback<String>> {
 
     /**
      * Get's the access result for the result
-     * 
+     *
      * @param result a non-null result
      * @return a non-null if there is a bad result, null if okay
      */
@@ -357,7 +365,7 @@ public class ScalarWebLoginProtocol<T extends ThingCallback<String>> {
                 return;
             }
 
-            final String filePath = ConfigConstants.getConfigFolder() + File.separator
+            final String filePath = OpenHAB.getConfigFolder() + File.separator
                     + TransformationService.TRANSFORM_FOLDER_NAME + File.separator + cmdMap;
             final Path file = Paths.get(filePath);
             if (file.toFile().exists()) {
@@ -389,7 +397,7 @@ public class ScalarWebLoginProtocol<T extends ThingCallback<String>> {
                 final String irccUrl = config.getIrccUrl();
                 if (irccUrl != null && StringUtils.isNotEmpty(irccUrl)) {
                     try {
-                        final IrccClient irccClient = IrccClientFactory.get(irccUrl);
+                        final IrccClient irccClient = IrccClientFactory.get(irccUrl, clientBuilder);
                         final IrccRemoteCommands remoteCmds = irccClient.getRemoteCommands();
                         for (final IrccRemoteCommand v : remoteCmds.getRemoteCommands().values()) {
                             // Note: encode value in case it's a URL type

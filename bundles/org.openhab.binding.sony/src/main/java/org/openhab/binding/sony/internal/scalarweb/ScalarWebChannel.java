@@ -22,9 +22,9 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.eclipse.smarthome.core.thing.Channel;
-import org.eclipse.smarthome.core.thing.ChannelUID;
 import org.openhab.binding.sony.internal.SonyUtil;
+import org.openhab.core.thing.Channel;
+import org.openhab.core.thing.ChannelUID;
 
 /**
  * This class represents a channel for the scalar web component. The channel

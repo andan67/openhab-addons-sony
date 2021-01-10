@@ -43,6 +43,8 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
+import javax.ws.rs.client.ClientBuilder;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
@@ -51,8 +53,6 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.http.HttpHeader;
 import org.eclipse.jetty.http.HttpStatus;
-import org.eclipse.smarthome.config.core.ConfigConstants;
-import org.eclipse.smarthome.core.thing.ThingTypeUID;
 import org.openhab.binding.sony.internal.SonyBindingConstants;
 import org.openhab.binding.sony.internal.SonyUtil;
 import org.openhab.binding.sony.internal.net.HttpResponse;
@@ -66,6 +66,8 @@ import org.openhab.binding.sony.internal.transports.SonyHttpTransport;
 import org.openhab.binding.sony.internal.transports.SonyTransportFactory;
 import org.openhab.binding.sony.internal.transports.TransportOptionAutoAuth;
 import org.openhab.binding.sony.internal.transports.TransportOptionHeader;
+import org.openhab.core.OpenHAB;
+import org.openhab.core.thing.ThingTypeUID;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -77,13 +79,13 @@ import com.google.gson.reflect.TypeToken;
 /**
  * An implementation of a {@link SonySource} that will source thing types from
  * github using an OAUTH type of github application.
- * 
+ *
  * @author Tim Roberts - Initial contribution
  */
 @NonNullByDefault
 public class SonyGithubSource extends AbstractSonySource {
     /** The folder base where thing types are stored */
-    private static final String FOLDERBASE = ConfigConstants.getUserDataFolder() + File.separator + "sony";
+    private static final String FOLDERBASE = OpenHAB.getUserDataFolder() + File.separator + "sony";
 
     /** The date pattern for IF-MODIFIED header */
     private static final String WEBDATEPATTERN = "EEE, dd MMM yyyy HH:mm:ss zzz";
@@ -197,11 +199,12 @@ public class SonyGithubSource extends AbstractSonySource {
 
     /**
      * Constructs the source and starts the various threads
-     * 
+     *
      * @param scheduler a non-null scheduler to use
      * @param properties a non-null, possibly empty map of properties
      */
-    public SonyGithubSource(final ScheduledExecutorService scheduler, final Map<String, String> properties) {
+    public SonyGithubSource(final ScheduledExecutorService scheduler, final Map<String, String> properties,
+            final ClientBuilder clientBuilder) {
         Objects.requireNonNull(scheduler, "scheduler cannot be null");
         Objects.requireNonNull(properties, "properties cannot be null");
 
@@ -216,7 +219,7 @@ public class SonyGithubSource extends AbstractSonySource {
 
         final String apiUrl = getProperty(properties, PROP_APIURL);
         try {
-            transport = SonyTransportFactory.createHttpTransport(apiUrl);
+            transport = SonyTransportFactory.createHttpTransport(apiUrl, clientBuilder);
             transport.setOption(TransportOptionAutoAuth.FALSE);
             transport.setOption(new TransportOptionHeader("Authorization", "token " + apiKey));
             transport.setOption(new TransportOptionHeader("User-Agent", "Sony-openHAB"));
@@ -430,7 +433,7 @@ public class SonyGithubSource extends AbstractSonySource {
      * <li>FALSE if we did not find a matching issue</li>
      * <li>null if there was an error trying to get a matching issue</li>
      * </ol>
-     * 
+     *
      * @param baseUri a non-null, non-empty baseUri
      * @param callback a non-null callback to determine if the issue matches or not
      * @param labels a set of labels to filter with
@@ -511,7 +514,7 @@ public class SonyGithubSource extends AbstractSonySource {
 
     /**
      * Gets the master list of service capabilities. This will only reretrieve them if a newer version exists on github
-     * 
+     *
      * @return a non-null, possibly empty list of service capabilities
      * @throws JsonSyntaxException if we encountered a json syntax problem
      * @throws IOException if an io exception to github occurred
@@ -548,7 +551,7 @@ public class SonyGithubSource extends AbstractSonySource {
 
     /**
      * Gets the meta information file. This will only reretrieve them if a newer version exists on github
-     * 
+     *
      * @return a non-null meta information file
      * @throws JsonSyntaxException if we encountered a json syntax problem
      * @throws IOException if an io exception to github occurred
@@ -585,7 +588,7 @@ public class SonyGithubSource extends AbstractSonySource {
      * Refreshs thing types from github. This will ONLY download those things types that are either in use or we are
      * waiting on. Likewise, if a thing type is no longer available on github - we'll remove it locally and notify the
      * listeners that they should use the default thing type
-     * 
+     *
      * @throws JsonSyntaxException if we encountered a json syntax problem
      * @throws IOException if an io exception to github occurred
      */
@@ -722,7 +725,7 @@ public class SonyGithubSource extends AbstractSonySource {
 
     /**
      * Helper method to determine if the model name already existing in a github url
-     * 
+     *
      * @param modelName a non-null, non-empty model name
      * @param apiUrl a non-null, non-empty API url
      * @param toMatch a non-null class used to deserialize objects from the apiUrl
@@ -761,7 +764,7 @@ public class SonyGithubSource extends AbstractSonySource {
 
     /**
      * Helper method to post an issue to github
-     * 
+     *
      * @param apiIssues a non-null, non-empty isssues API URL
      * @param title a non-null, non-empty title to use
      * @param toPost a non-null object to post
@@ -793,7 +796,7 @@ public class SonyGithubSource extends AbstractSonySource {
 
     /**
      * Helper method to get all thing definitions for a given name if they have been modified by some date
-     * 
+     *
      * @param name the non-null, non-empty name
      * @param lastModified the last modified time or null to ignore
      * @return a non-null modified thing definitions
@@ -854,7 +857,7 @@ public class SonyGithubSource extends AbstractSonySource {
 
     /**
      * Helper method to write a bunch of thing definitions to a file using the last modified time
-     * 
+     *
      * @param name the non-null, non-empty name
      * @param lastModifiedTime the last modified time to use
      * @param ttds a non-null, non-empty list of thing definitions
@@ -953,7 +956,7 @@ public class SonyGithubSource extends AbstractSonySource {
 
         /**
          * Consturcts the class with possibly modified date and list of definitions
-         * 
+         *
          * @param modified a possibly null modified date
          * @param definitions a possibly null, possibly empty list of thing definitions
          */
@@ -965,7 +968,7 @@ public class SonyGithubSource extends AbstractSonySource {
 
         /**
          * Returns the last modified date
-         * 
+         *
          * @return the modified or null if none
          */
         public @Nullable Long getModified() {
@@ -974,7 +977,7 @@ public class SonyGithubSource extends AbstractSonySource {
 
         /**
          * Returns the list of thing definitions
-         * 
+         *
          * @return a non-null, possibly empty list of thing definitinos
          */
         public List<SonyThingDefinition> getDefinitions() {

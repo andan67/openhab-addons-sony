@@ -13,7 +13,7 @@
 package org.openhab.binding.sony.internal.providers;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.eclipse.smarthome.core.thing.ThingTypeUID;
+import org.openhab.core.thing.ThingTypeUID;
 
 /**
  * This interface should be implemented by any listener of model changes (ie new thing types for a specific model). The

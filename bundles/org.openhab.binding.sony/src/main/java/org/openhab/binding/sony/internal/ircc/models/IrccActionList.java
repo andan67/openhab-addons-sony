@@ -137,7 +137,7 @@ public class IrccActionList {
 
         /**
          * Get's the name of the action
-         * 
+         *
          * @return a possibly null, possibly empty name
          */
         public @Nullable String getName() {
@@ -146,7 +146,7 @@ public class IrccActionList {
 
         /**
          * Get's the registration mode
-         * 
+         *
          * @return a possibly null, possibly empty registration mode
          */
         public @Nullable String getMode() {
@@ -155,7 +155,7 @@ public class IrccActionList {
 
         /**
          * Get's the action URL
-         * 
+         *
          * @return a possibly null, possibly empty action url
          */
         public @Nullable String getUrl() {

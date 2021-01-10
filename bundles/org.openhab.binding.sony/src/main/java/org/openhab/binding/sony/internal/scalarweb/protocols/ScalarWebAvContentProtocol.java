@@ -32,24 +32,14 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 
+import javax.ws.rs.client.ClientBuilder;
+
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.eclipse.smarthome.core.library.types.DecimalType;
-import org.eclipse.smarthome.core.library.types.OnOffType;
-import org.eclipse.smarthome.core.library.types.RawType;
-import org.eclipse.smarthome.core.library.types.StringType;
-import org.eclipse.smarthome.core.library.unit.MetricPrefix;
-import org.eclipse.smarthome.core.library.unit.SmartHomeUnits;
-import org.eclipse.smarthome.core.thing.Channel;
-import org.eclipse.smarthome.core.types.Command;
-import org.eclipse.smarthome.core.types.StateDescription;
-import org.eclipse.smarthome.core.types.StateDescriptionFragmentBuilder;
-import org.eclipse.smarthome.core.types.StateOption;
-import org.eclipse.smarthome.core.types.UnDefType;
 import org.openhab.binding.sony.internal.SonyUtil;
 import org.openhab.binding.sony.internal.ThingCallback;
 import org.openhab.binding.sony.internal.net.NetUtil;
@@ -103,6 +93,18 @@ import org.openhab.binding.sony.internal.scalarweb.models.api.VideoInfo;
 import org.openhab.binding.sony.internal.scalarweb.models.api.Visibility;
 import org.openhab.binding.sony.internal.transports.SonyHttpTransport;
 import org.openhab.binding.sony.internal.transports.SonyTransportFactory;
+import org.openhab.core.library.types.DecimalType;
+import org.openhab.core.library.types.OnOffType;
+import org.openhab.core.library.types.RawType;
+import org.openhab.core.library.types.StringType;
+import org.openhab.core.library.unit.MetricPrefix;
+import org.openhab.core.library.unit.Units;
+import org.openhab.core.thing.Channel;
+import org.openhab.core.types.Command;
+import org.openhab.core.types.StateDescription;
+import org.openhab.core.types.StateDescriptionFragmentBuilder;
+import org.openhab.core.types.StateOption;
+import org.openhab.core.types.UnDefType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -335,13 +337,18 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
     private final NotificationHelper notificationHelper;
 
     /**
+     * The clientBuilder used in HttpRequest
+     */
+    private final ClientBuilder clientBuilder;
+
+    /**
      * Function interface to process a content list result
      */
     @NonNullByDefault
     private interface ContentListCallback {
         /**
          * Called to process a content list result
-         * 
+         *
          * @return true if processed, false otherwise
          */
         boolean processContentListResult(ContentListResult_1_0 result);
@@ -356,8 +363,9 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
      * @param callback the non-null callback
      */
     ScalarWebAvContentProtocol(final ScalarWebProtocolFactory<T> factory, final ScalarWebContext context,
-            final ScalarWebService service, final T callback) {
+            final ScalarWebService service, final T callback, final ClientBuilder clientBuilder) {
         super(factory, context, service, callback);
+        this.clientBuilder = clientBuilder;
         notificationHelper = new NotificationHelper(enableNotifications(ScalarWebEvent.NOTIFYPLAYINGCONTENTINFO,
                 /** ScalarWebEvent.NOTIFYAVAILABLEPLAYBACKFUNCTION, */
                 ScalarWebEvent.NOTIFYEXTERNALTERMINALSTATUS));
@@ -420,7 +428,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
 
     /**
      * Adds the content list descriptors
-     * 
+     *
      * @param descriptors the non-null, possibly empty list of descriptors
      */
     private void addContentListDescriptors(final List<ScalarWebChannelDescriptor> descriptors) {
@@ -794,7 +802,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
 
     /**
      * Adds input status descriptors for a specific input
-     * 
+     *
      * @param descriptors a non-null, possibly empty list of descriptors
      * @param id a non-null, non-empty channel id
      * @param uri a non-null, non-empty input uri
@@ -832,7 +840,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
 
     /**
      * Adds all input status descriptors
-     * 
+     *
      * @param descriptors a non-null, possibly empty list of descriptors
      */
     private void addInputStatusDescriptors(final List<ScalarWebChannelDescriptor> descriptors) {
@@ -873,7 +881,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
 
     /**
      * Adds the parental rating descriptors
-     * 
+     *
      * @param descriptors a non-null, possibly empty list of descriptors
      */
     private void addParentalRatingDescriptors(final List<ScalarWebChannelDescriptor> descriptors) {
@@ -906,7 +914,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
 
     /**
      * Adds the playing content descriptors
-     * 
+     *
      * @param descriptors a non-null, possibly empty list of descriptors
      */
     private void addPlayingContentDescriptors(final List<ScalarWebChannelDescriptor> descriptors) {
@@ -1061,7 +1069,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
 
     /**
      * Adds the terminal status descriptors
-     * 
+     *
      * @param descriptors a non-null, possibly empty list of descriptors
      */
     private void addTerminalStatusDescriptors(final List<ScalarWebChannelDescriptor> descriptors) {
@@ -1108,7 +1116,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
 
     /**
      * Adds the preset channel descriptors
-     * 
+     *
      * @param descriptors a non-null, possibly empty list of descriptors
      */
     private void addPresetChannelDescriptors(final List<ScalarWebChannelDescriptor> descriptors) {
@@ -1126,7 +1134,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
 
     /**
      * Adds the preset channel descriptors for a specific source
-     * 
+     *
      * @param descriptors a non-null, possibly empty list of descriptors
      * @param src a non-null source
      */
@@ -1193,7 +1201,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
 
     /**
      * Get's the channel id for the given output
-     * 
+     *
      * @param output a non-null, non-empty output identifier
      * @return a channel identifier representing the output
      */
@@ -1215,7 +1223,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
 
     /**
      * Get the source identifier for the given URL
-     * 
+     *
      * @param uid a non-null, non-empty source
      * @return the source identifier (or uid if none found)
      */
@@ -1230,7 +1238,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
     /**
      * Returns the current input statuses. This method simply calls getInputStatus(false) to get the cached result if it
      * exists
-     * 
+     *
      * @return the ScalarWebResult containing the status information for all the inputs
      * @throws IOException if an IOException occurrs getting the input status
      */
@@ -1241,7 +1249,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
     /**
      * Returns the current input status. If refresh is false, the cached version is used (if it exists) - otherwise we
      * query the device for the statuses
-     * 
+     *
      * @param refresh true to refresh from the device, false to potentially use a cached version (if it exists)
      * @return the ScalarWebResult containing the status information for all the inputs
      * @throws IOException if an IOException occurrs getting the input status
@@ -1260,7 +1268,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
 
     /**
      * Get's the parental rating from the device
-     * 
+     *
      * @return the ScalarWebResult containing the status information for all the inputs
      * @throws IOException if an IOException occurrs getting the input status
      */
@@ -1286,7 +1294,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
     /**
      * Returns the current set of schemes. This method simply calls getSchemes(false) to get the cached result if it
      * exists
-     * 
+     *
      * @return a non-null, possibly empty set of schemes
      */
     private Set<Scheme> getSchemes() {
@@ -1296,7 +1304,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
     /**
      * Returns the current set of schemes. If refresh is false, the cached version is used (if it exists) - otherwise we
      * query the device for the schemes
-     * 
+     *
      * @param refresh true to refresh from the device, false to potentially use a cached version (if it exists)
      * @return a non-null, possibly empty set of schemes
      */
@@ -1325,7 +1333,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
     /**
      * Returns the current set of sources. This method simply calls getSources(false) to get the cached result if it
      * exists
-     * 
+     *
      * @return a non-null, possibly empty set of sources
      */
     private Set<Source> getSources() {
@@ -1352,7 +1360,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
 
     /**
      * Gets a list of sources for a scheme
-     * 
+     *
      * @param scheme a non-null scheme
      * @return a non-null, possibly empty list of sources
      */
@@ -1363,7 +1371,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
 
     /**
      * Gets a list of sources for a scheme, possibly refreshing them first
-     * 
+     *
      * @param scheme a non-null scheme
      * @param refresh true to refresh first, false to use cached
      * @return a non-null, possibly empty list of sources
@@ -1472,7 +1480,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
 
     /**
      * Gets a terminal status
-     * 
+     *
      * @return a non-null {@link ScalarWebResult}
      * @throws IOException if an IO exception occurs
      */
@@ -1482,7 +1490,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
 
     /**
      * Gets the list of terminal status
-     * 
+     *
      * @return a non-null, possibly empty list of terminal status
      */
     private List<CurrentExternalTerminalsStatus_1_0> getTerminalStatuses() {
@@ -1491,7 +1499,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
 
     /**
      * Gets the list of terminal status, possibly refreshing before returning
-     * 
+     *
      * @param refresh true to refresh statuses, false to use cached statuses
      * @return a non-null, possibly empty list of terminal statuses
      */
@@ -1606,7 +1614,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
 
     /**
      * Updates the content channels from the 1.0 result
-     * 
+     *
      * @param clr the non-null content list result
      */
     private void notifyContentListResult(final ContentListResult_1_0 clr) {
@@ -1616,8 +1624,8 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
 
         stateChanged(CN_DIRECTREMOTENUM, SonyUtil.newDecimalType(clr.getDirectRemoteNum()));
         stateChanged(CN_DISPNUM, SonyUtil.newStringType(clr.getDispNum()));
-        stateChanged(CN_DURATIONSEC, SonyUtil.newQuantityType(clr.getDurationSec(), SmartHomeUnits.SECOND));
-        stateChanged(CN_FILESIZEBYTE, SonyUtil.newQuantityType(clr.getFileSizeByte(), SmartHomeUnits.BYTE));
+        stateChanged(CN_DURATIONSEC, SonyUtil.newQuantityType(clr.getDurationSec(), Units.SECOND));
+        stateChanged(CN_FILESIZEBYTE, SonyUtil.newQuantityType(clr.getFileSizeByte(), Units.BYTE));
         stateChanged(CN_ISALREADYPLAYED,
                 SonyUtil.newStringType(Boolean.toString(BooleanUtils.toBoolean(clr.isAlreadyPlayed()))));
         stateChanged(CN_ISPROTECTED,
@@ -1635,7 +1643,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
 
     /**
      * Updates the content channels from the 1.2 result
-     * 
+     *
      * @param clr the non-null content list result
      */
     private void notifyContentListResult(final ContentListResult_1_2 clr) {
@@ -1657,8 +1665,8 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
 
         stateChanged(CN_DIRECTREMOTENUM, SonyUtil.newDecimalType(clr.getDirectRemoteNum()));
         stateChanged(CN_DISPNUM, SonyUtil.newStringType(clr.getDispNum()));
-        stateChanged(CN_DURATIONSEC, SonyUtil.newQuantityType(clr.getDurationSec(), SmartHomeUnits.SECOND));
-        stateChanged(CN_FILESIZEBYTE, SonyUtil.newQuantityType(clr.getFileSizeByte(), SmartHomeUnits.BYTE));
+        stateChanged(CN_DURATIONSEC, SonyUtil.newQuantityType(clr.getDurationSec(), Units.SECOND));
+        stateChanged(CN_FILESIZEBYTE, SonyUtil.newQuantityType(clr.getFileSizeByte(), Units.BYTE));
         stateChanged(CN_ISALREADYPLAYED,
                 SonyUtil.newStringType(Boolean.toString(BooleanUtils.toBoolean(clr.isAlreadyPlayed()))));
         stateChanged(CN_ISPROTECTED,
@@ -1672,7 +1680,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
         stateChanged(CN_PRODUCTID, SonyUtil.newStringType(clr.getProductID()));
         stateChanged(CN_PROGRAMMEDIATYPE, SonyUtil.newStringType(clr.getProgramMediaType()));
         stateChanged(CN_PROGRAMNUM, SonyUtil.newDecimalType(clr.getProgramNum()));
-        stateChanged(CN_SIZEMB, SonyUtil.newQuantityType(clr.getSizeMB(), MetricPrefix.MEGA(SmartHomeUnits.BYTE)));
+        stateChanged(CN_SIZEMB, SonyUtil.newQuantityType(clr.getSizeMB(), MetricPrefix.MEGA(Units.BYTE)));
 
         stateChanged(CN_STARTDATETIME, SonyUtil.newStringType(clr.getStartDateTime()));
         stateChanged(CN_STORAGEURI, SonyUtil.newStringType(clr.getStorageUri()));
@@ -1689,7 +1697,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
 
     /**
      * Updates the content channels from the 1.4 result
-     * 
+     *
      * @param clr the non-null content list result
      */
     private void notifyContentListResult(final ContentListResult_1_4 clr) {
@@ -1708,7 +1716,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
                     Arrays.stream(audioInfo).map(ai -> ai.getFrequency()).collect(Collectors.joining(","))));
         }
 
-        stateChanged(CN_BROADCASTFREQ, SonyUtil.newQuantityType(clr.getBroadcastFreq(), SmartHomeUnits.HERTZ));
+        stateChanged(CN_BROADCASTFREQ, SonyUtil.newQuantityType(clr.getBroadcastFreq(), Units.HERTZ));
         stateChanged(CN_BROADCASTFREQBAND, SonyUtil.newStringType(clr.getBroadcastFreqBand()));
         stateChanged(CN_CHANNELNAME, SonyUtil.newStringType(clr.getChannelName()));
 
@@ -1724,9 +1732,9 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
         stateChanged(CN_DIRECTREMOTENUM, SonyUtil.newDecimalType(clr.getDirectRemoteNum()));
         stateChanged(CN_DISPNUM, SonyUtil.newStringType(clr.getDispNum()));
         stateChanged(CN_DURATIONMSEC,
-                SonyUtil.newQuantityType(clr.getDurationMSec(), MetricPrefix.MILLI(SmartHomeUnits.SECOND)));
+                SonyUtil.newQuantityType(clr.getDurationMSec(), MetricPrefix.MILLI(Units.SECOND)));
         stateChanged(CN_FILENO, SonyUtil.newStringType(clr.getFileNo()));
-        stateChanged(CN_FILESIZEBYTE, SonyUtil.newQuantityType(clr.getFileSizeByte(), SmartHomeUnits.BYTE));
+        stateChanged(CN_FILESIZEBYTE, SonyUtil.newQuantityType(clr.getFileSizeByte(), Units.BYTE));
         stateChanged(CN_FOLDERNO, SonyUtil.newStringType(clr.getFolderNo()));
         stateChanged(CN_GENRE, SonyUtil.newStringType(clr.getGenre()));
         stateChanged(CN_IS3D, SonyUtil.newStringType(clr.is3D()));
@@ -1753,7 +1761,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
         stateChanged(CN_PROGRAMMEDIATYPE, SonyUtil.newStringType(clr.getProgramMediaType()));
         stateChanged(CN_PROGRAMNUM, SonyUtil.newDecimalType(clr.getProgramNum()));
         stateChanged(CN_REMOTEPLAYTYPE, SonyUtil.newStringType(clr.getRemotePlayType()));
-        stateChanged(CN_SIZEMB, SonyUtil.newQuantityType(clr.getSizeMB(), MetricPrefix.MEGA(SmartHomeUnits.BYTE)));
+        stateChanged(CN_SIZEMB, SonyUtil.newQuantityType(clr.getSizeMB(), MetricPrefix.MEGA(Units.BYTE)));
 
         stateChanged(CN_STARTDATETIME, SonyUtil.newStringType(clr.getStartDateTime()));
         stateChanged(CN_STORAGEURI, SonyUtil.newStringType(clr.getStorageUri()));
@@ -1777,7 +1785,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
 
     /**
      * Updates the content channels from the 1.5 result
-     * 
+     *
      * @param clr the non-null content list result
      */
     private void notifyContentListResult(final ContentListResult_1_5 clr) {
@@ -1805,7 +1813,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
 
         final BroadcastFreq bf = clr.getBroadcastFreq();
         if (bf != null) {
-            stateChanged(CN_BROADCASTFREQ, SonyUtil.newQuantityType(bf.getFrequency(), SmartHomeUnits.HERTZ));
+            stateChanged(CN_BROADCASTFREQ, SonyUtil.newQuantityType(bf.getFrequency(), Units.HERTZ));
             stateChanged(CN_BROADCASTFREQBAND, SonyUtil.newStringType(bf.getBand()));
         }
         stateChanged(CN_CHANNELNAME, SonyUtil.newStringType(clr.getChannelName()));
@@ -1843,13 +1851,13 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
         final Duration duration = clr.getDuration();
         if (duration != null) {
             stateChanged(CN_DURATIONMSEC,
-                    SonyUtil.newQuantityType(duration.getMillseconds(), MetricPrefix.MILLI(SmartHomeUnits.SECOND)));
-            stateChanged(CN_DURATIONSEC, SonyUtil.newQuantityType(duration.getSeconds(), SmartHomeUnits.SECOND));
+                    SonyUtil.newQuantityType(duration.getMillseconds(), MetricPrefix.MILLI(Units.SECOND)));
+            stateChanged(CN_DURATIONSEC, SonyUtil.newQuantityType(duration.getSeconds(), Units.SECOND));
         }
 
         stateChanged(CN_EVENTID, SonyUtil.newStringType(clr.getEventId()));
         stateChanged(CN_FILENO, SonyUtil.newStringType(clr.getFileNo()));
-        stateChanged(CN_FILESIZEBYTE, SonyUtil.newQuantityType(clr.getFileSizeByte(), SmartHomeUnits.BYTE));
+        stateChanged(CN_FILESIZEBYTE, SonyUtil.newQuantityType(clr.getFileSizeByte(), Units.BYTE));
         stateChanged(CN_FOLDERNO, SonyUtil.newStringType(clr.getFolderNo()));
         stateChanged(CN_GENRE, SonyUtil.newStringType(clr.getGenre()));
         stateChanged(CN_GLOBALPLAYBACKCOUNT, SonyUtil.newDecimalType(clr.getGlobalPlaybackCount()));
@@ -1888,7 +1896,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
         stateChanged(CN_REMOTEPLAYTYPE, SonyUtil.newStringType(clr.getRemotePlayType()));
         stateChanged(CN_REPEATTYPE, SonyUtil.newStringType(clr.getRepeatType()));
         stateChanged(CN_SERVICE, SonyUtil.newStringType(clr.getService()));
-        stateChanged(CN_SIZEMB, SonyUtil.newQuantityType(clr.getSizeMB(), MetricPrefix.MEGA(SmartHomeUnits.BYTE)));
+        stateChanged(CN_SIZEMB, SonyUtil.newQuantityType(clr.getSizeMB(), MetricPrefix.MEGA(Units.BYTE)));
         stateChanged(CN_SOURCE, SonyUtil.newStringType(clr.getSource()));
         stateChanged(CN_SOURCELABEL, SonyUtil.newStringType(clr.getSourceLabel()));
 
@@ -1922,7 +1930,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
 
     /**
      * Handle the notification of a terminal status (and update all related channels)
-     * 
+     *
      * @param term a non-null terminal status
      */
     private void notifyCurrentTerminalStatus(final CurrentExternalTerminalsStatus_1_0 term) {
@@ -1939,7 +1947,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
 
     /**
      * Notify the notification of a terminal status for a specific channel
-     * 
+     *
      * @param channel a non-null channel
      */
     private void notifyCurrentTerminalStatus(final ScalarWebChannel channel) {
@@ -1960,7 +1968,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
 
     /**
      * Handl notification of a terminal status for a specific channel
-     * 
+     *
      * @param channel a non-null channel
      * @param cets a non-null terminal status
      */
@@ -1980,7 +1988,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
             stateChanged(TERM_ICON, id, UnDefType.UNDEF);
         } else {
             try (SonyHttpTransport transport = SonyTransportFactory
-                    .createHttpTransport(getService().getTransport().getBaseUri().toString())) {
+                    .createHttpTransport(getService().getTransport().getBaseUri().toString(), clientBuilder)) {
                 final RawType rawType = NetUtil.getRawType(transport, iconUrl);
                 stateChanged(TERM_ICON, id, rawType == null ? UnDefType.UNDEF : rawType);
             } catch (URISyntaxException e) {
@@ -1991,7 +1999,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
 
     /**
      * Handle notification of an input status (v1.0) for a specific channel
-     * 
+     *
      * @param channel a non-null channel
      * @param status a non-null status
      */
@@ -2008,7 +2016,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
 
     /**
      * Handle notification of an input status (v1.1) for a specific channel
-     * 
+     *
      * @param channel a non-null channel
      * @param status a non-null status
      */
@@ -2024,7 +2032,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
 
     /**
      * Handle notification of an parental rating (v1.0)
-     * 
+     *
      * @param prs the non-null parental rating
      */
     private void notifyParentalRating(final ParentalRatingSetting_1_0 prs) {
@@ -2041,7 +2049,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
 
     /**
      * Handle notification of an playing content (v1.0) for a specific output
-     * 
+     *
      * @param pci the non-null playing content info
      * @param id the non-null, non-empty output
      */
@@ -2052,7 +2060,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
         stateChanged(PL_BIVLPROVIDER, id, SonyUtil.newStringType(pci.getBivlProvider()));
         stateChanged(PL_BIVLSERVICEID, id, SonyUtil.newStringType(pci.getBivlServiceId()));
         stateChanged(PL_DISPNUM, id, SonyUtil.newStringType(pci.getDispNum()));
-        stateChanged(PL_DURATIONSEC, id, SonyUtil.newQuantityType(pci.getDurationSec(), SmartHomeUnits.SECOND));
+        stateChanged(PL_DURATIONSEC, id, SonyUtil.newQuantityType(pci.getDurationSec(), Units.SECOND));
         stateChanged(PL_MEDIATYPE, id, SonyUtil.newStringType(pci.getMediaType()));
         stateChanged(PL_ORIGINALDISPNUM, id, SonyUtil.newStringType(pci.getOriginalDispNum()));
         stateChanged(PL_PLAYSPEED, id, SonyUtil.newStringType(pci.getPlaySpeed()));
@@ -2116,7 +2124,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
 
     /**
      * Handle notification of an playing content (v1.2) for a specific output
-     * 
+     *
      * @param pci the non-null playing content info
      * @param id the non-null, non-empty output
      */
@@ -2137,7 +2145,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
         stateChanged(PL_AUDIOFREQUENCY, id, SonyUtil.newStringType(
                 ais == null ? null : Arrays.stream(ais).map(a -> a.getFrequency()).collect(Collectors.joining(","))));
 
-        stateChanged(PL_BROADCASTFREQ, id, SonyUtil.newQuantityType(pci.getBroadcastFreq(), SmartHomeUnits.HERTZ));
+        stateChanged(PL_BROADCASTFREQ, id, SonyUtil.newQuantityType(pci.getBroadcastFreq(), Units.HERTZ));
         stateChanged(PL_BROADCASTFREQBAND, id, SonyUtil.newStringType(pci.getBroadcastFreqBand()));
         stateChanged(PL_CHANNELNAME, id, SonyUtil.newStringType(pci.getChannelName()));
         stateChanged(PL_CHAPTERCOUNT, id, SonyUtil.newDecimalType(pci.getChapterCount()));
@@ -2151,7 +2159,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
         stateChanged(PL_DABSERVICELABEL, id, SonyUtil.newStringType(di == null ? null : di.getServiceLabel()));
 
         stateChanged(PL_DURATIONMSEC, id,
-                SonyUtil.newQuantityType(pci.getDurationMsec(), MetricPrefix.MILLI(SmartHomeUnits.SECOND)));
+                SonyUtil.newQuantityType(pci.getDurationMsec(), MetricPrefix.MILLI(Units.SECOND)));
         stateChanged(PL_FILENO, id, SonyUtil.newStringType(pci.getFileNo()));
         stateChanged(PL_GENRE, id, SonyUtil.newStringType(pci.getGenre()));
         stateChanged(PL_INDEX, id, SonyUtil.newDecimalType(pci.getIndex()));
@@ -2164,8 +2172,8 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
         stateChanged(PL_PLAYSTEPSPEED, id, SonyUtil.newDecimalType(pci.getPlayStepSpeed()));
         stateChanged(PL_PODCASTNAME, id, SonyUtil.newStringType(pci.getPodcastName()));
         stateChanged(PL_POSITIONMSEC, id,
-                SonyUtil.newQuantityType(pci.getPositionMsec(), MetricPrefix.MILLI(SmartHomeUnits.SECOND)));
-        stateChanged(PL_POSITIONSEC, id, SonyUtil.newQuantityType(pci.getPositionSec(), SmartHomeUnits.SECOND));
+                SonyUtil.newQuantityType(pci.getPositionMsec(), MetricPrefix.MILLI(Units.SECOND)));
+        stateChanged(PL_POSITIONSEC, id, SonyUtil.newQuantityType(pci.getPositionSec(), Units.SECOND));
         stateChanged(PL_REPEATTYPE, id, SonyUtil.newStringType(pci.getRepeatType()));
         stateChanged(PL_SERVICE, id, SonyUtil.newStringType(pci.getService()));
         stateChanged(PL_SOURCELABEL, id, SonyUtil.newStringType(pci.getSourceLabel()));
@@ -2629,7 +2637,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
 
     /**
      * Returns the translated output (ie MAINOUTPUT would be translated to an empty string)
-     * 
+     *
      * @param output a possibly null, possibly empty output
      * @return a non-null, possibly empty translated output
      */
@@ -2652,7 +2660,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
      * <li>setpreset - if a radio, sets the current preset</li>
      * <li>getpreset - if a radio, restores the current preset</li>
      * </ol>
-     * 
+     *
      * @param output a non-null, non-empty output to play on
      * @param id a non-null, non-empty id
      * @param command a non-null non-empty command to execute
@@ -2770,7 +2778,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
 
     /**
      * Sets the source for the specified terminal
-     * 
+     *
      * @param output a non-null, non-empty output
      * @param source a non-null, non-empty source
      */
@@ -2824,7 +2832,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
 
     /**
      * Plays the preset channel specified by it's display name
-     * 
+     *
      * @param srcId a non-null, non-empty source id
      * @param dispName a non-null, non-empty display name
      */
@@ -2850,7 +2858,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
 
     /**
      * Refreshs the preset channel state description for the specified channels
-     * 
+     *
      * @param channels a non-null, possibly empty list of channels
      */
     private void refreshPresetChannelStateDescription(final List<ScalarWebChannel> channels) {
@@ -2890,7 +2898,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
 
     /**
      * Processes a content list request and calls back the provided callback until either processed or nothing left
-     * 
+     *
      * @param uriOrSource a non-null, non-empty uri or source
      * @param callback a non-null callback to use
      */
@@ -2941,14 +2949,14 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
      * Converts a URI to a channel id by parsing the URI and using the port/zone name (host name in the URI) and the
      * port/zone number (port/zone query parameter). Please note that we specifically short 'extInput' to 'in' and
      * 'extOutput' to 'out' for ease of writing channel names.
-     * 
+     *
      * Note: CEC schemes are unique by port number/logical address. We will further add a "-{addr}" if a logical address
      * exists
-     * 
+     *
      * Note2: if we have inputs only (not a terminal), then the "in" part will be ignored.
-     * 
+     *
      * The following demonstrates the various possible inputs and the output of this function:
-     * 
+     *
      * <table>
      * <thead>
      * <tr>
@@ -2989,7 +2997,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
      * <td>extInput:cec?type=recorder&port=2&logicalAddr=1</td>
      * <td>in-cec2-1</td>
      * </tr>
-     * 
+     *
      * @param uri a non-null, non-empty uri
      * @param isInput true if we are doing inputs, false otherwise
      * @return a non-null channel identifier
@@ -3054,7 +3062,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
 
     /**
      * helper method to conver tthe terminal status to a map of terminal URL to terminal title
-     * 
+     *
      * @param terms a non-null, possibly empty list of terminal status
      * @return a map of terminal title by terminal uri
      */
@@ -3093,7 +3101,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
 
         /**
          * Constructs the state with the specified uris and index position
-         * 
+         *
          * @param parentUri a non null, possibly empty parent uri
          * @param uri a non null, possibly empty uri
          * @param idx a greater than or equal to 0 index position
@@ -3111,7 +3119,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
 
         /**
          * Gets the parent URI
-         * 
+         *
          * @return the parentUri
          */
         public String getParentUri() {
@@ -3120,7 +3128,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
 
         /**
          * Gets the URI
-         * 
+         *
          * @return the uri
          */
         public String getUri() {
@@ -3129,7 +3137,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
 
         /**
          * Gets the index position
-         * 
+         *
          * @return the index position
          */
         public int getIdx() {
@@ -3150,7 +3158,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
 
         /**
          * Constructs the playing state from the URI
-         * 
+         *
          * @param uri a non-null, possibly empty URI
          * @param preset a greater than or equal to 0 preset
          */
@@ -3162,7 +3170,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
 
         /**
          * The URI
-         * 
+         *
          * @return the uri
          */
         public String getUri() {
@@ -3171,7 +3179,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
 
         /**
          * The preset
-         * 
+         *
          * @return the preset
          */
         public int getPreset() {
@@ -3195,7 +3203,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
 
         /**
          * Constructs the input source based on the parms
-         * 
+         *
          * @param uri a non-null, non-empty input URI
          * @param title a possibly null, possibly empty input title
          * @param outputs a possibly null, possibly empty list of outputs
@@ -3209,7 +3217,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
 
         /**
          * The URI
-         * 
+         *
          * @return the uri
          */
         public String getUri() {
@@ -3218,7 +3226,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
 
         /**
          * The title
-         * 
+         *
          * @return the title
          */
         public String getTitle() {
@@ -3227,7 +3235,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
 
         /**
          * The outputs
-         * 
+         *
          * @return the outputs
          */
         public List<String> getOutputs() {

@@ -12,14 +12,14 @@
  */
 package org.openhab.binding.sony.internal.scalarweb.models.api;
 
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-import org.joda.time.format.DateTimeFormat;
-import org.joda.time.format.DateTimeFormatter;
 import org.openhab.binding.sony.internal.scalarweb.models.ScalarWebResult;
 
 import com.google.gson.JsonArray;
@@ -36,7 +36,7 @@ import com.google.gson.JsonParseException;
 public class CurrentTime {
 
     /** The date time */
-    private final DateTime dateTime;
+    private final ZonedDateTime dateTime;
 
     /**
      * Instantiates a new current time
@@ -57,8 +57,8 @@ public class CurrentTime {
         if (elm.isJsonPrimitive()) {
             // 2017-02-01T15:07:11-0500
             final String dateString = elm.getAsString();
-            final DateTimeFormatter dtf = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ssZ");
-            dateTime = dtf.parseDateTime(dateString);
+            final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ");
+            dateTime = ZonedDateTime.parse(dateString, dtf);
         } else if (elm.isJsonObject()) {
             final JsonObject obj = elm.getAsJsonObject();
 
@@ -95,8 +95,8 @@ public class CurrentTime {
 
             final int offsetMintues = myTimeZoneOffsetMinute + myDstOffsetMinute;
 
-            dateTime = DateTime.parse(myDateTime)
-                    .withZone(DateTimeZone.forOffsetHoursMinutes(offsetMintues / 60, offsetMintues % 60));
+            dateTime = LocalDateTime.parse(myDateTime)
+                    .atZone(ZoneOffset.ofHoursMinutes(offsetMintues / 60, offsetMintues % 60));
         } else {
             throw new JsonParseException("Unknown result element: " + elm);
         }
@@ -107,7 +107,7 @@ public class CurrentTime {
      *
      * @return the date time
      */
-    public DateTime getDateTime() {
+    public ZonedDateTime getDateTime() {
         return dateTime;
     }
 

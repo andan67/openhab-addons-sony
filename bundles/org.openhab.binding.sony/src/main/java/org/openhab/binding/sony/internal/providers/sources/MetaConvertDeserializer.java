@@ -18,7 +18,6 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 import org.apache.commons.lang.StringUtils;
-import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 
 import com.google.gson.JsonDeserializationContext;
@@ -32,9 +31,7 @@ import com.google.gson.JsonParseException;
  * 
  * @author Tim Roberts - Initial contribution
  */
-@NonNullByDefault
 public class MetaConvertDeserializer implements JsonDeserializer<MetaConvert> {
-    @Override
     public MetaConvert deserialize(final @Nullable JsonElement je, final @Nullable Type type,
             final @Nullable JsonDeserializationContext context) throws JsonParseException {
         Objects.requireNonNull(je, "je cannot be null");

@@ -192,7 +192,6 @@ public class AbstractConfig {
      */
     public Map<String, Object> asProperties() {
         final Map<String, Object> props = new HashMap<>();
-
         props.put("deviceAddress", StringUtils.defaultIfEmpty(deviceAddress, ""));
         props.put("discoveredMacAddress", StringUtils.defaultIfEmpty(discoveredMacAddress, ""));
         conditionallyAddProperty(props, "deviceMacAddress", deviceMacAddress);
@@ -205,7 +204,7 @@ public class AbstractConfig {
 
     /**
      * Conditionally adds a property to the property map if the property is not null (or empty if a string)
-     * 
+     *
      * @param props a non-null, possibly empty property map
      * @param propName a non-null, non-empty property name
      * @param propValue a possibly null, possibly empty (if string) property value
