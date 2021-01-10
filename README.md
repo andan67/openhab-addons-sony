@@ -1,27 +1,12 @@
-# openHAB Add-ons
+# openHAB Add-ons - Sony binding
 
-<img align="right" width="220" src="./logo.png" />
+This repository is based on the offical [openHAB 3.0 addons repository](https://github.com/openhab/openhab-addons) 
+and the sources for the awsome Sony binding for openHAB 2.5 as provided [here](https://github.com/tmrobert8/openhab-addons/releases/tag/2.5-1201-2).
 
-[![Build Status](https://ci.openhab.org/job/openHAB-Addons/badge/icon)](https://ci.openhab.org/job/openHAB-Addons/)
-[![EPL-2.0](https://img.shields.io/badge/license-EPL%202-green.svg)](https://opensource.org/licenses/EPL-2.0)
-[![Bountysource](https://www.bountysource.com/badge/tracker?tracker_id=2164344)](https://www.bountysource.com/teams/openhab/issues?tracker_ids=2164344)
+It is currenty aimed at providing a personal and lightweight playground to learn how to implement openHAB 3 bindings 
+with the specific task of migrating the Sony binding for openHAB 2.5 to openHAB 3.
 
-This repository contains the official set of add-ons that are implemented on top of openHAB Core APIs.
-Add-ons that got accepted in here will be maintained (e.g. adapted to new core APIs)
-by the [openHAB Add-on maintainers](https://github.com/orgs/openhab/teams/add-ons-maintainers).
-
-To get started with binding development, follow our guidelines and tutorials over at https://www.openhab.org/docs/developer.
-
-If you are interested in openHAB Core development, we invite you to come by on https://github.com/openhab/openhab-core.
-
-## Add-ons in other repositories
-
-Some add-ons are not in this repository, but still part of the official [openHAB distribution](https://github.com/openhab/openhab-distro).
-An incomplete list of other repositories follows below:
-
-* https://github.com/openhab/org.openhab.binding.zwave
-* https://github.com/openhab/org.openhab.binding.zigbee
-* https://github.com/openhab/openhab-webui
+Note this is not (yet) an attempt to contribute to the offical repositories.
 
 ## Development / Repository Organization
 
