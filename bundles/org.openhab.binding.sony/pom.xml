@@ -11,7 +11,7 @@
   </parent>
 
   <artifactId>org.openhab.binding.sony</artifactId>
-  <version>3.0.0-alpha.andan.1</version>
+  <version>3.0.0-alpha.andan.2</version>
 
   <name>openHAB Add-ons :: Bundles :: Sony Binding</name>
 
