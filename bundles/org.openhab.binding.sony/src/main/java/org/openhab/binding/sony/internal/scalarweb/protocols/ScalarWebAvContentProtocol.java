@@ -331,7 +331,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
     private final ConcurrentMap<String, PlayingState> statePlaying = new ConcurrentHashMap<>();
 
     /** Maximum amount of content to pull in one request */
-    private static final int MAX_CT = 150;
+    private static final int MAX_CT = 50;
 
     /** The notifications that are enabled */
     private final NotificationHelper notificationHelper;
