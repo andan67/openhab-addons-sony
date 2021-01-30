@@ -13,6 +13,7 @@
 package org.openhab.binding.sony.internal.ircc.models;
 
 import java.util.List;
+import java.util.Objects;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -86,10 +87,10 @@ public class IrccActionList {
         final List<@Nullable IrccAction> localActions = actions;
         if (localActions != null) {
             for (final IrccAction action : localActions) {
-                if (action != null && StringUtils.isNotEmpty(action.getMode())
+                if (action != null && action.getMode() != null && !action.getMode().isEmpty()
                         && StringUtils.equalsIgnoreCase(IrccAction.REGISTER, action.getName())) {
                     try {
-                        return Integer.parseInt(action.getMode());
+                        return Integer.parseInt(Objects.requireNonNull(action.getMode()));
                     } catch (final NumberFormatException e) {
                         return 0;
                     }
@@ -105,7 +106,6 @@ public class IrccActionList {
      *
      * @author Tim Roberts - Initial contribution
      */
-    @NonNullByDefault
     @XStreamAlias("action")
     class IrccAction {
         /**

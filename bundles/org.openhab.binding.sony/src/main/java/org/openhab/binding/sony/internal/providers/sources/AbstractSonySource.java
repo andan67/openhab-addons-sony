@@ -236,12 +236,12 @@ public abstract class AbstractSonySource implements SonySource {
             return Collections.emptyList();
         }
 
-        final JsonElement def = gson.fromJson(contents, JsonElement.class);
+        final JsonElement def = Objects.requireNonNull(gson.fromJson(contents, JsonElement.class));
         if (def.isJsonArray()) {
-            return gson.fromJson(def, SonyThingDefinition.LISTTYPETOKEN);
+            return Objects.requireNonNull(gson.fromJson(def, SonyThingDefinition.LISTTYPETOKEN));
         } else {
-            final SonyThingDefinition ttd = gson.fromJson(def, SonyThingDefinition.class);
-            return Collections.singletonList(ttd);
+            final SonyThingDefinition ttd = Objects.requireNonNull(gson.fromJson(def, SonyThingDefinition.class));
+                return Collections.singletonList(ttd);
         }
     }
 

@@ -131,7 +131,6 @@ public class IrccSystemInformation {
      *
      * @author Tim Roberts - Initial Contribution
      */
-    @NonNullByDefault
     class SupportedFunction {
         @XStreamImplicit
         private @Nullable List<Function> functions;
@@ -142,7 +141,6 @@ public class IrccSystemInformation {
      *
      * @author Tim Roberts - Initial Contribution
      */
-    @NonNullByDefault
     @XStreamAlias("function")
     class Function {
         @XStreamAlias("name")
@@ -158,7 +156,6 @@ public class IrccSystemInformation {
      *
      * @author Tim Roberts - Initial Contribution
      */
-    @NonNullByDefault
     @XStreamAlias("functionItem")
     class FunctionItem {
         @XStreamAlias("field")

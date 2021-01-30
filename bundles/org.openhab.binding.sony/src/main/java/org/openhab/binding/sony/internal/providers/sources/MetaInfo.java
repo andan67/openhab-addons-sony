@@ -19,6 +19,7 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.openhab.binding.sony.internal.SonyUtil;
 
 /**
  * This class holds meta information (such as ignoring certain model names or converting one model name to
@@ -140,12 +141,12 @@ class MetaInfo {
      * @return a non-null, non-empty converted name (or the original if it shouldn't be converted)
      */
     public String getNewName(final String name, final List<MetaConvert> convert) {
-        Validate.notEmpty(name, "name cannot be empty");
+        SonyUtil.validateNotEmpty(name, "name cannot be empty");
 
         for (final MetaConvert mc : convert) {
             final String newName = mc.getNewName();
             final Pattern oldName = mc.getOldName();
-            if (oldName.matcher(name).matches()) {
+            if (oldName.matcher(name).matches() && newName != null) {
                 return newName;
             }
         }

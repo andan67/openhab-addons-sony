@@ -13,14 +13,7 @@
 package org.openhab.binding.sony.internal.providers;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -350,10 +343,14 @@ public class SonyDefinitionProviderImpl implements SonyDefinitionProvider, SonyD
         @Nullable
         final List<SonyThingChannelDefinition> chls = thing.getChannels().stream().filter(channelFilter).map(chl -> {
             final ChannelTypeUID ctuid = chl.getChannelTypeUID();
-            return ctuid == null ? null
-                    : new SonyThingChannelDefinition(chl.getUID().getId(), ctuid.getId(),
-                            new SonyThingStateDefinition(getStateDescription(chl, null, null)), chl.getProperties());
-        }).filter(chl -> chl != null).sorted((f, l) -> f.getChannelId().compareToIgnoreCase(l.getChannelId()))
+            // return emtpy SonyThingChannelDefinition with null channelID if ctuid is null
+            Optional<SonyThingChannelDefinition> stcd = Optional.empty();
+            if(ctuid != null) {
+                stcd = Optional.of(new SonyThingChannelDefinition(chl.getUID().getId(), ctuid.getId(),
+                        new SonyThingStateDefinition(getStateDescription(chl, null, null)), chl.getProperties()));
+            }
+            return stcd;
+        }).filter(Optional::isPresent).map(Optional::get).sorted((f, l) -> f.getChannelId().compareToIgnoreCase(Objects.requireNonNull(l.getChannelId())))
                 .collect(Collectors.toList());
 
         final String label = StringUtils.defaultIfEmpty(thing.getLabel(), thingType.getLabel());

@@ -88,7 +88,7 @@ public class TextUrl {
     }
 
     @Override
-    public @Nullable String toString() {
+    public String toString() {
         return "TextUrl [url=" + url + ", title=" + title + ", type=" + type + ", favicon=" + favicon + "]";
     }
 }

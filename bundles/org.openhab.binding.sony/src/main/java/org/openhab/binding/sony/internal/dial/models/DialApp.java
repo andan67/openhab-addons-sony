@@ -100,7 +100,6 @@ public class DialApp {
      *
      * @author Tim Roberts - Initial contribution
      */
-    @NonNullByDefault
     class SupportedAction {
         @XStreamImplicit(itemFieldName = "action")
         private @Nullable List<String> actions;

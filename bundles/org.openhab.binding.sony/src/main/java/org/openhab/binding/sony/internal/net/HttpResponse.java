@@ -145,7 +145,7 @@ public class HttpResponse {
             return "";
         }
 
-        return new String(contents, CHARSET);
+        return new String(Objects.requireNonNull(contents), CHARSET);
     }
 
     /**
@@ -255,7 +255,6 @@ public class HttpResponse {
     /**
      * This class represents a SOAP error
      */
-    @NonNullByDefault
     public class SOAPError {
         /** The soap error code */
         private final String soapCode;

@@ -260,7 +260,7 @@ public class ScalarWebLoginProtocol<T extends ThingCallback<String>> {
      * @param result a non-null result
      * @return a non-null if there is a bad result, null if okay
      */
-    private static @Nullable AccessResult getAccessResult(ScalarWebResult result) {
+    private static AccessResult getAccessResult(ScalarWebResult result) {
         Objects.requireNonNull(result, "result cannot be null");
 
         if (result.getDeviceErrorCode() == ScalarWebError.DISPLAYISOFF) {

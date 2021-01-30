@@ -42,7 +42,6 @@ import org.openhab.binding.sony.internal.dial.models.DialService;
 import org.openhab.binding.sony.internal.net.HttpResponse;
 import org.openhab.binding.sony.internal.net.NetUtil;
 import org.openhab.binding.sony.internal.transports.SonyHttpTransport;
-import org.openhab.binding.sony.internal.transports.SonyTransport;
 import org.openhab.binding.sony.internal.transports.SonyTransportFactory;
 import org.openhab.binding.sony.internal.transports.TransportOptionAutoAuth;
 import org.openhab.binding.sony.internal.transports.TransportOptionHeader;

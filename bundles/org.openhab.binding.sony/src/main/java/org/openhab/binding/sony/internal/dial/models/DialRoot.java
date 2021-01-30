@@ -92,7 +92,6 @@ public class DialRoot {
      *
      * @author Tim Roberts - Initial contribution
      */
-    @NonNullByDefault
     class RootDevice {
         @XStreamImplicit
         @Nullable

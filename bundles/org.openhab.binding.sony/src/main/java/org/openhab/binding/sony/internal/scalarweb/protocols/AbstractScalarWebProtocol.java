@@ -15,17 +15,7 @@ package org.openhab.binding.sony.internal.scalarweb.protocols;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -525,7 +515,8 @@ public abstract class AbstractScalarWebProtocol<T extends ThingCallback<String>>
                     }
                 }
 
-                final ScalarWebChannel channel = createChannel(ctgy, id, target, uri);
+                final ScalarWebChannel channel = createChannel(ctgy, id != null ? id : "", target,
+                        uri != null ? uri : "");
 
                 final String ui = set.getDeviceUIInfo();
                 if (ui == null || StringUtils.isEmpty(ui)) {
@@ -671,19 +662,17 @@ public abstract class AbstractScalarWebProtocol<T extends ThingCallback<String>>
                                 prefix + " " + label, prefix + " for " + label));
 
                         final List<StateOption> stateInfo = candidates.stream().map(c -> {
-                            if (c == null) {
-                                return null;
+                            Optional<StateOption> so = Optional.empty();
+                            if (c != null) {
+                                final String stateVal = c.getValue();
+                                final String stateTitle = textLookup(c.getTitle(), null);
+                                if (stateVal != null && !stateVal.isEmpty() && stateTitle != null
+                                        && !stateTitle.isEmpty()) {
+                                    so = Optional.of(new StateOption(stateVal, stateTitle));
+                                }
                             }
-                            final String stateVal = c.getValue();
-                            if (stateVal == null || StringUtils.isEmpty(stateVal)) {
-                                return null;
-                            }
-                            final String stateTitle = textLookup(c.getTitle(), null);
-                            if (stateTitle == null || StringUtils.isEmpty(stateTitle)) {
-                                return null;
-                            }
-                            return new StateOption(stateVal, stateTitle);
-                        }).filter(c -> c != null).collect(Collectors.toList());
+                            return so;
+                        }).filter(Optional::isPresent).map(Optional::get).collect(Collectors.toList());
 
                         if (!stateInfo.isEmpty()) {
                             bld = bld.withOptions(stateInfo);

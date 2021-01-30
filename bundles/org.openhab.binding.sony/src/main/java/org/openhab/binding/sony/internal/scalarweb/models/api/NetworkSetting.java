@@ -117,7 +117,7 @@ public class NetworkSetting {
     }
 
     @Override
-    public @Nullable String toString() {
+    public String toString() {
         return "NetworkSetting [netif=" + netif + ", hwAddr=" + hwAddr + ", ipAddrV4=" + ipAddrV4 + ", ipAddrV6="
                 + ipAddrV6 + ", netmask=" + netmask + ", gateway=" + gateway + ", dns=" + dns + "]";
     }

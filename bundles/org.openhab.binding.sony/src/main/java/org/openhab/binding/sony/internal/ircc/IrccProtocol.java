@@ -55,9 +55,7 @@ import org.openhab.binding.sony.internal.ircc.models.IrccStatusList;
 import org.openhab.binding.sony.internal.ircc.models.IrccText;
 import org.openhab.binding.sony.internal.ircc.models.IrccUnrDeviceInfo;
 import org.openhab.binding.sony.internal.net.HttpResponse;
-import org.openhab.binding.sony.internal.net.SocketSession;
 import org.openhab.binding.sony.internal.transports.SonyHttpTransport;
-import org.openhab.binding.sony.internal.transports.SonyTransport;
 import org.openhab.binding.sony.internal.transports.SonyTransportFactory;
 import org.openhab.binding.sony.internal.transports.TransportOptionAutoAuth;
 import org.openhab.core.OpenHAB;
@@ -393,7 +391,7 @@ class IrccProtocol<T extends ThingCallback<String>> implements AutoCloseable {
                         SonyUtil.newStringType(clazz));
                 callback.stateChanged(SonyUtil.createChannelId(IrccConstants.GRP_VIEWING, IrccConstants.CHANNEL_TITLE),
                         SonyUtil.newStringType(title));
-                if (StringUtils.isEmpty(dur)) {
+                if (dur == null || dur.isEmpty()) {
                     callback.stateChanged(
                             SonyUtil.createChannelId(IrccConstants.GRP_VIEWING, IrccConstants.CHANNEL_DURATION),
                             UnDefType.NULL);
@@ -597,7 +595,7 @@ class IrccProtocol<T extends ThingCallback<String>> implements AutoCloseable {
             callback.stateChanged(SonyUtil.createChannelId(IrccConstants.GRP_CONTENT, IrccConstants.CHANNEL_GENRE),
                     SonyUtil.newStringType(genre));
 
-            if (StringUtils.isEmpty(dur)) {
+            if (dur == null || dur.isEmpty()) {
                 callback.stateChanged(
                         SonyUtil.createChannelId(IrccConstants.GRP_CONTENT, IrccConstants.CHANNEL_DURATION),
                         UnDefType.NULL);
@@ -691,7 +689,7 @@ class IrccProtocol<T extends ThingCallback<String>> implements AutoCloseable {
      * @param cmd a non-null, non-empty command to send
      */
     public void sendCommand(final String cmd) {
-        Validate.notEmpty(cmd, "cmd cannot be null");
+        SonyUtil.validateNotEmpty(cmd, "cmd cannot be empty");
 
         final String cmdMap = config.getCommandsMapFile();
 
@@ -702,7 +700,7 @@ class IrccProtocol<T extends ThingCallback<String>> implements AutoCloseable {
             logger.debug("No MAP transformation service - cannot transform command");
         } else {
             try {
-                if (cmdMap != null && StringUtils.isNotBlank(cmdMap)) {
+                if (cmdMap != null && !cmdMap.isBlank()) {
                     cmdToSend = localTransformService.transform(cmdMap, cmd);
                     if (!StringUtils.equalsIgnoreCase(cmdToSend, cmd)) {
                         logger.debug("Transformed {} with map file '{}' to {}", cmd, cmdMap, cmdToSend);
@@ -715,7 +713,9 @@ class IrccProtocol<T extends ThingCallback<String>> implements AutoCloseable {
         }
 
         try {
-            cmdToSend = URLDecoder.decode(cmdToSend, "UTF-8");
+            if (cmdToSend != null) {
+                cmdToSend = URLDecoder.decode(cmdToSend, "UTF-8");
+            }
         } catch (final UnsupportedEncodingException e) {
             logger.debug("Failed to decode {}, exception={} - ignoring error", cmdToSend, e.getMessage());
         }

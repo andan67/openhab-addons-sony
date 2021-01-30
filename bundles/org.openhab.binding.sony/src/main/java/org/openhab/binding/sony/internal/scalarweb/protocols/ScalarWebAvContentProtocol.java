@@ -331,7 +331,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
     private final ConcurrentMap<String, PlayingState> statePlaying = new ConcurrentHashMap<>();
 
     /** Maximum amount of content to pull in one request */
-    private static final int MAX_CT = 50;
+    private static final int MAX_CT = 150;
 
     /** The notifications that are enabled */
     private final NotificationHelper notificationHelper;
@@ -2882,9 +2882,13 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
                         .withOptions(presets.stream().map(e -> {
                             final String title = e.getTitle();
                             final String dispNum = e.getDispNum();
-                            return dispNum == null || StringUtils.isEmpty(dispNum) ? null
-                                    : new StateOption(dispNum, StringUtils.defaultIfEmpty(title, dispNum));
-                        }).filter(e -> e != null).sorted((a, b) -> ObjectUtils.compare(a.getLabel(), b.getLabel()))
+                            Optional<StateOption> si = Optional.empty();
+                            if (dispNum != null && !dispNum.isEmpty()) {
+                                si = Optional.of(new StateOption(dispNum, StringUtils.defaultIfEmpty(title, dispNum)));
+                            }
+                            return si;
+                        }).filter(Optional::isPresent).map(Optional::get)
+                                .sorted((a, b) -> ObjectUtils.compare(a.getLabel(), b.getLabel()))
                                 .collect(Collectors.toList()));
 
                 final StateDescription sd = bld.build().toStateDescription();
@@ -2920,29 +2924,60 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
             ct = new Count(0);
         }
 
-        final int i = ct.getCount();
-        final int max = (int) Math.ceil((double) i / MAX_CT);
-        for (int idx = 0; idx < max; idx++) {
-            final int localIdx = (idx + 1) * MAX_CT;
+        final int maxCount = ct.getCount();
+        int count = 0;
+        while (count < maxCount) {
+            final int stIdx = count;
             try {
                 final ScalarWebResult res = execute(ScalarWebMethod.GETCONTENTLIST, version -> {
                     if (VersionUtilities.equals(version, ScalarWebMethod.V1_0, ScalarWebMethod.V1_1,
                             ScalarWebMethod.V1_2, ScalarWebMethod.V1_3)) {
-                        return new ContentListRequest_1_0(uriOrSource, localIdx, MAX_CT);
+                        return new ContentListRequest_1_0(uriOrSource, stIdx, MAX_CT);
                     }
-                    return new ContentListRequest_1_4(uriOrSource, localIdx, MAX_CT);
+                    return new ContentListRequest_1_4(uriOrSource, stIdx, MAX_CT);
                 });
 
-                for (final ContentListResult_1_0 clr : res.asArray(ContentListResult_1_0.class)) {
+                final List<ContentListResult_1_0> resultList = res.asArray(ContentListResult_1_0.class);
+                for (final ContentListResult_1_0 clr : resultList) {
                     if (!callback.processContentListResult(clr)) {
                         return;
                     }
                 }
+                // request might return fewer items than MAX_CT, thus get actual number of fetched items from result
+                // list
+                count += resultList.size();
             } catch (final IOException e) {
                 logger.debug("IOException getting {} for {} [idx: {}, max: {}]: {}", ScalarWebMethod.GETCONTENTLIST,
-                        uriOrSource, localIdx, MAX_CT, e.getMessage());
+                        uriOrSource, stIdx, MAX_CT, e.getMessage());
+                // give-up getting content items
+                break;
             }
         }
+        logger.debug("Received {} content items for source {}", count, uriOrSource);
+        /*
+         * final int max = (int) Math.ceil((double) i / MAX_CT);
+         * for (int idx = 0; idx < max; idx++) {
+         * final int localIdx = idx * MAX_CT;
+         * try {
+         * final ScalarWebResult res = execute(ScalarWebMethod.GETCONTENTLIST, version -> {
+         * if (VersionUtilities.equals(version, ScalarWebMethod.V1_0, ScalarWebMethod.V1_1,
+         * ScalarWebMethod.V1_2, ScalarWebMethod.V1_3)) {
+         * return new ContentListRequest_1_0(uriOrSource, localIdx, MAX_CT);
+         * }
+         * return new ContentListRequest_1_4(uriOrSource, localIdx, MAX_CT);
+         * });
+         * 
+         * for (final ContentListResult_1_0 clr : res.asArray(ContentListResult_1_0.class)) {
+         * if (!callback.processContentListResult(clr)) {
+         * return;
+         * }
+         * }
+         * } catch (final IOException e) {
+         * logger.debug("IOException getting {} for {} [idx: {}, max: {}]: {}", ScalarWebMethod.GETCONTENTLIST,
+         * uriOrSource, localIdx, MAX_CT, e.getMessage());
+         * }
+         * }
+         */
     }
 
     /**

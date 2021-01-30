@@ -141,7 +141,7 @@ class ScalarWebSystemProtocol<T extends ThingCallback<String>> extends AbstractS
     private final @Nullable String irccUrl;
 
     /** The clientBuilder used in HttpRequest */
-    private final @Nullable ClientBuilder clientBuilder;
+    private final ClientBuilder clientBuilder;
 
     /** The notifications that are enabled */
     private final NotificationHelper notificationHelper;
@@ -154,6 +154,7 @@ class ScalarWebSystemProtocol<T extends ThingCallback<String>> extends AbstractS
      * @param service the non-null service
      * @param callback the non-null callback
      * @param irccUrl the possibly null, possibly empty ircc url
+     * @param clientBuilder the non-null client builder
      */
     ScalarWebSystemProtocol(final ScalarWebProtocolFactory<T> factory, final ScalarWebContext context,
             final ScalarWebService service, final T callback, final @Nullable String irccUrl,

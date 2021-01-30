@@ -55,8 +55,8 @@ public class IrccClientFactory {
     public static final String SRV_IRCC_SERVICETYPE = "urn:schemas-sony-com:service:IRCC:1";
 
     /** The typical IRCC values for TV and blurays */
-    private static final String LIKELY_TVAVR_SCPD = "/sony/IRCC/IRCCSCPD.xml";
-    private static final String LIKELY_TVAVR_IRCC = "/sony/IRCC";
+    private static final String LIKELY_TVAVR_SCPD = "/sony/ircc/IRCCSCPD.xml";
+    private static final String LIKELY_TVAVR_IRCC = "/sony/ircc";
     private static final int LIKELY_BLURAY_PORT = 50001;
     private static final String LIKELY_BLURAY_SCPD = "/IRCCSCPD.xml";
     private static final String LIKELY_BLURAY_IRCC = "/upnp/control/IRCC";
@@ -94,8 +94,7 @@ public class IrccClientFactory {
             return getDefaultClient(irccUrl, logger, clientBuilder);
         } else {
             try {
-                final IrccClient client = queryIrccClient(irccUrl, logger, clientBuilder);
-                return client == null ? getDefaultClient(irccUrl, logger, clientBuilder) : client;
+                return queryIrccClient(irccUrl, logger, clientBuilder);
             } catch (final IOException | URISyntaxException e) {
                 logger.debug("Exception occurred querying IRCC client - trying default client: {}", e.getMessage(), e);
                 return getDefaultClient(irccUrl, logger, clientBuilder);
@@ -174,7 +173,7 @@ public class IrccClientFactory {
 
         if (scpdByService.isEmpty()) {
             logger.debug("Default SCPD detection failed - assuming result: {}", LIKELY_SCPD_RESULT);
-            final UpnpScpd scpd = UpnpXmlReader.SCPD.fromXML(LIKELY_SCPD_RESULT);
+            final UpnpScpd scpd = Objects.requireNonNull(UpnpXmlReader.SCPD.fromXML(LIKELY_SCPD_RESULT));
             scpdByService.put(IrccClient.SRV_IRCC, scpd);
         }
 

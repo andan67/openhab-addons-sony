@@ -426,7 +426,7 @@ class SimpleIpProtocol implements SocketSessionListener, AutoCloseable {
             if (localTransformationService == null) {
                 logger.debug(
                         "No map transformation service found (please install service) - code will not be transformed");
-            } else if (StringUtils.isEmpty(cmdMap)) {
+            } else if (cmdMap == null || cmdMap.isEmpty()) {
                 logger.debug("Commmand map file was not specified in configuration - code will not be transformed");
             } else {
                 final String newCode = localTransformationService.transform(cmdMap, irCmd);
@@ -440,7 +440,7 @@ class SimpleIpProtocol implements SocketSessionListener, AutoCloseable {
             return;
         }
 
-        if (StringUtils.isEmpty(code)) {
+        if (code == null || code.isEmpty()) {
             logger.debug("Code is empty - cannot send");
             return;
         }

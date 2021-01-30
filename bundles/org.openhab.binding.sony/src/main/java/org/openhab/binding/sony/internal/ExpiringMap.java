@@ -167,7 +167,6 @@ public class ExpiringMap<K, V> implements AutoCloseable {
      * @param <K> the key type
      * @param <V> the value type
      */
-    @NonNullByDefault
     public interface ExpireListener<K, V> {
         void expired(K key, V value);
     }

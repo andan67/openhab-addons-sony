@@ -20,7 +20,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import javax.ws.rs.client.ClientBuilder;
 
-import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.sony.internal.AbstractThingHandler;
@@ -90,7 +89,7 @@ public class DialHandler extends AbstractThingHandler<DialConfig> {
         }
 
         final String applId = channel.getProperties().get(DialConstants.CHANNEL_PROP_APPLID);
-        if (StringUtils.isEmpty(applId)) {
+        if (applId == null || applId.isEmpty()) {
             logger.debug("Called with an empty applicationid - ignoring: {}", channelUID);
             return;
         }
@@ -123,7 +122,7 @@ public class DialHandler extends AbstractThingHandler<DialConfig> {
         }
 
         final String applId = channel.getProperties().get(DialConstants.CHANNEL_PROP_APPLID);
-        if (StringUtils.isEmpty(applId)) {
+        if (applId == null || applId.isEmpty()) {
             logger.debug("Called with an empty applicationid - ignoring: {}", channelUID);
             return;
         }
@@ -206,9 +205,9 @@ public class DialHandler extends AbstractThingHandler<DialConfig> {
         if (protocol != null) {
             getThing().getChannels().stream().forEach(chn -> {
                 final String channelId = chn.getUID().getId();
-                if (StringUtils.endsWithIgnoreCase(channelId, DialConstants.CHANNEL_STATE)) {
+                if (SonyUtil.endsWithIgnoreCase(channelId, DialConstants.CHANNEL_STATE)) {
                     final String applId = chn.getProperties().get(DialConstants.CHANNEL_PROP_APPLID);
-                    if (StringUtils.isEmpty(applId)) {
+                    if (applId == null || applId.isEmpty()) {
                         logger.debug("Unknown application id for channel {}", channelId);
                     } else {
                         protocol.refreshState(channelId, applId);

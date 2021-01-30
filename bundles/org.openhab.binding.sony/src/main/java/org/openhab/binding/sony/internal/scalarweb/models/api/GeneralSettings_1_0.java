@@ -57,7 +57,7 @@ public class GeneralSettings_1_0 {
             if (elm.isJsonArray()) {
                 for (final JsonElement arr : elm.getAsJsonArray()) {
                     if (arr.isJsonObject()) {
-                        generalSettings.add(gson.fromJson(arr, GeneralSetting.class));
+                        generalSettings.add(Objects.requireNonNull(gson.fromJson(arr, GeneralSetting.class)));
                     } else {
                         throw new JsonParseException("General Settings entry not an object: " + arr);
                     }

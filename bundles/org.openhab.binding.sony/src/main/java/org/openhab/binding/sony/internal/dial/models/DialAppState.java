@@ -12,8 +12,6 @@
  */
 package org.openhab.binding.sony.internal.dial.models;
 
-import java.net.URL;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;

@@ -13,20 +13,10 @@
 package org.openhab.binding.sony.internal.scalarweb.models.api;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
@@ -252,10 +242,13 @@ public class SupportedApi {
                 Stream.concat(ntfs.getEnabled().stream(), ntfs.getDisabled().stream()).map(n -> {
                     final String version = n.getVersion();
                     final String name = n.getName();
-                    return name == null || StringUtils.isEmpty(name) || version == null || StringUtils.isEmpty(version)
-                            ? null
-                            : new SupportedApiInfo(name, Arrays.asList(new SupportedApiVersionInfo(version)));
-                }).filter(n -> n != null).forEachOrdered(notifications::add);
+                    Optional<SupportedApiInfo> spi = Optional.empty();
+                    if (name != null && !name.isEmpty() && version != null && !version.isEmpty()) {
+                        spi = Optional
+                                .of(new SupportedApiInfo(name, Arrays.asList(new SupportedApiVersionInfo(version))));
+                    }
+                    return spi;
+                }).filter(Optional::isPresent).map(Optional::get).forEachOrdered(notifications::add);
             } catch (final IOException | IllegalArgumentException e) {
                 logger.debug("Exception getting notifications for service {}: {}", serviceName, e.getMessage());
             }

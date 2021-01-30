@@ -55,9 +55,7 @@ public class SonyAuthFilter implements ClientRequestFilter, ClientResponseFilter
     /** The logger */
     private final Logger logger = LoggerFactory.getLogger(SonyAuthFilter.class);
 
-    /** The map of current cookies used for authentication */
-    // private final Map<String, NewCookie> cookies = new HashMap<>();
-
+    /** The global store for cookies used for authentication */
     private final SonyAuthCookieStore authCookieStore = SonyAuthCookieStore.getInstance();
 
     /** The name of the authorization cookie */
@@ -65,6 +63,9 @@ public class SonyAuthFilter implements ClientRequestFilter, ClientResponseFilter
 
     /** The base URL of the access control service */
     private final URI baseUri;
+
+    /** The host for which the access control service applies */
+    private final String host;
 
     /** The function interface to determine whether we should automatically apply the auth logic */
     private final AutoAuth autoAuth;
@@ -85,18 +86,19 @@ public class SonyAuthFilter implements ClientRequestFilter, ClientResponseFilter
      *
      * @param baseUri the non-null, base URI for the access control service
      * @param autoAuth the non-null auto auth callback
+     * @param clientBuilder the client builder used to request new authorization cookie if needed
      */
     public SonyAuthFilter(final URI baseUri, final AutoAuth autoAuth, final ClientBuilder clientBuilder) {
         Objects.requireNonNull(baseUri, "baseUrl cannot be empty");
         Objects.requireNonNull(autoAuth, "autoAuth cannot be null");
-        logger.debug("Created SonyAuthFilter for baseUri={}, autoAuth={}", baseUri.getPath(), autoAuth.toString());
-        // logger.debug("Cookies:");
-        // cookies.entrySet().forEach(e -> logger.debug(e.toString()));
-        logger.debug(authCookieStore.getAuthCookieForHost(baseUri.getHost()).toString());
         this.baseUri = baseUri;
         this.autoAuth = autoAuth;
+        host = baseUri.getHost();
         // this.autoAuth = () -> true;
         this.clientBuilder = clientBuilder;
+        logger.debug(
+                "Created SonyAuthFilter for host: {}, baseUri: {}, autoAuth: {} with initial authorization cookie: {}",
+                host, baseUri.getPath(), autoAuth.toString(), authCookieStore.getAuthCookieForHost(host).toString());
     }
 
     @Override
@@ -105,37 +107,11 @@ public class SonyAuthFilter implements ClientRequestFilter, ClientResponseFilter
 
         boolean authNeeded = true;
         logger.debug("Apply filter");
-        // If we had a prior cookies, check to see if any expired
-        /*
-         * if (!cookies.isEmpty()) {
-         * // Iterate the cookies
-         * logger.debug("Cookies");
-         * for (final Iterator<Map.Entry<String, NewCookie>> it = cookies.entrySet().iterator(); it.hasNext();) {
-         * final Map.Entry<String, NewCookie> entry = it.next();
-         * 
-         * final String cookieName = entry.getKey();
-         * final NewCookie cookie = entry.getValue();
-         * logger.debug(entry.toString());
-         * 
-         * // Has the cookie expired...
-         * final Date expiryDate = cookie.getExpiry();
-         * if (expiryDate != null && new Date().after(expiryDate)) {
-         * it.remove();
-         * logger.debug("expired");
-         * } else {
-         * if (AUTHCOOKIENAME.equalsIgnoreCase(cookieName)) {
-         * authNeeded = false;
-         * logger.debug("Old auth cookie: {}", cookie.getValue());
-         * }
-         * }
-         * }
-         * }
-         */
 
-        if (!authCookieStore.getAuthCookieForHost(baseUri.getHost()).getValue().isEmpty()) {
-            logger.debug(authCookieStore.getAuthCookieForHost(baseUri.getHost()).toString());
+        if (!authCookieStore.getAuthCookieForHost(host).getValue().isEmpty()) {
+            logger.debug(authCookieStore.getAuthCookieForHost(host).toString());
             // Has the cookie expired...
-            final Date expiryDate = authCookieStore.getAuthCookieForHost(baseUri.getHost()).getExpiry();
+            final Date expiryDate = authCookieStore.getAuthCookieForHost(host).getExpiry();
             if (expiryDate != null && new Date().after(expiryDate)) {
                 logger.debug("expired");
             } else {
@@ -144,10 +120,8 @@ public class SonyAuthFilter implements ClientRequestFilter, ClientResponseFilter
         }
 
         if (authNeeded && tryAuth.get() && autoAuth.isAutoAuth()) {
-            logger.debug("Trying to renew our authorization cookie");
+            logger.debug("Trying to renew our authorization cookie for host: {}", host);
             final Client client = clientBuilder.build();
-            // client.register(new LoggingFilter());
-
             final String actControlUrl = NetUtil.getSonyUri(baseUri, ScalarWebService.ACCESSCONTROL);
 
             final WebTarget target = client.target(actControlUrl);
@@ -164,9 +138,8 @@ public class SonyAuthFilter implements ClientRequestFilter, ClientResponseFilter
                     final NewCookie authCookie = newCookies.get(AUTHCOOKIENAME);
                     if (authCookie != null) {
                         logger.debug("Authorization cookie was renewed");
-                        logger.debug("New auth cookie: {}", authCookie.getValue());
-                        // cookies.put(AUTHCOOKIENAME, authCookie);
-                        authCookieStore.setAuthCookieForHost(baseUri.getHost(), authCookie);
+                        logger.debug("New auth cookie: {} for host: {}", authCookie.getValue(), host);
+                        authCookieStore.setAuthCookieForHost(host, authCookie);
                     } else {
                         logger.debug("No authorization cookie was returned");
                     }
@@ -181,7 +154,7 @@ public class SonyAuthFilter implements ClientRequestFilter, ClientResponseFilter
             }
         }
         List<Object> cookies = new ArrayList<>();
-        cookies.add(authCookieStore.getAuthCookieForHost(baseUri.getHost()).toCookie());
+        cookies.add(authCookieStore.getAuthCookieForHost(host).toCookie());
         requestCtx.getHeaders().put("Cookie", cookies);
     }
 
@@ -195,28 +168,16 @@ public class SonyAuthFilter implements ClientRequestFilter, ClientResponseFilter
         if (newCookies != null && !newCookies.isEmpty()) {
             final NewCookie authCookie = newCookies.get(AUTHCOOKIENAME);
             if (authCookie != null) {
-                logger.debug("New auth cookie: {}", authCookie.getValue());
-                authCookieStore.setAuthCookieForHost(baseUri.getHost(), authCookie);
-                logger.debug("Auth cookie found and saved: {}");
+                logger.debug("New auth cookie: {} for host: {}", authCookie.getValue(), host);
+                authCookieStore.setAuthCookieForHost(host, authCookie);
+                logger.debug("Auth cookie found and saved");
             }
-
-            /*
-             * if (newCookies.containsKey(AUTHCOOKIENAME)) {
-             * logger.debug("Auth cookie found and saved: {}");
-             * }
-             * 
-             * cookies.clear();
-             * cookies.putAll(newCookies);
-             * logger.debug("Put new cookies");
-             * cookies.entrySet().forEach(e -> logger.debug(e.toString()));
-             */
         }
     }
 
     /**
      * This is the functional interface to determing if auto auth is needed
      */
-    @NonNullByDefault
     public interface AutoAuth {
         /**
          * Determines if auto auth is needed

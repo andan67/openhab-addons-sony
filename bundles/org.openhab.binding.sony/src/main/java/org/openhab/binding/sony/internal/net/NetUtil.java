@@ -29,11 +29,11 @@ import java.util.Base64;
 import java.util.Objects;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.http.HttpHeader;
 import org.eclipse.jetty.http.HttpStatus;
+import org.openhab.binding.sony.internal.SonyUtil;
 import org.openhab.binding.sony.internal.transports.SonyHttpTransport;
 import org.openhab.core.library.types.RawType;
 
@@ -70,8 +70,7 @@ public class NetUtil {
      * @return the non-null header
      */
     public static Header createAuthHeader(final String accessCode) {
-        Validate.notEmpty(accessCode, "accessCode cannot be empty");
-
+        SonyUtil.validateNotEmpty(accessCode, "accessCode cannot be empty");
         final String authCode = Base64.getEncoder()
                 .encodeToString((":" + StringUtils.leftPad(accessCode, 4, "0")).getBytes());
         return new Header("Authorization", "Basic " + authCode);
@@ -84,7 +83,7 @@ public class NetUtil {
      * @return the non-null header
      */
     public static Header createAccessCodeHeader(final String accessCode) {
-        Validate.notEmpty(accessCode, "accessCode cannot be empty");
+        SonyUtil.validateNotEmpty(accessCode, "accessCode cannot be empty");
         return new Header("X-Auth-PSK", accessCode);
     }
 
@@ -114,7 +113,7 @@ public class NetUtil {
      */
     public static String getSonyUri(final URI baseUri, final String serviceName) {
         Objects.requireNonNull(baseUri, "baseUri cannot be null");
-        Validate.notEmpty(serviceName, "serviceName cannot be empty");
+        SonyUtil.validateNotEmpty(serviceName, "serviceName cannot be empty");
 
         final String protocol = baseUri.getScheme();
         final String host = baseUri.getHost();
@@ -125,13 +124,13 @@ public class NetUtil {
     /**
      * Creates a 'sony' URL out of a base URL and a service name
      * 
-     * @param baseUri a non-null base URL
+     * @param baseUrl a non-null base URL
      * @param serviceName a non-null, non-empty service name
      * @return a string representing the 'sony' URL for the service
      */
     public static String getSonyUrl(final URL baseUrl, final String serviceName) {
         Objects.requireNonNull(baseUrl, "baseUrl cannot be null");
-        Validate.notEmpty(serviceName, "serviceName cannot be empty");
+        SonyUtil.validateNotEmpty(serviceName, "serviceName cannot be empty");
 
         // Note: we repeat the getSonyUri logic here - we don't use toUri()
         // because it will introduce a stupid exception we need to catch
@@ -149,8 +148,8 @@ public class NetUtil {
      * @throws IOException if an IO exception occurs sending the WOL packet
      */
     public static void sendWol(final String ipAddress, final String macAddress) throws IOException {
-        Validate.notEmpty(ipAddress, "ipAddress cannot be empty");
-        Validate.notEmpty(macAddress, "macAddress cannot be empty");
+        SonyUtil.validateNotEmpty(ipAddress, "ipAddress cannot be empty");
+        SonyUtil.validateNotEmpty(macAddress, "macAddress cannot be empty");
 
         final byte[] macBytes = new byte[6];
         final String[] hex = macAddress.split("(\\:|\\-)");
@@ -235,7 +234,8 @@ public class NetUtil {
      */
     public static @Nullable URL getUrl(final URL baseUrl, final String otherUrl) {
         Objects.requireNonNull(baseUrl, "baseUrl cannot be null");
-        Validate.notEmpty(otherUrl, "otherUrl cannot be empty");
+        SonyUtil.validateNotEmpty(otherUrl, "otherUrl cannot be empty");
+
         try {
             return new URL(baseUrl, otherUrl);
         } catch (final MalformedURLException e) {
@@ -256,23 +256,24 @@ public class NetUtil {
         byte[] iconData = null;
         String mimeType = RawType.DEFAULT_MIME_TYPE;
 
-        if (url != null && StringUtils.isNotEmpty(url)) {
+        if (url != null && !url.isEmpty()) {
             final HttpResponse resp = transport.executeGet(url);
             if (resp.getHttpCode() == HttpStatus.OK_200) {
                 iconData = resp.getContentAsBytes();
                 mimeType = resp.getResponseHeader(HttpHeader.CONTENT_TYPE.asString());
-                if (StringUtils.isEmpty(mimeType)) {
+                if (SonyUtil.isEmpty(mimeType)) {
                     // probably a 'content' header of value 'Content-Type: image/png' instead
                     mimeType = resp.getResponseHeader("content");
-                    final int idx = mimeType.indexOf(":");
-                    if (idx >= 0) {
-                        mimeType = mimeType.substring(idx + 1).trim();
+                    if (mimeType != null) {
+                        final int idx = mimeType.indexOf(":");
+                        if (idx >= 0) {
+                            mimeType = mimeType.substring(idx + 1).trim();
+                        }
                     }
                 }
             }
         }
-
-        return iconData == null ? null : new RawType(iconData, mimeType);
+        return iconData == null ? null : new RawType(iconData, mimeType == null ? RawType.DEFAULT_MIME_TYPE : mimeType);
     }
 
     /**
@@ -287,8 +288,8 @@ public class NetUtil {
      */
     public static void sendSocketRequest(final String ipAddress, final int port, final String request,
             final SocketSessionListener callback) throws IOException {
-        Validate.notEmpty(ipAddress, "ipAddress cannot be empty");
-        Validate.notEmpty(request, "request cannot be empty");
+        SonyUtil.validateNotEmpty(ipAddress, "ipAddress cannot be empty");
+        SonyUtil.validateNotEmpty(request, "request cannot be empty");
         Objects.requireNonNull(callback, "callback cannot be null");
 
         final Socket socket = new Socket();

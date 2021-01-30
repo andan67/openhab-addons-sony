@@ -380,7 +380,7 @@ public class IrccRemoteCommands {
         }
 
         @Override
-        public Object unmarshal(final @Nullable HierarchicalStreamReader reader,
+        public @Nullable Object unmarshal(final @Nullable HierarchicalStreamReader reader,
                 final @Nullable UnmarshallingContext context) {
             Objects.requireNonNull(reader, "reader cannot be null");
             Objects.requireNonNull(context, "context cannot be null");

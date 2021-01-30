@@ -112,7 +112,6 @@ public class IrccRemoteCommand {
      *
      * @author Tim Roberts - Initial contribution
      */
-    @NonNullByDefault
     static class IrccRemoteCommandConverter implements Converter {
         @Override
         public boolean canConvert(@SuppressWarnings("rawtypes") final @Nullable Class clazz) {

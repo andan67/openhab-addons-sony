@@ -39,8 +39,6 @@
  */
 package org.glassfish.jersey.filter;
 
-import com.hivemq.client.mqtt.mqtt3.Mqtt3AsyncClient;
-
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FilterOutputStream;
@@ -349,12 +347,14 @@ public final class LoggingFilter implements ContainerRequestFilter, ClientReques
      * @return the character set.
      */
     public static Charset getCharset(MediaType m) {
-        String name = (m == null) ? null : m.getParameters().get(MediaType.CHARSET_PARAMETER);
+        final String name = (m == null) ? "" : m.getParameters().get(MediaType.CHARSET_PARAMETER);
         try {
-            return Charset.forName(name.toUpperCase(Locale.ROOT));
+            if(name != null) {
+                return Charset.forName(name.toUpperCase(Locale.ROOT));
+            }
         } catch (Exception ex ) {
-            return UTF8;
         }
+        return UTF8;
     }
 
 }

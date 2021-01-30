@@ -255,7 +255,7 @@ public class SonyWebSocketTransport extends AbstractSonyTransport {
                             }
                         }
                     } else {
-                        final ScalarWebEvent event = gson.fromJson(json, ScalarWebEvent.class);
+                        final ScalarWebEvent event = Objects.requireNonNull(gson.fromJson(json, ScalarWebEvent.class));
                         logger.debug("Event received from server: {}", message);
                         fireEvent(event);
                     }

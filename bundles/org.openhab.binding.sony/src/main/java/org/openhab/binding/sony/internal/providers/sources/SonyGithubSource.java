@@ -23,18 +23,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -186,13 +175,11 @@ public class SonyGithubSource extends AbstractSonySource {
 
     /** Funtional interface for determining if an issue is a match */
     @FunctionalInterface
-    @NonNullByDefault
     private interface IssueCallback {
         boolean isMatch(String body) throws JsonSyntaxException;
     }
 
     @FunctionalInterface
-    @NonNullByDefault
     static interface ObjCallback<T> {
         boolean isMatch(T foundObj);
     }
@@ -302,7 +289,7 @@ public class SonyGithubSource extends AbstractSonySource {
             if (!found && BooleanUtils.isFalse(findIssue(apiOpenHABIssues, b -> {
                 final SonyThingDefinition issueDef = gson.fromJson(b.replaceAll(GITHUB_CODEFENCE, ""),
                         SonyThingDefinition.class);
-                return SonyMatcher.matches(thingTypeDefinition, issueDef, metaInfo);
+                return SonyMatcher.matches(thingTypeDefinition, Objects.requireNonNull(issueDef), metaInfo);
             }, labelThingType))) {
                 postIssue(apiOpenHABIssues, String.format(issueThingType, modelName), thingTypeDefinition,
                         labelThingType);
@@ -359,7 +346,7 @@ public class SonyGithubSource extends AbstractSonySource {
             if (!found && BooleanUtils.isFalse(findIssue(apiOpenHABIssues, b -> {
                 final SonyDeviceCapability issueCap = gson.fromJson(b.replaceAll(GITHUB_CODEFENCE, ""),
                         SonyDeviceCapability.class);
-                return SonyMatcher.matches(deviceCapability, issueCap);
+                return SonyMatcher.matches(deviceCapability, Objects.requireNonNull(issueCap));
             }, labelCapability))) {
                 postIssue(apiOpenHABIssues, String.format(issueCapability, modelName), deviceCapability,
                         labelCapability);
@@ -388,7 +375,7 @@ public class SonyGithubSource extends AbstractSonySource {
                         && BooleanUtils.isFalse(findIssue(apiDevIssues, b -> {
                             final SonyServiceCapability issueSrv = gson.fromJson(b.replaceAll(GITHUB_CODEFENCE, ""),
                                     SonyServiceCapability.class);
-                            return SonyMatcher.matches(deviceService, issueSrv);
+                            return SonyMatcher.matches(deviceService, Objects.requireNonNull(issueSrv));
                         }, labelOpenHAB, labelApi, labelService))) {
                     postIssue(apiDevIssues,
                             String.format(issueService, deviceService.getServiceName(), deviceService.getVersion()),
@@ -412,7 +399,7 @@ public class SonyGithubSource extends AbstractSonySource {
                             && BooleanUtils.isFalse(findIssue(apiDevIssues, b -> {
                                 final ScalarWebMethod issueMth = gson.fromJson(b.replaceAll(GITHUB_CODEFENCE, ""),
                                         ScalarWebMethod.class);
-                                return SonyMatcher.matches(mth, issueMth);
+                                return SonyMatcher.matches(mth, Objects.requireNonNull(issueMth));
                             }, labelOpenHAB, labelApi, labelMethod))) {
                         postIssue(apiDevIssues,
                                 String.format(issueMethod, deviceService.getServiceName(), deviceService.getVersion(),
@@ -567,8 +554,9 @@ public class SonyGithubSource extends AbstractSonySource {
                 metaEtag = resp.getResponseHeader(HttpHeader.ETAG.asString());
                 final String content = resp.getContent();
                 logger.trace("Got new meta info for etag {}: {}", metaEtag, content);
-
-                metaInfo = gson.fromJson(content, MetaInfo.class);
+                final @Nullable MetaInfo metaInfoFromJson = gson.fromJson(content, MetaInfo.class);
+                if (metaInfoFromJson != null)
+                    metaInfo = metaInfoFromJson;
                 return metaInfo;
             } else if (resp.getHttpCode() == HttpStatus.NOT_MODIFIED_304) {
                 logger.trace("Metainfo was not modified - returning last version from etag {}", metaEtag);
@@ -645,11 +633,13 @@ public class SonyGithubSource extends AbstractSonySource {
                                 final List<ServiceModelName> modelNames = mtd.getDefinitions().stream().map(e -> {
                                     final String service = e == null ? null : e.getService();
                                     final String modelName = e == null ? null : e.getModelName();
-                                    return service == null || StringUtils.isEmpty(service) || modelName == null
-                                            || StringUtils.isEmpty(modelName) ? null
-                                                    : new ServiceModelName(service, modelName);
-                                }).filter(e -> e != null).collect(Collectors.toList());
-
+                                    Optional<ServiceModelName> mdl = Optional.empty();
+                                    if (service != null && !service.isEmpty() && modelName != null
+                                            && !modelName.isEmpty()) {
+                                        mdl = Optional.of(new ServiceModelName(service, modelName));
+                                    }
+                                    return mdl;
+                                }).filter(Optional::isPresent).map(Optional::get).collect(Collectors.toList());
                                 logger.debug("Adding known thing types from {}: {}", name, modelNames);
 
                                 knownThingTypes.put(name, modelNames);
@@ -687,10 +677,14 @@ public class SonyGithubSource extends AbstractSonySource {
                                 final List<ServiceModelName> modelNames = ttds.stream().map(e -> {
                                     final String service = e == null ? null : e.getService();
                                     final String modelName = e == null ? null : e.getModelName();
-                                    return service == null || StringUtils.isEmpty(service) || modelName == null
-                                            || StringUtils.isEmpty(modelName) ? null
-                                                    : new ServiceModelName(service, modelName);
-                                }).filter(e -> e != null).collect(Collectors.toList());
+
+                                    Optional<ServiceModelName> mdl = Optional.empty();
+                                    if (service != null && !service.isEmpty() && modelName != null
+                                            && !modelName.isEmpty()) {
+                                        mdl = Optional.of(new ServiceModelName(service, modelName));
+                                    }
+                                    return mdl;
+                                }).filter(Optional::isPresent).map(Optional::get).collect(Collectors.toList());
 
                                 for (final ServiceModelName modelName : getListeningServiceModelNames()) {
                                     modelNames.stream()
@@ -938,7 +932,6 @@ public class SonyGithubSource extends AbstractSonySource {
     /**
      * Helper class representing a resource of definitions from a given modified date
      */
-    @NonNullByDefault
     static class ModifiedThingDefinitions {
         /** The last modified date (or null if unknown) */
         private final @Nullable Long modified;

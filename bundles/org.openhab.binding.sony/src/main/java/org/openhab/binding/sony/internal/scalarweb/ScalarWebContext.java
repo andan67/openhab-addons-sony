@@ -67,7 +67,7 @@ public class ScalarWebContext {
      * @param stateProvider the non-null dynamic state provider
      * @param webSocketClient the possibly null websocket client
      * @param transformService the possibly null transformation service
-     * @param properties the non-null OSGI properties
+     * @param osgiProperties the non-null OSGI properties
      */
     public ScalarWebContext(final Supplier<Thing> thingSupplier, final ScalarWebConfig config,
             final ScalarWebChannelTracker tracker, final ScheduledExecutorService scheduler,

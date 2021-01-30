@@ -174,7 +174,7 @@ public class SonyServlet extends HttpServlet {
                 final String cmd = "{\"id\":1,\"method\":\"" + command + "\",\"version\":\"" + version
                         + "\",\"params\":[" + parms + "]}";
 
-                final ScalarWebRequest rqst = gson.fromJson(cmd, ScalarWebRequest.class);
+                final ScalarWebRequest rqst = Objects.requireNonNull(gson.fromJson(cmd, ScalarWebRequest.class));
 
                 final ScalarWebResult result = transport.execute(rqst, TransportOptionAutoAuth.TRUE);
                 if (result.isError()) {

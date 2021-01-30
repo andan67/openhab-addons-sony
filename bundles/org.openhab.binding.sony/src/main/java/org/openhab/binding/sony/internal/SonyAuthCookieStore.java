@@ -1,40 +1,67 @@
+/**
+ * Copyright (c) 2010-2020 Contributors to the openHAB project
+ *
+ * See the NOTICE file(s) distributed with this work for additional
+ * information.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ */
 package org.openhab.binding.sony.internal;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import javax.ws.rs.core.NewCookie;
 
+import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 
 /**
- * This class is used to provide the cookie used for the normal key authentication across all sessions
+ * This class implements a store for cookies associated to single device specified by its host address
+ *
+ * @author andan - Initial contribution
  */
 @NonNullByDefault
 public class SonyAuthCookieStore {
-    private static SonyAuthCookieStore instance;
-    private static final String AUTHCOOKIENAME = "auth";
+    private static final SonyAuthCookieStore instance = new SonyAuthCookieStore();
+    private static final NewCookie EMPTY_COOKIE = new NewCookie("auth", "");
 
-    private final Map<String, NewCookie> hostAuthCookieMap = new HashMap<>();
+    private final ConcurrentMap<String, @NonNull NewCookie> hostAuthCookieMap = new ConcurrentHashMap<>();
 
-    private SonyAuthCookieStore() {
-    };
-
+    /**
+     * Gets single instance
+     *
+     * @return the instance
+     */
     public static SonyAuthCookieStore getInstance() {
-        if (SonyAuthCookieStore.instance == null) {
-            SonyAuthCookieStore.instance = new SonyAuthCookieStore();
-        }
-        return SonyAuthCookieStore.instance;
+        return instance;
     }
 
+    /**
+     * Gets cookie for host
+     *
+     * @param host the non-null host address of the device
+     * @return the associated cookie
+     */
     public NewCookie getAuthCookieForHost(String host) {
-        if (hostAuthCookieMap.containsKey(host)) {
-            return hostAuthCookieMap.get(host);
+        final NewCookie cookie = hostAuthCookieMap.get(host);
+        if (cookie != null) {
+            return cookie;
         } else {
-            return new NewCookie(AUTHCOOKIENAME, "");
+            return EMPTY_COOKIE;
         }
     }
 
+    /**
+     * Stores the cookie for host
+     *
+     * @param host the non-null host
+     * @param authCookie the non-null cookie
+     */
     public void setAuthCookieForHost(String host, NewCookie authCookie) {
         hostAuthCookieMap.put(host, authCookie);
     }

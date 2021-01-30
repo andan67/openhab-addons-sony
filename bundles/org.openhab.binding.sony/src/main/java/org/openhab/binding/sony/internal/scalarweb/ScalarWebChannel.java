@@ -133,14 +133,18 @@ public class ScalarWebChannel {
             this.properties.putAll(channel.getProperties());
 
             // Remove our internal properties and use them
-            id = this.properties.remove(ScalarWebChannel.CNL_CHANNELID);
-            if (id == null || StringUtils.isEmpty(id)) {
+            final String idr = this.properties.remove(ScalarWebChannel.CNL_CHANNELID);
+            if (idr == null || idr.isEmpty()) {
                 throw new IllegalArgumentException("Channel must contain a ID: " + channel);
+            } else {
+                id = idr;
             }
 
-            category = this.properties.remove(ScalarWebChannel.CNL_CHANNELCATEGORY);
-            if (category == null || StringUtils.isEmpty(category)) {
+            final String categoryr = this.properties.remove(ScalarWebChannel.CNL_CHANNELCATEGORY);
+            if (categoryr == null || categoryr.isEmpty()) {
                 throw new IllegalArgumentException("Channel must contain a category: " + channel);
+            } else {
+                category = categoryr;
             }
 
             final String pathLenStr = this.properties.remove(ScalarWebChannel.CNL_PROPLEN);
@@ -149,8 +153,10 @@ public class ScalarWebChannel {
                     final Integer propLen = Integer.parseInt(pathLenStr);
                     final List<String> tempPath = new ArrayList<>();
                     for (int x = 0; x < propLen; x++) {
-                        tempPath.add(this.properties.remove(ScalarWebChannel.CNL_PROPPREFIX + x));
-
+                        final String prefixr = this.properties.remove(ScalarWebChannel.CNL_PROPPREFIX + x);
+                        if (prefixr != null) {
+                            tempPath.add(prefixr);
+                        }
                     }
 
                     paths = tempPath.toArray(new String[tempPath.size()]);

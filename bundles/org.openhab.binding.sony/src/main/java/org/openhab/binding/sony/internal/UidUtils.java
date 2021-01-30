@@ -86,6 +86,8 @@ public class UidUtils {
     public static ThingUID createThingUID(final ThingTypeUID thingTypeId, final UDN udn) {
         Objects.requireNonNull(thingTypeId, "thingTypeId cannot be null");
         Objects.requireNonNull(udn, "udn cannot be null");
-        return new ThingUID(thingTypeId, getThingId(udn));
+        final @Nullable String thingId = getThingId(udn);
+        Objects.requireNonNull(thingId, "thingId cannot be null");
+        return new ThingUID(thingTypeId, thingId);
     }
 }

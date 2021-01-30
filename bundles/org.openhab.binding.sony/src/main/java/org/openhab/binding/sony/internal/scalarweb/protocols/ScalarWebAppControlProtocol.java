@@ -101,15 +101,16 @@ class ScalarWebAppControlProtocol<T extends ThingCallback<String>> extends Abstr
     private @Nullable WebAppStatus webAppStatus = null;
 
     /** The clientBuilder used in HttpRequest */
-    private final @Nullable ClientBuilder clientBuilder;
+    private final ClientBuilder clientBuilder;
 
     /**
      * Instantiates a new scalar web app control protocol.
      *
-     * @param context the non-null context to use
+     * @param factory the non-null factory to use
      * @param context the non-null context to use
      * @param service the non-null service to use
-     * @param callback the non-null callback to use
+     * @param callback the non-null callback to
+     * @param clientBuilder the non-null clientbuilder to use
      */
     ScalarWebAppControlProtocol(final ScalarWebProtocolFactory<T> factory, final ScalarWebContext context,
             final ScalarWebService service, final T callback, final ClientBuilder clientBuilder) {
@@ -134,7 +135,7 @@ class ScalarWebAppControlProtocol<T extends ThingCallback<String>> extends Abstr
             final String title = app.getTitle();
             final String label = WordUtils.capitalize(title);
 
-            final String origId = SonyUtil.createValidChannelUId(title);
+            final String origId = SonyUtil.createValidChannelUId(title != null ? title : "");
 
             // Make a unique channel ID for this
             // We can't solely assume title is unique - there are bravias that have

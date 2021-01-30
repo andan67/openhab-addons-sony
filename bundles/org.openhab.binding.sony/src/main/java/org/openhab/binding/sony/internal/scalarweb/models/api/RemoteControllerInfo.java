@@ -68,7 +68,7 @@ public class RemoteControllerInfo {
         for (final JsonElement elm : rsts) {
             if (elm.isJsonArray()) {
                 for (final JsonElement elm2 : elm.getAsJsonArray()) {
-                    myCommands.add(gson.fromJson(elm2, RemoteCommand.class));
+                    myCommands.add(Objects.requireNonNull(gson.fromJson(elm2, RemoteCommand.class)));
                 }
             } else if (elm.isJsonObject()) {
                 final JsonObject obj = elm.getAsJsonObject();

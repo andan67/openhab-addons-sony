@@ -87,7 +87,6 @@ class IrccCode {
      *
      * @author Tim Roberts - Initial contribution
      */
-    @NonNullByDefault
     static class IrccCodeConverter implements Converter {
         @Override
         public boolean canConvert(@SuppressWarnings("rawtypes") final @Nullable Class clazz) {

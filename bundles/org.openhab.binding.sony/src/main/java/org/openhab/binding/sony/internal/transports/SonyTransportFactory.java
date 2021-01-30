@@ -72,7 +72,7 @@ public class SonyTransportFactory {
     private final @Nullable ScheduledExecutorService scheduler;
 
     /** The clientBuilder used in HttpRequest */
-    private final @Nullable ClientBuilder clientBuilder;
+    private final ClientBuilder clientBuilder;
 
     /**
      * Constructs the transport factory
@@ -81,9 +81,10 @@ public class SonyTransportFactory {
      * @param gson a non-null gson to use
      * @param webSocketClient a potentially null websocket client
      * @param scheduler a potentially null scheduler
+     * @param clientBuilder a non-null client builder
      */
     public SonyTransportFactory(final URL baseUrl, final Gson gson, final @Nullable WebSocketClient webSocketClient,
-            final @Nullable ScheduledExecutorService scheduler, final @Nullable ClientBuilder clientBuilder) {
+            final @Nullable ScheduledExecutorService scheduler, final ClientBuilder clientBuilder) {
         Objects.requireNonNull(baseUrl, "baseUrl cannot be null");
         Objects.requireNonNull(gson, "gson cannot be null");
 

@@ -347,7 +347,7 @@ public class SonyAuth {
                 : new TransportOption[] { new TransportOptionHeader(NetUtil.createAuthHeader(accessCode)) });
 
         if (r.getHttpCode() == HttpStatus.OK_200) {
-            return gson.fromJson(r.getContent(), ScalarWebResult.class);
+            return Objects.requireNonNull(gson.fromJson(r.getContent(), ScalarWebResult.class));
         } else {
             return new ScalarWebResult(r);
         }

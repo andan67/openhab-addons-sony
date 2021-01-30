@@ -59,6 +59,7 @@ public class SonyHttpTransport extends AbstractSonyTransport {
      * 
      * @param baseUrl a non-null base URL
      * @param gson a non-null GSON to use for serialzation
+     * @param clientBuilder a non-null client builder
      * @throws URISyntaxException if the base URL has a bad syntax
      */
     public SonyHttpTransport(final String baseUrl, final Gson gson, final ClientBuilder clientBuilder)
@@ -128,7 +129,8 @@ public class SonyHttpTransport extends AbstractSonyTransport {
                     return executePostJson((TransportPayloadScalarWebRequest) payload, options).thenApply(r -> {
                         if (r.getResponse().getHttpCode() == HttpStatus.OK_200) {
                             final String content = r.getResponse().getContent();
-                            final ScalarWebResult res = gson.fromJson(content, ScalarWebResult.class);
+                            final ScalarWebResult res = Objects
+                                    .requireNonNull(gson.fromJson(content, ScalarWebResult.class));
                             return new TransportResultScalarWebResult(res);
                         } else {
                             return new TransportResultScalarWebResult(new ScalarWebResult(r.getResponse()));

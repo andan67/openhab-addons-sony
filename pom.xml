@@ -292,7 +292,7 @@ Import-Package: \\
               <classpath>${project.build.directory}/dependency</classpath>
             </compilerArguments>
             <compilerArgs>
-              <arg>-warn:+nullAnnot(org.eclipse.jdt.annotation.Nullable|org.eclipse.jdt.annotation.NonNull|org.eclipse.jdt.annotation.NonNullByDefault),+inheritNullAnnot,+nullAnnotConflict,-nullUncheckedConversion</arg>
+              <arg>-err:+nullAnnot(org.eclipse.jdt.annotation.Nullable|org.eclipse.jdt.annotation.NonNull|org.eclipse.jdt.annotation.NonNullByDefault),+inheritNullAnnot,+nullAnnotConflict,-nullUncheckedConversion</arg>
               <arg>-warn:+null,+inheritNullAnnot,-nullUncheckedConversion,+nullAnnotRedundant,+nullDereference</arg>
             </compilerArgs>
             <showWarnings>true</showWarnings>

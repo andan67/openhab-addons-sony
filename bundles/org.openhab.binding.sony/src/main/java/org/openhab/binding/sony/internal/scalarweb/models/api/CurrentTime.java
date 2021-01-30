@@ -95,8 +95,13 @@ public class CurrentTime {
 
             final int offsetMintues = myTimeZoneOffsetMinute + myDstOffsetMinute;
 
-            dateTime = LocalDateTime.parse(myDateTime)
-                    .atZone(ZoneOffset.ofHoursMinutes(offsetMintues / 60, offsetMintues % 60));
+            if (myDateTime != null) {
+                dateTime = LocalDateTime.parse(myDateTime)
+                        .atZone(ZoneOffset.ofHoursMinutes(offsetMintues / 60, offsetMintues % 60));
+            } else {
+                // should not happen
+                dateTime = ZonedDateTime.now();
+            }
         } else {
             throw new JsonParseException("Unknown result element: " + elm);
         }

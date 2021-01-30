@@ -74,7 +74,7 @@ public class SonyUtil {
      * This utility function will take a potential channelUID string and return a valid channelUID by removing all
      * invalidate characters (see {@link AbstractUID#SEGMENT_PATTERN})
      *
-     * @param channelUIId the non-null, possibly empty channelUID to validate
+     * @param channelUID the non-null, possibly empty channelUID to validate
      * @return a non-null, potentially empty string representing what was valid
      */
     public static String createValidChannelUId(final String channelUID) {
@@ -244,7 +244,7 @@ public class SonyUtil {
     /**
      * Unscales the associated big decimal within the miniumum/maximum defined
      *
-     * @param value a non-null scaled value
+     * @param scaledValue a non-null scaled value
      * @param minimum a possibly null minimum value (if null, zero will be used)
      * @param maximum a possibly null maximum value (if null, 100 will be used)
      * @return a scaled big decimal value
@@ -356,6 +356,10 @@ public class SonyUtil {
             return true;
         }
 
+        if (set1 == null) {
+            return false;
+        }
+
         if (set2 == null) {
             return false;
         }
@@ -363,11 +367,12 @@ public class SonyUtil {
         if (set1.size() != set2.size()) {
             return false;
         }
-
-        final TreeSet<@Nullable String> tset1 = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
-        tset1.addAll(set1);
-        final TreeSet<@Nullable String> tset2 = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
-        tset2.addAll(set2);
+        final TreeSet<String> tset1 = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+        // convert null strings in source set to empty strings to avoid null type mismatch
+        set1.stream().map(s -> s == null ? "" : s).forEach(s -> tset1.add(Objects.requireNonNull(s)));
+        final TreeSet<String> tset2 = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+        // convert null strings in source set to empty strings to avoid null type mismatch
+        set2.stream().map(s -> s == null ? "" : s).forEach(s -> tset2.add(Objects.requireNonNull(s)));
         return tset1.equals(tset2);
     }
 
@@ -553,5 +558,41 @@ public class SonyUtil {
     public static <T> boolean isPrimitive(final Class<T> clazz) {
         Objects.requireNonNull(clazz, "clazz cannot be null");
         return clazz.isPrimitive() || ClassUtils.wrapperToPrimitive(clazz) != null || clazz == String.class;
+    }
+
+    /**
+     * Determines if the pass string is a null or empty
+     *
+     * @param str the String to check, may be null
+     * @return true if string is null or empty, false otherwise
+     */
+    public static boolean isEmpty(final @Nullable String str) {
+        return (str == null || str.isEmpty());
+    }
+
+    /**
+     * Case insensitive check if a String ends with a specified suffix
+     *
+     * @see java.lang.String#endsWith(String)
+     * @param str the String to check, may be null
+     * @param suffix the suffix to find, may be null
+     * @return <code>true</code> if the String ends with the suffix, case insensitive, or
+     *         both <code>null</code>
+     * @since 2.4
+     */
+    public static boolean endsWithIgnoreCase(final String str, final String suffix) {
+        int strOffset = str.length() - suffix.length();
+        return str.regionMatches(true, strOffset, suffix, 0, suffix.length());
+    }
+
+    /**
+     * Validates if string is not empty and throws IllegalArgumentExction if invalid
+     *
+     * @param str the String to validate
+     * @param message the message
+     */
+    public static void validateNotEmpty(final String str, final String message) {
+        if (SonyUtil.isEmpty(str))
+            throw new IllegalArgumentException(message);
     }
 }

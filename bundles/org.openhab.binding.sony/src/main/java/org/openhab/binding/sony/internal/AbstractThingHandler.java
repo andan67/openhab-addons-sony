@@ -122,7 +122,8 @@ public abstract class AbstractThingHandler<C extends AbstractConfig> extends Bas
      * @return true if auto reconnect is supported, false otherwise
      */
     private boolean isAutoReconnect() {
-        return getSonyConfig().getRetryPolling() <= 0;
+        final @Nullable Integer retryPolling = getSonyConfig().getRetryPolling();
+        return (retryPolling == null || retryPolling <= 0);
     }
 
     @Override
@@ -351,7 +352,6 @@ public abstract class AbstractThingHandler<C extends AbstractConfig> extends Bas
      * This is a helper class to track a command that has been cached until the thing goes online. The channelUID,
      * command and a timestamp will be recorded.
      */
-    @NonNullByDefault
     private class CachedCommand {
         /** When the cached command was created */
         private final long timestamp = System.currentTimeMillis();
