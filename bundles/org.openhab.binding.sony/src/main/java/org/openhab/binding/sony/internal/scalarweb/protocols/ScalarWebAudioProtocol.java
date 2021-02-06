@@ -26,11 +26,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.lang.BooleanUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-import org.apache.commons.lang.WordUtils;
-import org.apache.commons.lang.math.NumberUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.sony.internal.SonyUtil;
@@ -106,11 +101,14 @@ class ScalarWebAudioProtocol<T extends ThingCallback<String>> extends AbstractSc
         notificationHelper = new NotificationHelper(enableNotifications(ScalarWebEvent.NOTIFYVOLUMEINFORMATION));
 
         final Map<String, String> osgiProperties = getContext().getOsgiProperties();
-        this.enableHdmiCec = BooleanUtils.isTrue(BooleanUtils.toBooleanObject(osgiProperties.get("audio-enablecec")));
-        this.forceHdmiCec = BooleanUtils.isTrue(BooleanUtils.toBooleanObject(osgiProperties.get("audio-forcecec")));
-
-        final Integer cecDelay = NumberUtils.createInteger(osgiProperties.get("audio-cecDelay"));
-        this.cecDelay = cecDelay == null ? 250 : cecDelay;
+        this.enableHdmiCec = Boolean.TRUE.equals(SonyUtil.toBooleanObject(osgiProperties.get("audio-enablecec")));
+        this.forceHdmiCec = Boolean.TRUE.equals(SonyUtil.toBooleanObject(osgiProperties.get("audio-forcecec")));
+        int cecDelay = 250;
+        try {
+            cecDelay = Integer.parseInt(SonyUtil.defaultIfEmpty(osgiProperties.get("audio-cecDelay"), ""));
+        } catch (NumberFormatException nfe) {
+        }
+        this.cecDelay = cecDelay;
     }
 
     @Override
@@ -130,7 +128,7 @@ class ScalarWebAudioProtocol<T extends ThingCallback<String>> extends AbstractSc
                         .execute(ScalarWebMethod.GETCURRENTEXTERNALTERMINALSSTATUS)
                         .asArray(CurrentExternalTerminalsStatus_1_0.class)) {
                     final String uri = term.getUri();
-                    if (uri != null && StringUtils.isNotEmpty(uri)) {
+                    if (uri != null && !uri.isEmpty()) {
                         termTitles.put(uri, term.getTitle(uri));
                     }
                 }
@@ -192,8 +190,8 @@ class ScalarWebAudioProtocol<T extends ThingCallback<String>> extends AbstractSc
             final @Nullable String outputLabel, final @Nullable Integer min, final @Nullable Integer max) {
         Objects.requireNonNull(descriptors, "descriptors cannot be null");
 
-        final String key = StringUtils.defaultIfEmpty(viKey, DEFAULTKEY);
-        final String label = outputLabel == null ? WordUtils.capitalize(key) : outputLabel;
+        final String key = SonyUtil.defaultIfEmpty(viKey, DEFAULTKEY);
+        final String label = outputLabel == null ? SonyUtil.capitalize(key) : outputLabel;
         final String id = SonyUtil.createValidChannelUId(key);
         final ScalarWebChannel volChannel = createChannel(VOLUME, id, key);
 
@@ -247,13 +245,13 @@ class ScalarWebAudioProtocol<T extends ThingCallback<String>> extends AbstractSc
         Objects.requireNonNull(channel, "channel cannot be null");
 
         final String ctgy = channel.getCategory();
-        if (StringUtils.equalsIgnoreCase(ctgy, MUTE) || StringUtils.equalsIgnoreCase(ctgy, VOLUME)) {
+        if (MUTE.equalsIgnoreCase(ctgy) || VOLUME.equalsIgnoreCase(ctgy)) {
             refreshVolume(Collections.singleton(channel));
-        } else if (StringUtils.equalsIgnoreCase(ctgy, SOUNDSETTING)) {
+        } else if (SOUNDSETTING.equalsIgnoreCase(ctgy)) {
             refreshGeneralSettings(Collections.singleton(channel), ScalarWebMethod.GETSOUNDSETTINGS);
-        } else if (StringUtils.equalsIgnoreCase(ctgy, SPEAKERSETTING)) {
+        } else if (SPEAKERSETTING.equalsIgnoreCase(ctgy)) {
             refreshGeneralSettings(Collections.singleton(channel), ScalarWebMethod.GETSPEAKERSETTINGS);
-        } else if (StringUtils.equalsIgnoreCase(ctgy, CUSTOMEQUALIZER)) {
+        } else if (CUSTOMEQUALIZER.equalsIgnoreCase(ctgy)) {
             refreshGeneralSettings(Collections.singleton(channel), ScalarWebMethod.GETCUSTOMEQUALIZERSETTINGS);
         }
     }
@@ -297,7 +295,7 @@ class ScalarWebAudioProtocol<T extends ThingCallback<String>> extends AbstractSc
             return;
         }
         final String path0 = paths[0];
-        final String key = StringUtils.equalsIgnoreCase(path0, DEFAULTKEY) ? "" : path0;
+        final String key = DEFAULTKEY.equalsIgnoreCase(path0) ? "" : path0;
 
         switch (channel.getCategory()) {
             case MUTE:
@@ -399,9 +397,9 @@ class ScalarWebAudioProtocol<T extends ThingCallback<String>> extends AbstractSc
                         final Optional<GeneralSetting> ogs = ss.getSettings(Target.OUTPUTTERMINAL).findFirst();
                         if (ogs.isPresent()) {
                             final String val = ogs.get().getCurrentValue();
-                            if (StringUtils.equalsIgnoreCase(val, GeneralSetting.SOUNDSETTING_SPEAKERHDMI)
-                                    || StringUtils.equalsIgnoreCase(val, GeneralSetting.SOUNDSETTING_HDMI)
-                                    || StringUtils.equalsIgnoreCase(val, GeneralSetting.SOUNDSETTING_AUDIOSYSTEM)) {
+                            if (GeneralSetting.SOUNDSETTING_SPEAKERHDMI.equalsIgnoreCase(val)
+                                    || GeneralSetting.SOUNDSETTING_HDMI.equalsIgnoreCase(val)
+                                    || GeneralSetting.SOUNDSETTING_AUDIOSYSTEM.equalsIgnoreCase(val)) {
                                 doIncrement = true;
                             } else {
                                 logger.debug("No HDMI/CEC connected - ignoring ({})", val);
@@ -479,7 +477,7 @@ class ScalarWebAudioProtocol<T extends ThingCallback<String>> extends AbstractSc
      * @param max the maximum increment count
      */
     private void scheduleVolumeChange(final String key, final boolean up, final int ct, final int max) {
-        Validate.notEmpty(key, "key cannot be empty");
+        SonyUtil.validateNotEmpty(key, "key cannot be empty");
         if (ct < 0) {
             throw new IllegalArgumentException("ct cannot be less than 0: " + ct);
         }
@@ -525,7 +523,7 @@ class ScalarWebAudioProtocol<T extends ThingCallback<String>> extends AbstractSc
     protected void eventReceived(final ScalarWebEvent event) throws IOException {
         Objects.requireNonNull(event, "event cannot be null");
         final @Nullable String mtd = event.getMethod();
-        if (mtd == null || StringUtils.isEmpty(mtd)) {
+        if (mtd == null || mtd.isEmpty()) {
             logger.debug("Unhandled event received (no method): {}", event);
         } else {
             switch (mtd) {
@@ -565,8 +563,8 @@ class ScalarWebAudioProtocol<T extends ThingCallback<String>> extends AbstractSc
 
         for (final ScalarWebChannel chnl : channels) {
             final String viKey = vi.getTarget();
-            final String key = StringUtils.defaultIfEmpty(viKey, DEFAULTKEY);
-            if (StringUtils.equalsIgnoreCase(key, chnl.getPathPart(0))) {
+            final String key = SonyUtil.defaultIfEmpty(viKey, DEFAULTKEY);
+            if (key.equalsIgnoreCase(chnl.getPathPart(0))) {
                 final String cid = chnl.getChannelId();
                 switch (chnl.getCategory()) {
                     case VOLUME:
@@ -607,8 +605,8 @@ class ScalarWebAudioProtocol<T extends ThingCallback<String>> extends AbstractSc
 
         for (final ScalarWebChannel chnl : channels) {
             final String viKey = vi.getOutput();
-            final String key = StringUtils.defaultIfEmpty(viKey, DEFAULTKEY);
-            if (StringUtils.equalsIgnoreCase(key, chnl.getPathPart(0))) {
+            final String key = SonyUtil.defaultIfEmpty(viKey, DEFAULTKEY);
+            if (key.equalsIgnoreCase(chnl.getPathPart(0))) {
                 final String cid = chnl.getChannelId();
                 switch (chnl.getCategory()) {
                     case VOLUME:

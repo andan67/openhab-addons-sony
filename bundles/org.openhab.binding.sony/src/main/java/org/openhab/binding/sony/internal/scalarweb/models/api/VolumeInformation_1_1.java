@@ -12,7 +12,6 @@
  */
 package org.openhab.binding.sony.internal.scalarweb.models.api;
 
-import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 
@@ -83,7 +82,7 @@ public class VolumeInformation_1_1 {
      * @return true if muted, false otherwise
      */
     public boolean isMute() {
-        return StringUtils.equalsIgnoreCase(MUTEON, mute);
+        return MUTEON.equalsIgnoreCase(mute);
     }
 
     /**

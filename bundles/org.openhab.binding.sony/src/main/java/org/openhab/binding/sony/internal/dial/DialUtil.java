@@ -22,7 +22,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.binding.sony.internal.SonyUtil;
 import org.openhab.binding.sony.internal.dial.models.DialApp;
@@ -55,7 +54,7 @@ public class DialUtil {
             final List<Channel> channels = new ArrayList<>();
 
             final String applId = da.getId();
-            if (applId != null && StringUtils.isNotEmpty(applId)) {
+            if (applId != null && !applId.isEmpty()) {
                 final Map<String, String> props = new HashMap<>();
                 props.put(DialConstants.CHANNEL_PROP_APPLID, applId);
 

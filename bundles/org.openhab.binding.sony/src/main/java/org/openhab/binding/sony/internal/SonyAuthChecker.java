@@ -14,7 +14,6 @@ package org.openhab.binding.sony.internal;
 
 import java.util.Objects;
 
-import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.sony.internal.net.NetUtil;
@@ -66,8 +65,7 @@ public class SonyAuthChecker {
         //
         // Note: we ignore RQST because we don't want to trigger the pairing screen on a device at this stage
         // and/or we are cookie based (probably websocket or authentication has been turned off on the device)
-        if (localAccessCode != null
-                && !StringUtils.equalsIgnoreCase(ScalarWebConstants.ACCESSCODE_RQST, localAccessCode)) {
+        if (localAccessCode != null && !ScalarWebConstants.ACCESSCODE_RQST.equalsIgnoreCase(localAccessCode)) {
             final TransportOptionHeader authHeader = new TransportOptionHeader(
                     NetUtil.createAccessCodeHeader(localAccessCode));
             try {

@@ -17,8 +17,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.jupnp.model.meta.RemoteDevice;
@@ -28,6 +26,7 @@ import org.jupnp.model.types.ServiceId;
 import org.jupnp.model.types.UDN;
 import org.openhab.binding.sony.internal.AbstractDiscoveryParticipant;
 import org.openhab.binding.sony.internal.SonyBindingConstants;
+import org.openhab.binding.sony.internal.SonyUtil;
 import org.openhab.binding.sony.internal.UidUtils;
 import org.openhab.binding.sony.internal.providers.SonyDefinitionProvider;
 import org.openhab.core.config.discovery.DiscoveryResult;
@@ -106,7 +105,7 @@ public class ScalarWebDiscoveryParticipant extends AbstractDiscoveryParticipant 
         }
 
         final String modelName = getModelName(device);
-        if (modelName == null || StringUtils.isEmpty(modelName)) {
+        if (modelName == null || modelName.isEmpty()) {
             logger.debug("Found Sony device but it has no model name - ignoring: {}", device);
             return null;
         }
@@ -170,7 +169,7 @@ public class ScalarWebDiscoveryParticipant extends AbstractDiscoveryParticipant 
 
         if (isSonyDevice(device)) {
             final String modelName = getModelName(device);
-            if (modelName == null || StringUtils.isEmpty(modelName)) {
+            if (modelName == null || modelName.isEmpty()) {
                 logger.debug("Found Sony device but it has no model name - ignoring");
                 return null;
             }
@@ -220,7 +219,7 @@ public class ScalarWebDiscoveryParticipant extends AbstractDiscoveryParticipant 
 
         final String thingId = UidUtils.getThingId(identity.getUdn());
         return DiscoveryResultBuilder.create(uid).withProperties(config.asProperties())
-                .withProperty("ScalarUDN", StringUtils.defaultIfEmpty(thingId, uid.getId()))
+                .withProperty("ScalarUDN", SonyUtil.defaultIfEmpty(thingId, uid.getId()))
                 .withRepresentationProperty("ScalarUDN").withLabel(getLabel(device, "Scalar")).build();
     }
 
@@ -233,7 +232,7 @@ public class ScalarWebDiscoveryParticipant extends AbstractDiscoveryParticipant 
      */
     private ThingUID getThingUID(final RemoteDevice device, final String modelName) {
         Objects.requireNonNull(device, "device cannot be null");
-        Validate.notEmpty(modelName, "modelName cannot be empty");
+        SonyUtil.validateNotEmpty(modelName, "modelName cannot be empty");
 
         final UDN udn = device.getIdentity().getUdn();
         final ThingTypeUID modelUID = getThingTypeUID(modelName);

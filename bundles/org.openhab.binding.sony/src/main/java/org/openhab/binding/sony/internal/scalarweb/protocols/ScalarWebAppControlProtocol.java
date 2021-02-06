@@ -27,9 +27,6 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import javax.ws.rs.client.ClientBuilder;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-import org.apache.commons.lang.WordUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.sony.internal.SonyUtil;
@@ -127,13 +124,13 @@ class ScalarWebAppControlProtocol<T extends ThingCallback<String>> extends Abstr
 
         for (final ApplicationList app : getApplications()) {
             final String uri = app.getUri();
-            if (uri == null || StringUtils.isEmpty(uri)) {
+            if (uri == null || uri.isEmpty()) {
                 logger.debug("uri cannot be empty: {}", app);
                 continue;
             }
 
             final String title = app.getTitle();
-            final String label = WordUtils.capitalize(title);
+            final String label = SonyUtil.capitalize(title);
 
             final String origId = SonyUtil.createValidChannelUId(title != null ? title : "");
 
@@ -165,13 +162,13 @@ class ScalarWebAppControlProtocol<T extends ThingCallback<String>> extends Abstr
                     .asArray(ApplicationStatusList.class);
             for (final ApplicationStatusList status : statuses) {
                 final String name = status.getName();
-                if (name == null || StringUtils.isEmpty(name)) {
+                if (name == null || name.isEmpty()) {
                     logger.debug("name cannot be empty: {}", status);
                     continue;
                 }
 
                 final String id = SonyUtil.createValidChannelUId(name);
-                final String title = WordUtils.capitalize(name);
+                final String title = SonyUtil.capitalize(name);
                 descriptors.add(createDescriptor(createChannel(STATUS, id, name), "Switch", "scalarappcontrolstatus",
                         "Indicator " + title, "Indicator for " + title));
             }
@@ -216,7 +213,7 @@ class ScalarWebAppControlProtocol<T extends ThingCallback<String>> extends Abstr
         Objects.requireNonNull(channel, "channel cannot be null");
 
         final String ctgy = channel.getCategory();
-        if (StringUtils.equalsIgnoreCase(ctgy, TEXTFORM)) {
+        if (TEXTFORM.equalsIgnoreCase(ctgy)) {
             refreshTextForm(channel.getChannelId());
         } else {
             final String[] paths = channel.getPaths();
@@ -311,9 +308,9 @@ class ScalarWebAppControlProtocol<T extends ThingCallback<String>> extends Abstr
      * @return the application list or null if none
      */
     private @Nullable ApplicationList getApplicationList(final String appUri) {
-        Validate.notEmpty(appUri, "appUri cannot be empty");
+        SonyUtil.validateNotEmpty(appUri, "appUri cannot be empty");
         for (final ApplicationList app : getApplications()) {
-            if (StringUtils.equalsIgnoreCase(app.getUri(), appUri)) {
+            if (appUri.equalsIgnoreCase(app.getUri())) {
                 return app;
             }
         }
@@ -327,8 +324,8 @@ class ScalarWebAppControlProtocol<T extends ThingCallback<String>> extends Abstr
      * @param appUri the non-null, non-empty application URI
      */
     private void refreshAppTitle(final String channelId, final String appUri) {
-        Validate.notEmpty(channelId, "channelId cannot be empty");
-        Validate.notEmpty(appUri, "appUri cannot be empty");
+        SonyUtil.validateNotEmpty(channelId, "channelId cannot be empty");
+        SonyUtil.validateNotEmpty(appUri, "appUri cannot be empty");
         final ApplicationList app = getApplicationList(appUri);
         if (app != null) {
             callback.stateChanged(channelId, SonyUtil.newStringType(app.getTitle()));
@@ -342,12 +339,12 @@ class ScalarWebAppControlProtocol<T extends ThingCallback<String>> extends Abstr
      * @param appUri the non-null, non-empty application URI
      */
     private void refreshAppIcon(final String channelId, final String appUri) {
-        Validate.notEmpty(channelId, "channelId cannot be empty");
-        Validate.notEmpty(appUri, "appUri cannot be empty");
+        SonyUtil.validateNotEmpty(channelId, "channelId cannot be empty");
+        SonyUtil.validateNotEmpty(appUri, "appUri cannot be empty");
         final ApplicationList app = getApplicationList(appUri);
         if (app != null) {
             final String iconUrl = app.getIcon();
-            if (iconUrl == null || StringUtils.isEmpty(iconUrl)) {
+            if (iconUrl == null || iconUrl.isEmpty()) {
                 callback.stateChanged(channelId, UnDefType.UNDEF);
             } else {
                 try (SonyHttpTransport transport = SonyTransportFactory
@@ -368,8 +365,8 @@ class ScalarWebAppControlProtocol<T extends ThingCallback<String>> extends Abstr
      * @param appUri the non-null, non-empty application URI
      */
     private void refreshAppData(final String channelId, final String appUri) {
-        Validate.notEmpty(channelId, "channelId cannot be empty");
-        Validate.notEmpty(appUri, "appUri cannot be empty");
+        SonyUtil.validateNotEmpty(channelId, "channelId cannot be empty");
+        SonyUtil.validateNotEmpty(appUri, "appUri cannot be empty");
         final ApplicationList app = getApplicationList(appUri);
         if (app != null) {
             callback.stateChanged(channelId, SonyUtil.newStringType(app.getData()));
@@ -383,13 +380,13 @@ class ScalarWebAppControlProtocol<T extends ThingCallback<String>> extends Abstr
      * @param appUri the non-null, non-empty application URI
      */
     private void refreshAppStatus(final String channelId, final String appUri) {
-        Validate.notEmpty(channelId, "channelId cannot be empty");
-        Validate.notEmpty(appUri, "appUri cannot be empty");
+        SonyUtil.validateNotEmpty(channelId, "channelId cannot be empty");
+        SonyUtil.validateNotEmpty(appUri, "appUri cannot be empty");
         final WebAppStatus webAppStatus = getWebAppStatus();
         callback.stateChanged(channelId,
-                webAppStatus != null && webAppStatus.isActive()
-                        && StringUtils.equalsIgnoreCase(appUri, webAppStatus.getUrl()) ? SonyUtil.newStringType(START)
-                                : SonyUtil.newStringType(STOP));
+                webAppStatus != null && webAppStatus.isActive() && appUri.equalsIgnoreCase(webAppStatus.getUrl())
+                        ? SonyUtil.newStringType(START)
+                        : SonyUtil.newStringType(STOP));
     }
 
     /**
@@ -399,13 +396,13 @@ class ScalarWebAppControlProtocol<T extends ThingCallback<String>> extends Abstr
      * @param statusName the non-null, non-empty status name
      */
     private void refreshStatus(final String channelId, final String statusName) {
-        Validate.notEmpty(channelId, "channelId cannot be empty");
-        Validate.notEmpty(statusName, "statusName cannot be empty");
+        SonyUtil.validateNotEmpty(channelId, "channelId cannot be empty");
+        SonyUtil.validateNotEmpty(statusName, "statusName cannot be empty");
         try {
             final List<ApplicationStatusList> statuses = execute(ScalarWebMethod.GETAPPLICATIONSTATUSLIST)
                     .asArray(ApplicationStatusList.class);
             for (final ApplicationStatusList status : statuses) {
-                if (StringUtils.equalsIgnoreCase(statusName, status.getName())) {
+                if (statusName.equalsIgnoreCase(status.getName())) {
                     callback.stateChanged(channelId, status.isOn() ? OnOffType.ON : OnOffType.OFF);
                 }
             }
@@ -421,7 +418,7 @@ class ScalarWebAppControlProtocol<T extends ThingCallback<String>> extends Abstr
      * @param channelId the non-null, non-empty channel ID
      */
     private void refreshTextForm(final String channelId) {
-        Validate.notEmpty(channelId, "channelId cannot be empty");
+        SonyUtil.validateNotEmpty(channelId, "channelId cannot be empty");
 
         // String pubKey = null;
         // final ScalarWebService enc = getService(ScalarWebService.ENCRYPTION);
@@ -490,7 +487,7 @@ class ScalarWebAppControlProtocol<T extends ThingCallback<String>> extends Abstr
                     logger.debug("Set APPSTATUS Channel path invalid: {}", channel);
                 } else {
                     if (command instanceof StringType) {
-                        setAppStatus(paths[0], StringUtils.equalsIgnoreCase(START, command.toString()));
+                        setAppStatus(paths[0], START.equalsIgnoreCase(command.toString()));
                     } else {
                         logger.debug("APPSTATUS command not an StringType: {}", command);
                     }
@@ -538,7 +535,7 @@ class ScalarWebAppControlProtocol<T extends ThingCallback<String>> extends Abstr
      * @param on true if active, false otherwise
      */
     private void setAppStatus(final String appUri, final boolean on) {
-        Validate.notEmpty(appUri, "appUri cannot be empty");
+        SonyUtil.validateNotEmpty(appUri, "appUri cannot be empty");
         if (on) {
             handleExecute(ScalarWebMethod.SETACTIVEAPP, new ActiveApp(appUri, null));
         } else {

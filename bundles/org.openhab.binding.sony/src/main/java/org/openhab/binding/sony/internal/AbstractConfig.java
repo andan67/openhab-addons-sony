@@ -18,8 +18,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 
@@ -58,7 +56,7 @@ public class AbstractConfig {
      * @throws MalformedURLException if the deviceURL was an improper URL (or null/empty)
      */
     public URL getDeviceUrl() throws MalformedURLException {
-        if (StringUtils.isEmpty(deviceAddress)) {
+        if (SonyUtil.isEmpty(deviceAddress)) {
             throw new MalformedURLException("deviceAddress was blank");
         }
         return new URL(deviceAddress);
@@ -101,7 +99,7 @@ public class AbstractConfig {
      * @return the device mac address
      */
     public @Nullable String getDeviceMacAddress() {
-        return StringUtils.defaultIfEmpty(deviceMacAddress, discoveredMacAddress);
+        return SonyUtil.defaultIfEmpty(deviceMacAddress, discoveredMacAddress);
     }
 
     /**
@@ -128,7 +126,7 @@ public class AbstractConfig {
      * @return true, if is wol
      */
     public boolean isWOL() {
-        return StringUtils.isNotBlank(getDeviceMacAddress());
+        return !(getDeviceMacAddress() != null && !getDeviceMacAddress().isBlank());
     }
 
     /**
@@ -192,8 +190,8 @@ public class AbstractConfig {
      */
     public Map<String, Object> asProperties() {
         final Map<String, Object> props = new HashMap<>();
-        props.put("deviceAddress", StringUtils.defaultIfEmpty(deviceAddress, ""));
-        props.put("discoveredMacAddress", StringUtils.defaultIfEmpty(discoveredMacAddress, ""));
+        props.put("deviceAddress", Objects.requireNonNull(SonyUtil.defaultIfEmpty(deviceAddress, "")));
+        props.put("discoveredMacAddress", Objects.requireNonNull(SonyUtil.defaultIfEmpty(discoveredMacAddress, "")));
         conditionallyAddProperty(props, "deviceMacAddress", deviceMacAddress);
         conditionallyAddProperty(props, "refresh", refresh);
         conditionallyAddProperty(props, "retryPolling", retryPolling);
@@ -212,13 +210,13 @@ public class AbstractConfig {
     protected void conditionallyAddProperty(final Map<String, Object> props, final String propName,
             final @Nullable Object propValue) {
         Objects.requireNonNull(props, "props cannot be null");
-        Validate.notEmpty(propName, "propName cannot be empty");
+        SonyUtil.validateNotEmpty(propName, "propName cannot be empty");
 
         if (propValue == null) {
             return;
         }
 
-        if (propValue instanceof String && StringUtils.isEmpty((String) propValue)) {
+        if (propValue instanceof String && SonyUtil.isEmpty((String) propValue)) {
             return;
         }
 

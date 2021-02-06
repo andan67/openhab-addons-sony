@@ -24,7 +24,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.core.thing.ChannelUID;
@@ -309,7 +308,7 @@ public abstract class AbstractThingHandler<C extends AbstractConfig> extends Bas
      */
     private void scheduleCheckStatus(final @Nullable Integer checkStatusInterval, final @Nullable String ipAddress,
             final @Nullable Integer port) {
-        if (StringUtils.isNotBlank(ipAddress) && port != null && checkStatusInterval != null
+        if (ipAddress != null && !ipAddress.isBlank() && port != null && checkStatusInterval != null
                 && checkStatusInterval > 0) {
             SonyUtil.cancel(checkStatus.getAndSet(scheduler.schedule(() -> {
                 try {
@@ -402,7 +401,7 @@ public abstract class AbstractThingHandler<C extends AbstractConfig> extends Bas
                     initial = true;
                 }
             } catch (final Exception ex) {
-                if (StringUtils.contains(ex.getMessage(), "Connection refused")) {
+                if (ex.getMessage().contains("Connection refused")) {
                     logger.debug("Connection refused - device is probably turned off");
                 } else {
                     logger.debug("Uncaught exception (refreshstate) : {}", ex.getMessage(), ex);

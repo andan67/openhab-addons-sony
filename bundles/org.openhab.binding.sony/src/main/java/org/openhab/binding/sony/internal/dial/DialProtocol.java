@@ -22,8 +22,6 @@ import java.util.Objects;
 
 import javax.ws.rs.client.ClientBuilder;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.http.HttpStatus;
@@ -136,7 +134,7 @@ class DialProtocol<T extends ThingCallback<String>> implements AutoCloseable {
         final CheckResult checkResult = authChecker.checkResult(() -> {
             for (final DialDeviceInfo info : dialClient.getDeviceInfos()) {
                 final String appsListUrl = info.getAppsListUrl();
-                if (appsListUrl == null || StringUtils.isEmpty(appsListUrl)) {
+                if (appsListUrl == null || appsListUrl.isEmpty()) {
                     return new AccessResult(Integer.toString(HttpStatus.INTERNAL_SERVER_ERROR_500),
                             "No application list URL to check");
                 }
@@ -149,7 +147,7 @@ class DialProtocol<T extends ThingCallback<String>> implements AutoCloseable {
         });
 
         if (CheckResult.OK_HEADER.equals(checkResult)) {
-            if (accessCode == null || StringUtils.isEmpty(accessCode)) {
+            if (accessCode == null || accessCode.isEmpty()) {
                 // This shouldn't happen - if our check result is OK_HEADER, then
                 // we had a valid (non-null, non-empty) accessCode. Unfortunately
                 // nullable checking thinks this can be null now.
@@ -162,12 +160,12 @@ class DialProtocol<T extends ThingCallback<String>> implements AutoCloseable {
         } else if (CheckResult.OK_COOKIE.equals(checkResult)) {
             SonyAuth.setupCookie(transport);
         } else if (AccessResult.NEEDSPAIRING.equals(checkResult)) {
-            if (StringUtils.isEmpty(accessCode)) {
+            if (accessCode == null || accessCode.isEmpty()) {
                 return new LoginUnsuccessfulResponse(ThingStatusDetail.CONFIGURATION_ERROR,
                         "Access code cannot be blank");
             } else {
                 final AccessResult result = sonyAuth.requestAccess(transport,
-                        StringUtils.equalsIgnoreCase(DialConstants.ACCESSCODE_RQST, accessCode) ? null : accessCode);
+                        DialConstants.ACCESSCODE_RQST.equalsIgnoreCase(accessCode) ? null : accessCode);
                 if (AccessResult.OK.equals(result)) {
                     SonyAuth.setupCookie(transport);
                 } else {
@@ -199,8 +197,8 @@ class DialProtocol<T extends ThingCallback<String>> implements AutoCloseable {
      * @param start true to start, false otherwise
      */
     public void setState(final String channelId, final String applId, final boolean start) {
-        Validate.notEmpty(channelId, "channelId cannot be empty");
-        Validate.notEmpty(applId, "applId cannot be empty");
+        SonyUtil.validateNotEmpty(channelId, "channelId cannot be empty");
+        SonyUtil.validateNotEmpty(applId, "applId cannot be empty");
 
         final URL urr = NetUtil.getUrl(dialClient.getAppUrl(), applId);
         if (urr == null) {
@@ -223,8 +221,8 @@ class DialProtocol<T extends ThingCallback<String>> implements AutoCloseable {
      * @param applId the non-null, non-empty application ID
      */
     public void refreshState(final String channelId, final String applId) {
-        Validate.notEmpty(channelId, "channelId cannot be empty");
-        Validate.notEmpty(applId, "applId cannot be empty");
+        SonyUtil.validateNotEmpty(channelId, "channelId cannot be empty");
+        SonyUtil.validateNotEmpty(applId, "applId cannot be empty");
 
         try {
             final URL urr = NetUtil.getUrl(dialClient.getAppUrl(), applId);
@@ -253,8 +251,8 @@ class DialProtocol<T extends ThingCallback<String>> implements AutoCloseable {
      * @param applId the non-null application id
      */
     public void refreshName(final String channelId, final String applId) {
-        Validate.notEmpty(channelId, "channelId cannot be empty");
-        Validate.notEmpty(applId, "applId cannot be empty");
+        SonyUtil.validateNotEmpty(channelId, "channelId cannot be empty");
+        SonyUtil.validateNotEmpty(applId, "applId cannot be empty");
 
         final DialApp app = getDialApp(applId);
         callback.stateChanged(channelId, SonyUtil.newStringType(app == null ? null : app.getName()));
@@ -267,8 +265,8 @@ class DialProtocol<T extends ThingCallback<String>> implements AutoCloseable {
      * @param applId the non-null application id
      */
     public void refreshIcon(final String channelId, final String applId) {
-        Validate.notEmpty(channelId, "channelId cannot be empty");
-        Validate.notEmpty(applId, "applId cannot be empty");
+        SonyUtil.validateNotEmpty(channelId, "channelId cannot be empty");
+        SonyUtil.validateNotEmpty(applId, "applId cannot be empty");
 
         final DialApp app = getDialApp(applId);
         final String url = app == null ? null : app.getIconUrl();
@@ -284,7 +282,7 @@ class DialProtocol<T extends ThingCallback<String>> implements AutoCloseable {
      * @return the DialApp for the applId or null if not found
      */
     private @Nullable DialApp getDialApp(final String appId) {
-        Validate.notEmpty(appId, "appId cannot be empty");
+        SonyUtil.validateNotEmpty(appId, "appId cannot be empty");
         final Map<String, DialApp> apps = getDialApps();
         return apps.get(appId);
     }
@@ -298,7 +296,7 @@ class DialProtocol<T extends ThingCallback<String>> implements AutoCloseable {
         final Map<String, DialApp> apps = new HashMap<>();
         for (final DialDeviceInfo info : dialClient.getDeviceInfos()) {
             final String appsListUrl = info.getAppsListUrl();
-            if (appsListUrl != null && StringUtils.isNotBlank(appsListUrl)) {
+            if (appsListUrl != null && !appsListUrl.isBlank()) {
                 final HttpResponse appsResp = getApplicationList(appsListUrl);
                 if (appsResp.getHttpCode() == HttpStatus.OK_200) {
                     final DialService service = DialService.get(appsResp.getContent());
@@ -325,7 +323,7 @@ class DialProtocol<T extends ThingCallback<String>> implements AutoCloseable {
      * @return the http response for the call
      */
     private HttpResponse getApplicationList(final String appsListUrl) {
-        Validate.notEmpty(appsListUrl, "appsListUrl cannot be empty");
+        SonyUtil.validateNotEmpty(appsListUrl, "appsListUrl cannot be empty");
         return transport.executeGet(appsListUrl,
                 new TransportOptionHeader("Content-Type", "text/xml; charset=\"utf-8\""));
     }

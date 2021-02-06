@@ -23,7 +23,6 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.http.HttpStatus;
@@ -232,7 +231,7 @@ public class SonyWebSocketTransport extends AbstractSonyTransport {
         @OnWebSocketMessage
         public void onMessage(final @Nullable String message) {
             logger.trace("websocket.onMessage({})", message);
-            if (message == null || StringUtils.isEmpty(message)) {
+            if (message == null || message.isEmpty()) {
                 logger.debug("Received an empty message - ignoring");
             } else {
                 try {
@@ -291,13 +290,13 @@ public class SonyWebSocketTransport extends AbstractSonyTransport {
                 }
 
                 // suppress stack trace on connection refused
-                if (StringUtils.containsIgnoreCase(t.getMessage(), "connection refused")) {
+                if (t.getMessage().toLowerCase().contains("connection refused")) {
                     logger.debug("Connection refused for {}: {}", uri, t.getMessage());
                     return;
                 }
 
                 // suppress stack trace on connection refused
-                if (StringUtils.containsIgnoreCase(t.getMessage(), "idle timeout")) {
+                if (t.getMessage().toLowerCase().contains("idle timeout")) {
                     logger.debug("Idle Timeout for {}: {}", uri, t.getMessage());
                     return;
                 }

@@ -20,12 +20,10 @@ import java.util.stream.Collectors;
 
 import javax.ws.rs.client.ClientBuilder;
 
-import org.apache.commons.lang.BooleanUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.sony.internal.SonyBindingConstants;
+import org.openhab.binding.sony.internal.SonyUtil;
 import org.openhab.binding.sony.internal.providers.models.SonyDeviceCapability;
 import org.openhab.binding.sony.internal.providers.models.SonyThingChannelDefinition;
 import org.openhab.binding.sony.internal.providers.models.SonyThingDefinition;
@@ -111,11 +109,11 @@ public class SonyDefinitionProviderImpl implements SonyDefinitionProvider, SonyD
 
         // local takes preference over github
         final List<SonySource> srcs = new ArrayList<>();
-        if (BooleanUtils.isNotFalse(BooleanUtils.toBooleanObject(properties.get("local")))) {
+        if (!properties.getOrDefault("local", "").isEmpty()) {
             srcs.add(new SonyFolderSource(scheduler, properties));
         }
         this.clientBuilder = clientBuilder;
-        if (BooleanUtils.isNotFalse(BooleanUtils.toBooleanObject(properties.get("github")))) {
+        if (!properties.getOrDefault("github", "").isEmpty()) {
             srcs.add(new SonyGithubSource(scheduler, properties, this.clientBuilder));
         }
         this.sources = Collections.unmodifiableList(srcs);
@@ -125,7 +123,7 @@ public class SonyDefinitionProviderImpl implements SonyDefinitionProvider, SonyD
     public @Nullable ChannelGroupType getChannelGroupType(final ChannelGroupTypeUID channelGroupTypeUID,
             final @Nullable Locale locale) {
         Objects.requireNonNull(channelGroupTypeUID, "thingTypeUID cannot be null");
-        if (StringUtils.equalsIgnoreCase(channelGroupTypeUID.getBindingId(), SonyBindingConstants.BINDING_ID)) {
+        if (SonyBindingConstants.BINDING_ID.equalsIgnoreCase(channelGroupTypeUID.getBindingId())) {
             for (final SonySource src : sources) {
                 final ChannelGroupType groupType = src.getChannelGroupType(channelGroupTypeUID);
                 if (groupType != null) {
@@ -168,7 +166,7 @@ public class SonyDefinitionProviderImpl implements SonyDefinitionProvider, SonyD
     @Override
     public @Nullable ThingType getThingType(final ThingTypeUID thingTypeUID, final @Nullable Locale locale) {
         Objects.requireNonNull(thingTypeUID, "thingTypeUID cannot be null");
-        if (StringUtils.equalsIgnoreCase(thingTypeUID.getBindingId(), SonyBindingConstants.BINDING_ID)) {
+        if (SonyBindingConstants.BINDING_ID.equalsIgnoreCase(thingTypeUID.getBindingId())) {
             for (final SonySource src : sources) {
                 final ThingType thingType = src.getThingType(thingTypeUID);
                 if (thingType != null) {
@@ -183,7 +181,7 @@ public class SonyDefinitionProviderImpl implements SonyDefinitionProvider, SonyD
     public void addStateOverride(final ThingUID thingUID, final String channelId,
             final StateDescription stateDescription) {
         Objects.requireNonNull(thingUID, "thingUID cannot be null");
-        Validate.notEmpty(channelId, "channelId cannot be empty");
+        SonyUtil.validateNotEmpty(channelId, "channelId cannot be empty");
         Objects.requireNonNull(stateDescription, "stateDescription cannot be null");
 
         final ChannelUID id = new ChannelUID(thingUID, channelId);
@@ -195,7 +193,7 @@ public class SonyDefinitionProviderImpl implements SonyDefinitionProvider, SonyD
             final @Nullable StateDescription originalStateDescription, final @Nullable Locale locale) {
         Objects.requireNonNull(channel, "channel cannot be null");
 
-        if (StringUtils.equalsIgnoreCase(channel.getUID().getBindingId(), SonyBindingConstants.BINDING_ID)) {
+        if (SonyBindingConstants.BINDING_ID.equalsIgnoreCase(channel.getUID().getBindingId())) {
             return getStateDescription(channel.getUID().getThingUID(), channel.getUID().getId(),
                     originalStateDescription);
         }
@@ -221,7 +219,7 @@ public class SonyDefinitionProviderImpl implements SonyDefinitionProvider, SonyD
     private @Nullable StateDescription getStateDescription(final ThingUID thingUID, final String channelId,
             final @Nullable StateDescription originalStateDescription) {
         Objects.requireNonNull(thingUID, "thingUID cannot be null");
-        Validate.notEmpty(channelId, "channelID cannot be empty");
+        SonyUtil.validateNotEmpty(channelId, "channelID cannot be empty");
 
         final ThingRegistry localThingRegistry = thingRegistry;
         if (localThingRegistry != null) {
@@ -314,14 +312,14 @@ public class SonyDefinitionProviderImpl implements SonyDefinitionProvider, SonyD
     @Override
     public void writeThing(final String service, final String configUri, final String modelName, final Thing thing,
             final Predicate<Channel> channelFilter) {
-        Validate.notEmpty(service, "service cannot be empty");
-        Validate.notEmpty(configUri, "configUri cannot be empty");
-        Validate.notEmpty(modelName, "modelName cannot be empty");
+        SonyUtil.validateNotEmpty(service, "service cannot be empty");
+        SonyUtil.validateNotEmpty(configUri, "configUri cannot be empty");
+        SonyUtil.validateNotEmpty(modelName, "modelName cannot be empty");
         Objects.requireNonNull(thing, "thing cannot be null");
         Objects.requireNonNull(channelFilter, "channelFilter cannot be null");
 
         final ThingTypeUID thingTypeUID = thing.getThingTypeUID();
-        if (!StringUtils.equalsIgnoreCase(service, thingTypeUID.getId())) {
+        if (!thingTypeUID.getId().equalsIgnoreCase(service)) {
             logger.debug("Could not write thing type - already a specific thing type (not generic)");
             return;
         }
@@ -345,16 +343,17 @@ public class SonyDefinitionProviderImpl implements SonyDefinitionProvider, SonyD
             final ChannelTypeUID ctuid = chl.getChannelTypeUID();
             // return emtpy SonyThingChannelDefinition with null channelID if ctuid is null
             Optional<SonyThingChannelDefinition> stcd = Optional.empty();
-            if(ctuid != null) {
+            if (ctuid != null) {
                 stcd = Optional.of(new SonyThingChannelDefinition(chl.getUID().getId(), ctuid.getId(),
                         new SonyThingStateDefinition(getStateDescription(chl, null, null)), chl.getProperties()));
             }
             return stcd;
-        }).filter(Optional::isPresent).map(Optional::get).sorted((f, l) -> f.getChannelId().compareToIgnoreCase(Objects.requireNonNull(l.getChannelId())))
+        }).filter(Optional::isPresent).map(Optional::get)
+                .sorted((f, l) -> f.getChannelId().compareToIgnoreCase(Objects.requireNonNull(l.getChannelId())))
                 .collect(Collectors.toList());
 
-        final String label = StringUtils.defaultIfEmpty(thing.getLabel(), thingType.getLabel());
-        if (label == null || StringUtils.isEmpty(label)) {
+        final String label = SonyUtil.defaultIfEmpty(thing.getLabel(), thingType.getLabel());
+        if (label == null || label.isEmpty()) {
             logger.debug("Could not write thing type - no label was found");
             return;
         }
@@ -363,7 +362,7 @@ public class SonyDefinitionProviderImpl implements SonyDefinitionProvider, SonyD
 
         // hardcoded service groups for now
         final SonyThingDefinition ttd = new SonyThingDefinition(service, configUri, modelName, "Sony " + label,
-                StringUtils.defaultIfEmpty(desc, label), ScalarWebService.getServiceLabels(), chls);
+                SonyUtil.defaultIfEmpty(desc, label), ScalarWebService.getServiceLabels(), chls);
 
         for (final SonySource src : sources) {
             src.writeThingDefinition(ttd);

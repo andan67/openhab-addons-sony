@@ -14,9 +14,9 @@ package org.openhab.binding.sony.internal.scalarweb.models.api;
 
 import java.util.Objects;
 
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.sony.internal.SonyUtil;
 
 /**
  * This class represents the audio volume and is used for serialization
@@ -55,7 +55,7 @@ public class AudioVolume_1_1 {
      */
     public AudioVolume_1_1(final String output, final String volume) {
         Objects.requireNonNull(output, "output cannot be empty");
-        Validate.notEmpty(volume, "volume cannot be empty");
+        SonyUtil.validateNotEmpty(volume, "volume cannot be empty");
 
         this.output = output;
         this.volume = volume;

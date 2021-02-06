@@ -12,8 +12,8 @@
  */
 package org.openhab.binding.sony.internal.scalarweb.models.api;
 
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.openhab.binding.sony.internal.SonyUtil;
 
 /**
  * This class represents a value and is used for serialization only
@@ -31,7 +31,7 @@ public class Value {
      * @param value the non-null, non-emty value
      */
     public Value(final String value) {
-        Validate.notEmpty(value, "value cannot be empty");
+        SonyUtil.validateNotEmpty(value, "value cannot be empty");
         this.value = value;
     }
 

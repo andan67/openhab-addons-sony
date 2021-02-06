@@ -16,10 +16,10 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Map;
 
-import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.sony.internal.AbstractConfig;
+import org.openhab.binding.sony.internal.SonyUtil;
 
 /**
  * Configuration class for the scalar web service
@@ -87,7 +87,7 @@ public class ScalarWebConfig extends AbstractConfig {
      */
     public @Nullable String getCommandsMapFile() {
         final String localCommandsMapFile = commandsMapFile;
-        return StringUtils.defaultIfEmpty(localCommandsMapFile, discoveredCommandsMapFile);
+        return SonyUtil.defaultIfEmpty(localCommandsMapFile, discoveredCommandsMapFile);
     }
 
     /**
@@ -132,7 +132,7 @@ public class ScalarWebConfig extends AbstractConfig {
      * @return the model name
      */
     public @Nullable String getModelName() {
-        return StringUtils.defaultIfEmpty(modelName, discoveredModelName);
+        return SonyUtil.defaultIfEmpty(modelName, discoveredModelName);
     }
 
     /**
@@ -156,7 +156,7 @@ public class ScalarWebConfig extends AbstractConfig {
     /**
      * Sets the discovered model name
      *
-     * @param irccUrl the discovered model name
+     * @param discoveredModelName the discovered model name
      */
     public void setDiscoveredModelName(final @Nullable String discoveredModelName) {
         this.discoveredModelName = discoveredModelName;
@@ -166,8 +166,8 @@ public class ScalarWebConfig extends AbstractConfig {
     public Map<String, Object> asProperties() {
         final Map<String, Object> props = super.asProperties();
 
-        props.put("discoveredCommandsMapFile", StringUtils.defaultIfEmpty(discoveredCommandsMapFile, ""));
-        props.put("discoveredModelName", StringUtils.defaultIfEmpty(discoveredModelName, ""));
+        props.put("discoveredCommandsMapFile", SonyUtil.defaultIfEmpty(discoveredCommandsMapFile, ""));
+        props.put("discoveredModelName", SonyUtil.defaultIfEmpty(discoveredModelName, ""));
 
         conditionallyAddProperty(props, "accessCode", accessCode);
         conditionallyAddProperty(props, "commandsMapFile", commandsMapFile);

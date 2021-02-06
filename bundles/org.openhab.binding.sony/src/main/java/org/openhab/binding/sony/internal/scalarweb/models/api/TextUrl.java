@@ -12,9 +12,9 @@
  */
 package org.openhab.binding.sony.internal.scalarweb.models.api;
 
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.sony.internal.SonyUtil;
 
 /**
  * This class represents the URL in the onscreen browser and is used for serialization/deserialization only
@@ -47,7 +47,7 @@ public class TextUrl {
      * @param url the non-null, non-empty url
      */
     public TextUrl(final String url) {
-        Validate.notEmpty(url, "url cannot be empty");
+        SonyUtil.validateNotEmpty(url, "url cannot be empty");
         this.url = url;
     }
 

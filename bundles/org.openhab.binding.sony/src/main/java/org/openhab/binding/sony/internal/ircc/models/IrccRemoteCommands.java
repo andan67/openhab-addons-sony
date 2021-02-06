@@ -18,8 +18,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
-import org.apache.commons.lang.NotImplementedException;
-import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.slf4j.Logger;
@@ -251,9 +249,9 @@ public class IrccRemoteCommands {
             final String cmdName = cmd.getCommand();
             final String cmdValue = cmd.getValue();
 
-            if (StringUtils.isNotEmpty(cmdName) && StringUtils.isNotEmpty(cmdValue)) {
+            if (!cmdName.isEmpty() && !cmdValue.isEmpty()) {
                 final Optional<IrccRemoteCommand> existingCmd = cmds.values().stream()
-                        .filter(rc -> StringUtils.equals(cmdValue, rc.getCmd())).findFirst();
+                        .filter(rc -> cmdValue.equals(rc.getCmd())).findFirst();
                 if (existingCmd.isPresent()) {
                     logger.debug("Cannot add code list {} to commands as command {} already exists for {}", cmdName,
                             cmdValue, existingCmd.get().getName());
@@ -309,9 +307,9 @@ public class IrccRemoteCommands {
         IrccRemoteCommand powerCmd = null;
         for (final IrccRemoteCommand cmd : remoteCmds.values()) {
             final String name = cmd.getName();
-            if (StringUtils.containsIgnoreCase(name, "power on")) {
+            if (name.toLowerCase().contains("power on")) {
                 return cmd;
-            } else if (StringUtils.containsIgnoreCase(name, "power")) {
+            } else if (name.toLowerCase().contains("power")) {
                 powerCmd = cmd;
                 break;
             }
@@ -350,9 +348,9 @@ public class IrccRemoteCommands {
         IrccRemoteCommand powerCmd = null;
         for (final IrccRemoteCommand cmd : remoteCmds.values()) {
             final String name = cmd.getName();
-            if (StringUtils.containsIgnoreCase(name, "power off")) {
+            if (name.toLowerCase().contains("power on")) {
                 return cmd;
-            } else if (StringUtils.containsIgnoreCase(name, "power")) {
+            } else if (name.toLowerCase().contains("power")) {
                 powerCmd = cmd;
                 break;
             }
@@ -363,7 +361,7 @@ public class IrccRemoteCommands {
 
     /**
      * The converter used to unmarshal the {@link IrccRemoteCommands}. Please note this should only be used to unmarshal
-     * XML (marshaling will throw a {@link NotImplementedException})
+     * XML (marshaling will throw a {@link UnsupportedOperationException})
      *
      * @author Tim Roberts - Initial contribution
      */
@@ -376,7 +374,7 @@ public class IrccRemoteCommands {
         @Override
         public void marshal(final @Nullable Object obj, final @Nullable HierarchicalStreamWriter writer,
                 final @Nullable MarshallingContext context) {
-            throw new NotImplementedException();
+            throw new UnsupportedOperationException();
         }
 
         @Override

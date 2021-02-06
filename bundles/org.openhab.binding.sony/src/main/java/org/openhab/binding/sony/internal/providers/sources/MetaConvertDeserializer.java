@@ -17,7 +17,6 @@ import java.util.Objects;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
-import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.Nullable;
 
 import com.google.gson.JsonDeserializationContext;
@@ -60,7 +59,7 @@ public class MetaConvertDeserializer implements JsonDeserializer<MetaConvert> {
             }
 
             final String newNameStr = newName.getAsString();
-            if (newNameStr == null || StringUtils.isEmpty(newNameStr)) {
+            if (newNameStr == null || newNameStr.isEmpty()) {
                 throw new JsonParseException("newName cannot be empty");
             }
 

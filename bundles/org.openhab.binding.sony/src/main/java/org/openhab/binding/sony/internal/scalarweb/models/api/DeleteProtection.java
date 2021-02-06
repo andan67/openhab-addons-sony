@@ -12,8 +12,8 @@
  */
 package org.openhab.binding.sony.internal.scalarweb.models.api;
 
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.openhab.binding.sony.internal.SonyUtil;
 
 /**
  * This class represents the request to delete protection and is used for serialization only
@@ -36,7 +36,7 @@ public class DeleteProtection {
      * @param isProtected whether it should be protected
      */
     public DeleteProtection(final String uri, final boolean isProtected) {
-        Validate.notEmpty(uri, "uri cannot be empty");
+        SonyUtil.validateNotEmpty(uri, "uri cannot be empty");
         this.uri = uri;
         this.isProtected = isProtected;
     }

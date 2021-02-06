@@ -15,9 +15,9 @@ package org.openhab.binding.sony.internal.providers.sources;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.sony.internal.SonyUtil;
 
 /**
  * Helper class representing a name conversion and is used for deserialization only
@@ -40,7 +40,7 @@ class MetaConvert {
      */
     MetaConvert(final Pattern oldName, final String newName) {
         Objects.requireNonNull(oldName, "oldName cannot be null");
-        Validate.notEmpty(newName, "newName cannot be empty");
+        SonyUtil.validateNotEmpty(newName, "newName cannot be empty");
 
         this.oldName = oldName;
         this.newName = newName;

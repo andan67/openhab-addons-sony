@@ -14,6 +14,7 @@ package org.openhab.binding.sony.internal.transports;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -22,11 +23,10 @@ import java.util.concurrent.TimeoutException;
 
 import javax.ws.rs.client.ClientBuilder;
 
-import org.apache.commons.lang.ArrayUtils;
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jetty.http.HttpStatus;
 import org.openhab.binding.sony.internal.SonyBindingConstants;
+import org.openhab.binding.sony.internal.SonyUtil;
 import org.openhab.binding.sony.internal.net.Header;
 import org.openhab.binding.sony.internal.net.HttpRequest;
 import org.openhab.binding.sony.internal.net.HttpResponse;
@@ -161,7 +161,7 @@ public class SonyHttpTransport extends AbstractSonyTransport {
      * @return a non-null {@link HttpResponse}
      */
     public HttpResponse executeGet(final String url, final TransportOption... options) {
-        Validate.notEmpty(url, "url cannot be empty");
+        SonyUtil.validateNotEmpty(url, "url cannot be empty");
         return execute(url, append(options, TransportOptionMethod.GET));
     }
 
@@ -175,7 +175,7 @@ public class SonyHttpTransport extends AbstractSonyTransport {
      * @return a non-null {@link HttpResponse}
      */
     public HttpResponse executeDelete(final String url, final TransportOption... options) {
-        Validate.notEmpty(url, "url cannot be empty");
+        SonyUtil.validateNotEmpty(url, "url cannot be empty");
         return execute(url, append(options, TransportOptionMethod.DELETE));
     }
 
@@ -190,8 +190,8 @@ public class SonyHttpTransport extends AbstractSonyTransport {
      * @return a non-null {@link HttpResponse}
      */
     public HttpResponse executePostJson(final String url, final String payload, final TransportOption... options) {
-        Validate.notEmpty(url, "url cannot be empty");
-        Validate.notEmpty(payload, "payload cannot be empty");
+        SonyUtil.validateNotEmpty(url, "url cannot be empty");
+        SonyUtil.validateNotEmpty(payload, "payload cannot be empty");
 
         return execute(url, new TransportPayloadHttp(url, payload), append(options, TransportOptionMethod.POST_JSON));
     }
@@ -207,7 +207,7 @@ public class SonyHttpTransport extends AbstractSonyTransport {
      * @return a non-null {@link HttpResponse}
      */
     public HttpResponse executePostXml(final String url, final String payload, final TransportOption... options) {
-        Validate.notEmpty(url, "url cannot be empty");
+        SonyUtil.validateNotEmpty(url, "url cannot be empty");
         Objects.requireNonNull(payload, "payload cannot be null");
 
         return execute(url, new TransportPayloadHttp(url, payload), append(options, TransportOptionMethod.POST_XML));
@@ -221,7 +221,7 @@ public class SonyHttpTransport extends AbstractSonyTransport {
      * @return a non-null {@link HttpResponse}
      */
     private HttpResponse execute(final String url, final TransportOption... options) {
-        Validate.notEmpty(url, "url cannot be empty");
+        SonyUtil.validateNotEmpty(url, "url cannot be empty");
         return execute(url, new TransportPayloadHttp(url), options);
     }
 
@@ -235,7 +235,7 @@ public class SonyHttpTransport extends AbstractSonyTransport {
      */
     private HttpResponse execute(final String url, final TransportPayloadHttp payload,
             final TransportOption... options) {
-        Validate.notEmpty(url, "url cannot be empty");
+        SonyUtil.validateNotEmpty(url, "url cannot be empty");
         Objects.requireNonNull(payload, "payload cannot be null");
 
         try {
@@ -265,7 +265,7 @@ public class SonyHttpTransport extends AbstractSonyTransport {
         Objects.requireNonNull(cmd, "cmd cannot be null");
 
         final String url = cmd.getUrl();
-        Validate.notEmpty(url, "url within the cmd cannot be empty");
+        SonyUtil.validateNotEmpty(url, "url within the cmd cannot be empty");
 
         final Header[] headers = getHeaders(options);
         return CompletableFuture
@@ -284,7 +284,7 @@ public class SonyHttpTransport extends AbstractSonyTransport {
         Objects.requireNonNull(cmd, "cmd cannot be null");
 
         final String url = cmd.getUrl();
-        Validate.notEmpty(url, "url within the cmd cannot be empty");
+        SonyUtil.validateNotEmpty(url, "url within the cmd cannot be empty");
         final Header[] headers = getHeaders(options);
         return CompletableFuture
                 .completedFuture(new TransportResultHttpResponse(requestor.sendDeleteCommand(url, headers)));
@@ -323,7 +323,7 @@ public class SonyHttpTransport extends AbstractSonyTransport {
         Objects.requireNonNull(payload, "payload cannot be null"); // may be empty however
 
         final String url = request.getUrl();
-        Validate.notEmpty(url, "url within the cmd cannot be empty");
+        SonyUtil.validateNotEmpty(url, "url within the cmd cannot be empty");
 
         final Header[] headers = getHeaders(options);
 
@@ -346,7 +346,7 @@ public class SonyHttpTransport extends AbstractSonyTransport {
         Objects.requireNonNull(payload, "payload cannot be null"); // may be empty however
 
         final String url = request.getUrl();
-        Validate.notEmpty(url, "url within the cmd cannot be empty");
+        SonyUtil.validateNotEmpty(url, "url within the cmd cannot be empty");
 
         final Header[] headers = getHeaders(options);
         return CompletableFuture
@@ -374,7 +374,8 @@ public class SonyHttpTransport extends AbstractSonyTransport {
     private static TransportOption[] append(final TransportOption[] options, final TransportOption option) {
         Objects.requireNonNull(options, "options cannot be null");
         Objects.requireNonNull(option, "option cannot be null");
-
-        return (TransportOption[]) ArrayUtils.add(options, option);
+        final TransportOption[] optionsExtended = Arrays.copyOf(options, options.length + 1);
+        optionsExtended[optionsExtended.length - 1] = option;
+        return optionsExtended;
     }
 }

@@ -16,8 +16,8 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.openhab.binding.sony.internal.SonyUtil;
 import org.openhab.binding.sony.internal.scalarweb.gson.SupportedApiInfoDeserializer;
 
 /**
@@ -56,7 +56,7 @@ public class SupportedApiVersionInfo {
     public SupportedApiVersionInfo(final String authLevel, final Set<String> protocols, final String version) {
         Objects.requireNonNull(authLevel, "authLevel cannot be null");
         Objects.requireNonNull(protocols, "protocols cannot be null");
-        Validate.notEmpty(version, "version cannot be empty");
+        SonyUtil.validateNotEmpty(version, "version cannot be empty");
 
         this.authLevel = authLevel;
         this.protocols = protocols;

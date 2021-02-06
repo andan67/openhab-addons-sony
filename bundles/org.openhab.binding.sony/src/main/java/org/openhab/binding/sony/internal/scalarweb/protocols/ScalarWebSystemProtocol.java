@@ -24,8 +24,6 @@ import java.util.Objects;
 
 import javax.ws.rs.client.ClientBuilder;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.http.HttpStatus;
@@ -294,7 +292,7 @@ class ScalarWebSystemProtocol<T extends ThingCallback<String>> extends AbstractS
             for (final StorageListItem_1_1 sl : execute(ScalarWebMethod.GETSTORAGELIST, new StorageListRequest_1_1())
                     .asArray(StorageListItem_1_1.class)) {
                 final String uri = sl.getUri();
-                if (uri == null || StringUtils.isEmpty(uri)) {
+                if (uri == null || uri.isEmpty()) {
                     logger.debug("Storage List had no URI (which is required): {}", sl);
                     continue;
                 }
@@ -340,7 +338,7 @@ class ScalarWebSystemProtocol<T extends ThingCallback<String>> extends AbstractS
             for (final StorageListItem_1_2 sl : execute(ScalarWebMethod.GETSTORAGELIST, new StorageListRequest_1_2())
                     .asArray(StorageListItem_1_2.class)) {
                 final String uri = sl.getUri();
-                if (uri == null || StringUtils.isEmpty(uri)) {
+                if (uri == null || uri.isEmpty()) {
                     logger.debug("Storage List had no URI (which is required): {}", sl);
                     continue;
                 }
@@ -430,12 +428,11 @@ class ScalarWebSystemProtocol<T extends ThingCallback<String>> extends AbstractS
      * @return a channel id for the uri
      */
     private String getStorageChannelId(final String uri) {
-        Validate.notEmpty(uri, "uri cannot be empty");
+        SonyUtil.validateNotEmpty(uri, "uri cannot be empty");
         final String scheme = Source.getSchemePart(uri);
         final String src = Source.getSourcePart(uri);
 
-        return SonyUtil.createValidChannelUId(
-                (StringUtils.equalsIgnoreCase(scheme, Scheme.STORAGE) ? "" : (scheme + "-")) + src);
+        return SonyUtil.createValidChannelUId((Scheme.STORAGE.equalsIgnoreCase(scheme) ? "" : (scheme + "-")) + src);
     }
 
     @Override
@@ -492,7 +489,7 @@ class ScalarWebSystemProtocol<T extends ThingCallback<String>> extends AbstractS
         }
 
         if (initial || !notificationHelper.isEnabled(ScalarWebEvent.NOTIFYSTORAGESTATUS)) {
-            if (tracker.isCategoryLinked(ctgy -> StringUtils.startsWith(ctgy, STORAGE))) {
+            if (tracker.isCategoryLinked(ctgy -> ctgy.startsWith(STORAGE))) {
                 refreshStorage();
             }
         }
@@ -557,7 +554,7 @@ class ScalarWebSystemProtocol<T extends ThingCallback<String>> extends AbstractS
 
             default:
                 final String ctgy = channel.getCategory();
-                if (StringUtils.startsWith(ctgy, STORAGE)) {
+                if (ctgy.startsWith(STORAGE)) {
                     refreshStorage();
                 } else {
                     logger.debug("Unknown refresh channel: {}", channel);
@@ -792,7 +789,7 @@ class ScalarWebSystemProtocol<T extends ThingCallback<String>> extends AbstractS
      * @param mode the non-null, non-empty new led indicator status
      */
     private void setLedIndicatorStatus(final String mode) {
-        Validate.notEmpty(mode, "mode cannot be empty");
+        SonyUtil.validateNotEmpty(mode, "mode cannot be empty");
         handleExecute(ScalarWebMethod.SETLEDINDICATORSTATUS, new LedIndicatorStatus(mode, ""));
     }
 
@@ -802,7 +799,7 @@ class ScalarWebSystemProtocol<T extends ThingCallback<String>> extends AbstractS
      * @param language the non-null, non-empty new language
      */
     private void setLanguage(final String language) {
-        Validate.notEmpty(language, "language cannot be empty");
+        SonyUtil.validateNotEmpty(language, "language cannot be empty");
         handleExecute(ScalarWebMethod.SETLANGUAGE, new Language(language));
     }
 
@@ -812,7 +809,7 @@ class ScalarWebSystemProtocol<T extends ThingCallback<String>> extends AbstractS
      * @param mode the non-null, non-empty new power saving mode
      */
     private void setPowerSavingMode(final String mode) {
-        Validate.notEmpty(mode, "mode cannot be empty");
+        SonyUtil.validateNotEmpty(mode, "mode cannot be empty");
         handleExecute(ScalarWebMethod.SETPOWERSAVINGMODE, new PowerSavingMode(mode));
     }
 
@@ -850,7 +847,7 @@ class ScalarWebSystemProtocol<T extends ThingCallback<String>> extends AbstractS
      * @param postalCode the non-null, non-empty new postal code
      */
     private void setPostalCode(final String postalCode) {
-        Validate.notEmpty(postalCode, "postalCode cannot be empty");
+        SonyUtil.validateNotEmpty(postalCode, "postalCode cannot be empty");
         handleExecute(ScalarWebMethod.SETPOSTALCODE, new PostalCode(postalCode));
     }
 
@@ -867,12 +864,12 @@ class ScalarWebSystemProtocol<T extends ThingCallback<String>> extends AbstractS
      * @param cmd a possibly null, possibly empty IRCC command to send
      */
     public void sendIrccCommand(final String cmd) {
-        if (StringUtils.isEmpty(cmd)) {
+        if (SonyUtil.isEmpty(cmd)) {
             return;
         }
 
         final String localIrccUrl = irccUrl;
-        if (localIrccUrl == null || StringUtils.isEmpty(localIrccUrl)) {
+        if (localIrccUrl == null || localIrccUrl.isEmpty()) {
             logger.debug("IRCC URL was not specified in configuration");
         } else {
             try {
@@ -888,7 +885,7 @@ class ScalarWebSystemProtocol<T extends ThingCallback<String>> extends AbstractS
                     try {
                         code = localTransformService.transform(cmdMap, cmd);
 
-                        if (code != null && StringUtils.isNotBlank(code)) {
+                        if (code != null && !code.isBlank()) {
                             logger.debug("Transformed {} with map file '{}' to {}", cmd, cmdMap, code);
 
                             try {
@@ -904,7 +901,7 @@ class ScalarWebSystemProtocol<T extends ThingCallback<String>> extends AbstractS
                     }
                 }
 
-                if (localCmd == null || StringUtils.isEmpty(localCmd)) {
+                if (localCmd == null || localCmd.isEmpty()) {
                     logger.debug("IRCC command was empty or null - ignoring");
                     return;
                 }
@@ -971,7 +968,7 @@ class ScalarWebSystemProtocol<T extends ThingCallback<String>> extends AbstractS
         Objects.requireNonNull(event, "event cannot be null");
 
         final @Nullable String mtd = event.getMethod();
-        if (mtd == null || StringUtils.isEmpty(mtd)) {
+        if (mtd == null || mtd.isEmpty()) {
             logger.debug("Unhandled event received (no method): {}", event);
         } else {
             switch (mtd) {
@@ -1039,7 +1036,7 @@ class ScalarWebSystemProtocol<T extends ThingCallback<String>> extends AbstractS
         Objects.requireNonNull(item, "item cannot be null");
 
         final String uri = item.getUri();
-        if (uri == null || StringUtils.isEmpty(uri)) {
+        if (uri == null || uri.isEmpty()) {
             logger.debug("Storage URI is empty - ignoring notification: {}", item);
             return;
         }
@@ -1076,7 +1073,7 @@ class ScalarWebSystemProtocol<T extends ThingCallback<String>> extends AbstractS
         Objects.requireNonNull(item, "item cannot be null");
 
         final String uri = item.getUri();
-        if (uri == null || StringUtils.isEmpty(uri)) {
+        if (uri == null || uri.isEmpty()) {
             logger.debug("Storage URI is empty - ignoring notification: {}", item);
             return;
         }

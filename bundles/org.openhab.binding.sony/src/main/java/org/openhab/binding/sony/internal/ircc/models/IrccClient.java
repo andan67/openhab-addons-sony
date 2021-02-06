@@ -17,11 +17,10 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.http.HttpStatus;
+import org.openhab.binding.sony.internal.SonyUtil;
 import org.openhab.binding.sony.internal.net.HttpResponse;
 import org.openhab.binding.sony.internal.transports.SonyHttpTransport;
 import org.openhab.binding.sony.internal.transports.TransportOptionHeader;
@@ -143,7 +142,7 @@ public class IrccClient {
      * @return the url for action or null if not found
      */
     public @Nullable String getUrlForAction(final String actionName) {
-        Validate.notEmpty(actionName, "actionName cannot be empty");
+        SonyUtil.validateNotEmpty(actionName, "actionName cannot be empty");
         return actions.getUrlForAction(actionName);
     }
 
@@ -163,7 +162,7 @@ public class IrccClient {
      * @return the service or null if not found
      */
     private @Nullable UpnpService getService(final String serviceId) {
-        Validate.notEmpty(serviceId, "serviceId cannot be empty");
+        SonyUtil.validateNotEmpty(serviceId, "serviceId cannot be empty");
         return services.get(serviceId);
     }
 
@@ -203,8 +202,8 @@ public class IrccClient {
      * @return the possibly null (if not service/action is not found) SOAP command
      */
     public @Nullable String getSOAP(final String serviceId, final String actionName, final String... parms) {
-        Validate.notEmpty(serviceId, "serviceId cannot be empty");
-        Validate.notEmpty(actionName, "actionName cannot be empty");
+        SonyUtil.validateNotEmpty(serviceId, "serviceId cannot be empty");
+        SonyUtil.validateNotEmpty(actionName, "actionName cannot be empty");
 
         final UpnpService service = services.get(serviceId);
 
@@ -218,7 +217,7 @@ public class IrccClient {
             return null;
         }
         final String serviceType = service.getServiceType();
-        if (serviceType == null || StringUtils.isEmpty(serviceType)) {
+        if (serviceType == null || serviceType.isEmpty()) {
             logger.debug("Unable to getSOAP for service id {} - serviceType was empty", serviceId);
             return null;
         }
@@ -234,7 +233,7 @@ public class IrccClient {
      */
     public HttpResponse executeSoap(final SonyHttpTransport transport, final String cmd) {
         Objects.requireNonNull(transport, "transport cannot be null");
-        Validate.notEmpty(cmd, "cmd cannot be empty");
+        SonyUtil.validateNotEmpty(cmd, "cmd cannot be empty");
 
         final UpnpService service = getService(IrccClient.SRV_IRCC);
         if (service == null) {
@@ -243,7 +242,7 @@ public class IrccClient {
         }
 
         final String soap = getSOAP(IrccClient.SRV_IRCC, IrccClient.SRV_ACTION_SENDIRCC, cmd);
-        if (soap == null || StringUtils.isEmpty(soap)) {
+        if (soap == null || soap.isEmpty()) {
             logger.debug("Unable to find the IRCC service/action to send IRCC");
             return new HttpResponse(HttpStatus.NOT_FOUND_404, "Unable to find the IRCC service/action to send IRCC");
         }

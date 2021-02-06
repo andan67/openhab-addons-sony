@@ -16,8 +16,6 @@ import java.io.IOException;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.sony.internal.AbstractThingHandler;
@@ -74,7 +72,7 @@ public class SimpleIpHandler extends AbstractThingHandler<SimpleIpConfig> {
 
         final String id = channelUID.getId();
 
-        Validate.notEmpty(id, "id cannot be empty");
+        SonyUtil.validateNotEmpty(id, "id cannot be empty");
 
         if (getThing().getStatus() != ThingStatus.ONLINE) {
             return;
@@ -266,7 +264,7 @@ public class SimpleIpHandler extends AbstractThingHandler<SimpleIpConfig> {
     protected void connect() {
         final SimpleIpConfig config = getSonyConfig();
 
-        if (StringUtils.isEmpty(config.getDeviceIpAddress())) {
+        if (SonyUtil.isEmpty(config.getDeviceIpAddress())) {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR,
                     "IP Address of Sony is missing from configuration");
             return;

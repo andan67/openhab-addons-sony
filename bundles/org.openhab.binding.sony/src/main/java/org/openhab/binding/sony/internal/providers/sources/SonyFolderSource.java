@@ -14,13 +14,7 @@ package org.openhab.binding.sony.internal.providers.sources;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.FileSystems;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardWatchEventKinds;
-import java.nio.file.WatchEvent;
-import java.nio.file.WatchKey;
-import java.nio.file.WatchService;
+import java.nio.file.*;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.Future;
@@ -28,8 +22,6 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.sony.internal.SonyUtil;
@@ -103,19 +95,20 @@ public class SonyFolderSource extends AbstractSonySource {
     public void writeThingDefinition(final SonyThingDefinition thingTypeDefinition) {
         Objects.requireNonNull(thingTypeDefinition, "thingTypeDefinition cannot be null");
 
-        final File file = new File(
-                folderDefThingTypes + File.separator + thingTypeDefinition.getModelName() + "." + JSONEXT);
-        if (file.exists()) {
-            logger.debug("File for thing definition already exists (write ignored): {}", file);
+        final Path filePath = Path
+                .of(folderDefThingTypes + File.separator + thingTypeDefinition.getModelName() + "." + JSONEXT);
+
+        if (filePath.toFile().exists()) {
+            logger.debug("File for thing definition already exists (write ignored): {}", filePath.toFile());
             return;
         }
 
         final String json = gson.toJson(new SonyThingDefinition[] { thingTypeDefinition });
 
         try {
-            FileUtils.write(file, json);
+            Files.writeString(filePath, json);
         } catch (final IOException e) {
-            logger.debug("IOException writing thing defintion to {}: {}", file, e.getMessage(), e);
+            logger.debug("IOException writing thing defintion to {}: {}", filePath.toFile(), e.getMessage(), e);
         }
     }
 
@@ -124,23 +117,23 @@ public class SonyFolderSource extends AbstractSonySource {
         Objects.requireNonNull(deviceCapability, "deviceCapability cannot be null");
 
         final String modelName = deviceCapability.getModelName();
-        if (modelName == null || StringUtils.isEmpty(modelName)) {
+        if (modelName == null || modelName.isEmpty()) {
             logger.debug("Cannot write device capabilities because it has no model name: {}", deviceCapability);
             return;
         }
 
-        final File file = new File(folderDefCapability + File.separator + modelName + "." + JSONEXT);
-        if (file.exists()) {
-            logger.debug("File for thing definition already exists (write ignored): {}", file);
+        final Path filePath = Path.of(folderDefCapability + File.separator + modelName + "." + JSONEXT);
+        if (filePath.toFile().exists()) {
+            logger.debug("File for thing definition already exists (write ignored): {}", filePath.toFile());
             return;
         }
 
         final String json = gson.toJson(deviceCapability);
 
         try {
-            FileUtils.write(file, json);
+            Files.writeString(filePath, json);
         } catch (final IOException e) {
-            logger.debug("IOException writing methods to {}: {}", file, e.getMessage(), e);
+            logger.debug("IOException writing methods to {}: {}", filePath.toFile(), e.getMessage(), e);
         }
     }
 

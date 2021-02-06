@@ -17,7 +17,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.binding.sony.internal.SonyUtil;
 
@@ -94,7 +93,7 @@ class MetaInfo {
      * @return true if it should be ignored, false otherwise
      */
     public boolean isIgnoredModelName(final String modelName) {
-        Validate.notEmpty(modelName, "modelName cannot be empty");
+        SonyUtil.validateNotEmpty(modelName, "modelName cannot be empty");
         return ignoreModelName.stream().anyMatch(s -> s.matcher(modelName).matches());
     }
 
@@ -105,7 +104,7 @@ class MetaInfo {
      * @return true if it should be ignored, false otherwise
      */
     public boolean isIgnoredChannelId(final String channelId) {
-        Validate.notEmpty(channelId, "channelId cannot be empty");
+        SonyUtil.validateNotEmpty(channelId, "channelId cannot be empty");
         return ignoreChannelId.stream().anyMatch(s -> s.matcher(channelId).matches());
     }
 
@@ -116,7 +115,7 @@ class MetaInfo {
      * @return a non-null, non-empty converted model name (or the original if it shouldn't be converted)
      */
     public String getModelName(final String modelName) {
-        Validate.notEmpty(modelName, "modelName cannot be empty");
+        SonyUtil.validateNotEmpty(modelName, "modelName cannot be empty");
 
         return getNewName(modelName, modelNameConvert);
     }
@@ -128,7 +127,7 @@ class MetaInfo {
      * @return a non-null, non-empty converted channel id (or the original if it shouldn't be converted)
      */
     public String getChannelId(final String channelId) {
-        Validate.notEmpty(channelId, "channelId cannot be empty");
+        SonyUtil.validateNotEmpty(channelId, "channelId cannot be empty");
 
         return getNewName(channelId, channelIdConvert);
     }

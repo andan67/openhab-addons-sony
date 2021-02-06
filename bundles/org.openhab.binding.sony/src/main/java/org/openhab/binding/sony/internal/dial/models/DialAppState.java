@@ -12,10 +12,9 @@
  */
 package org.openhab.binding.sony.internal.dial.models;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.sony.internal.SonyUtil;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
@@ -57,7 +56,7 @@ public class DialAppState {
      * @return true, if is running
      */
     public boolean isRunning() {
-        return StringUtils.equalsIgnoreCase(RUNNING, state);
+        return RUNNING.equalsIgnoreCase(state);
     }
 
     /**
@@ -67,7 +66,7 @@ public class DialAppState {
      * @return a {@link DialAppState} or null if cannot be parsed
      */
     public static @Nullable DialAppState get(final String xml) {
-        Validate.notEmpty(xml, "xml cannot be empty");
+        SonyUtil.validateNotEmpty(xml, "xml cannot be empty");
         return DialXmlReader.APPSTATE.fromXML(xml);
     }
 }

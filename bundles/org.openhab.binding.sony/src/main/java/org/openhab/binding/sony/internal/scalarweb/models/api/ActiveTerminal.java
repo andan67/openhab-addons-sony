@@ -12,8 +12,8 @@
  */
 package org.openhab.binding.sony.internal.scalarweb.models.api;
 
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.openhab.binding.sony.internal.SonyUtil;
 
 /**
  * Sets the active terminal (the power status of a zone) and is used for serialization only
@@ -41,8 +41,8 @@ public class ActiveTerminal {
      * @param active the non-null, non-empty active sttus
      */
     public ActiveTerminal(final String uri, final String active) {
-        Validate.notEmpty(uri, "uri cannot be empty");
-        Validate.notEmpty(active, "active cannot be empty");
+        SonyUtil.validateNotEmpty(uri, "uri cannot be empty");
+        SonyUtil.validateNotEmpty(active, "active cannot be empty");
         this.uri = uri;
         this.active = active;
     }

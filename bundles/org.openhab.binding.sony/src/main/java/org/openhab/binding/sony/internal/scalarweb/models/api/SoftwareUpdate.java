@@ -14,7 +14,6 @@ package org.openhab.binding.sony.internal.scalarweb.models.api;
 
 import java.util.List;
 
-import org.apache.commons.lang.BooleanUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 
@@ -53,7 +52,11 @@ public class SoftwareUpdate {
      * @return true if an update, false otherwise
      */
     public boolean isUpdatable() {
-        return BooleanUtils.toBooleanObject(isUpdatable) == Boolean.TRUE;
+        // return BooleanUtils.toBooleanObject(isUpdatable) == Boolean.TRUE;
+        if (isUpdatable == null) {
+            return false;
+        }
+        return "true".equalsIgnoreCase(isUpdatable) || "yes".equalsIgnoreCase(isUpdatable);
     }
 
     /**

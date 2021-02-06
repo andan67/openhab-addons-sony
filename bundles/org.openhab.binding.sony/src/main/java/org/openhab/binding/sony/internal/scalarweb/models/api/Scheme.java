@@ -12,9 +12,9 @@
  */
 package org.openhab.binding.sony.internal.scalarweb.models.api;
 
-import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.sony.internal.SonyUtil;
 
 /**
  * This class represents the scheme and is used for deserialization only
@@ -66,7 +66,7 @@ public class Scheme {
         if (getClass() != obj.getClass()) {
             return false;
         }
-        return StringUtils.equals(scheme, ((Scheme) obj).scheme);
+        return SonyUtil.equals(scheme, ((Scheme) obj).scheme);
     }
 
     @Override

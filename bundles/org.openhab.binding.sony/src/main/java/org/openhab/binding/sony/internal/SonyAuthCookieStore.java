@@ -19,6 +19,8 @@ import javax.ws.rs.core.NewCookie;
 
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This class implements a store for cookies associated to single device specified by its host address
@@ -27,6 +29,7 @@ import org.eclipse.jdt.annotation.NonNullByDefault;
  */
 @NonNullByDefault
 public class SonyAuthCookieStore {
+    private final Logger logger = LoggerFactory.getLogger(SonyAuthCookieStore.class);
     private static final SonyAuthCookieStore instance = new SonyAuthCookieStore();
     private static final NewCookie EMPTY_COOKIE = new NewCookie("auth", "");
 
@@ -49,6 +52,7 @@ public class SonyAuthCookieStore {
      */
     public NewCookie getAuthCookieForHost(String host) {
         final NewCookie cookie = hostAuthCookieMap.get(host);
+        logger.debug("getAuthCookieForHost: host: {} cookie: {} instance: {}", host, cookie, instance);
         if (cookie != null) {
             return cookie;
         } else {
@@ -63,6 +67,7 @@ public class SonyAuthCookieStore {
      * @param authCookie the non-null cookie
      */
     public void setAuthCookieForHost(String host, NewCookie authCookie) {
+        logger.debug("setAuthCookieForHost: host: {} authCookie: {} instance: {}", host, authCookie, instance);
         hostAuthCookieMap.put(host, authCookie);
     }
 }

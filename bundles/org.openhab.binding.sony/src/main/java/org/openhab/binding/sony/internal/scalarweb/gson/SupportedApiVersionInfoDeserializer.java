@@ -17,7 +17,6 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
-import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.sony.internal.scalarweb.models.api.SupportedApiVersionInfo;
 
@@ -59,14 +58,14 @@ public class SupportedApiVersionInfoDeserializer implements JsonDeserializer<Sup
                 for (final JsonElement elm : protElm.getAsJsonArray()) {
                     final String proto = elm.getAsString();
                     // ignore empty/null elements
-                    if (proto != null && StringUtils.isNotEmpty(proto)) {
+                    if (proto != null && proto.isEmpty()) {
                         protocols.add(proto);
                     }
                 }
             }
 
             final String version = jo.get("version").getAsString();
-            if (version == null || StringUtils.isEmpty(version)) {
+            if (version == null || version.isEmpty()) {
                 throw new JsonParseException("version element is empty and is required");
             }
 

@@ -12,8 +12,8 @@
  */
 package org.openhab.binding.sony.internal.scalarweb.models.api;
 
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.openhab.binding.sony.internal.SonyUtil;
 
 /**
  * This class represents the request for a software update
@@ -38,7 +38,7 @@ public class SoftwareUpdateRequest {
      * @param network a non-null, non-empty network
      */
     public SoftwareUpdateRequest(final String network) {
-        Validate.notEmpty(network, "network cannot be empty");
+        SonyUtil.validateNotEmpty(network, "network cannot be empty");
 
         this.network = network;
     }

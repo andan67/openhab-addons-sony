@@ -14,10 +14,9 @@ package org.openhab.binding.sony.internal.scalarweb;
 
 import java.util.Objects;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.sony.internal.SonyUtil;
 import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.thing.ThingUID;
 import org.openhab.core.thing.binding.builder.ChannelBuilder;
@@ -59,8 +58,8 @@ public class ScalarWebChannelDescriptor {
     public ScalarWebChannelDescriptor(final ScalarWebChannel channel, final String acceptedItemType,
             final String channelType, final @Nullable String label, final @Nullable String description) {
         Objects.requireNonNull(channel, "channel cannot be null");
-        Validate.notEmpty(acceptedItemType, "acceptedItemType cannot be empty");
-        Validate.notEmpty(channelType, "channelType cannot be empty");
+        SonyUtil.validateNotEmpty(acceptedItemType, "acceptedItemType cannot be empty");
+        SonyUtil.validateNotEmpty(channelType, "channelType cannot be empty");
         this.channel = channel;
         this.channelType = channelType;
         this.acceptedItemType = acceptedItemType;
@@ -94,12 +93,12 @@ public class ScalarWebChannelDescriptor {
         channelBuilder = channelBuilder.withType(stateTypeUid);
 
         final String localLabel = label;
-        if (localLabel != null && StringUtils.isNotEmpty(localLabel)) {
+        if (localLabel != null && !localLabel.isEmpty()) {
             channelBuilder = channelBuilder.withLabel(localLabel);
         }
 
         final String localDesc = description;
-        if (localDesc != null && StringUtils.isNotEmpty(localDesc)) {
+        if (localDesc != null && !localDesc.isEmpty()) {
             channelBuilder = channelBuilder.withDescription(localDesc);
         }
 

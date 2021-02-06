@@ -12,7 +12,6 @@
  */
 package org.openhab.binding.sony.internal.scalarweb.models.api;
 
-import org.apache.commons.lang.BooleanUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 
@@ -53,7 +52,7 @@ public class NotifySettingUpdate {
      * @return true if available, false otherwise
      */
     public boolean isAvailable() {
-        return isAvailable == null || BooleanUtils.isTrue(isAvailable);
+        return isAvailable == null || Boolean.TRUE.equals(isAvailable);
     }
 
     /**

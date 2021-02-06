@@ -18,8 +18,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.sony.internal.SonyUtil;
@@ -86,9 +84,9 @@ public class ScalarWebChannel {
      */
     public ScalarWebChannel(final String service, final String category, final String id,
             final @Nullable String @Nullable [] paths) {
-        Validate.notEmpty(service, "service cannot be empty");
-        Validate.notEmpty(category, "category cannot be empty");
-        Validate.notEmpty(id, "id cannot be empty");
+        SonyUtil.validateNotEmpty(service, "service cannot be empty");
+        SonyUtil.validateNotEmpty(category, "category cannot be empty");
+        SonyUtil.validateNotEmpty(id, "id cannot be empty");
 
         this.service = service;
         this.category = category;
@@ -118,7 +116,7 @@ public class ScalarWebChannel {
         Objects.requireNonNull(channelUID, "channelUID cannot be null");
         Objects.requireNonNull(channel, "channel cannot be null");
 
-        if (StringUtils.equals(channelUID.getIdWithoutGroup(), DYNAMIC)) {
+        if (DYNAMIC.equals(channelUID.getIdWithoutGroup())) {
             category = DYNAMIC;
             id = DYNAMIC;
             paths = new String[0];
@@ -222,8 +220,8 @@ public class ScalarWebChannel {
      * @param value a non-null, non-emtpy value
      */
     public void addProperty(final String key, final String value) {
-        Validate.notEmpty(key, "key cannot be empty");
-        Validate.notEmpty(value, "value cannot be empty");
+        SonyUtil.validateNotEmpty(key, "key cannot be empty");
+        SonyUtil.validateNotEmpty(value, "value cannot be empty");
         properties.put(key, value);
     }
 
@@ -234,7 +232,7 @@ public class ScalarWebChannel {
      * @return a possibly null, possibly empty value
      */
     public @Nullable String getProperty(final String key) {
-        Validate.notEmpty(key, "key cannot be empty");
+        SonyUtil.validateNotEmpty(key, "key cannot be empty");
         return properties.get(key);
     }
 
@@ -247,7 +245,7 @@ public class ScalarWebChannel {
      * @return a non-null, possibly empty value
      */
     public String getProperty(final String key, final String defaultValue) {
-        Validate.notEmpty(key, "key cannot be empty");
+        SonyUtil.validateNotEmpty(key, "key cannot be empty");
         Objects.requireNonNull(defaultValue, "defaultValue cannot be null");
         final String propVal = properties.get(key);
         return propVal == null ? defaultValue : propVal;
@@ -260,7 +258,7 @@ public class ScalarWebChannel {
      * @return true if the property has been defined, false otherwise
      */
     public boolean hasProperty(final String key) {
-        Validate.notEmpty(key, "key cannot be empty");
+        SonyUtil.validateNotEmpty(key, "key cannot be empty");
         return properties.containsKey(key);
     }
 
@@ -271,7 +269,7 @@ public class ScalarWebChannel {
      * @return true if the property was found and removed, false otherwise
      */
     public @Nullable String removeProperty(final String key) {
-        Validate.notEmpty(key, "key cannot be empty");
+        SonyUtil.validateNotEmpty(key, "key cannot be empty");
         return properties.remove(key);
     }
 
@@ -308,7 +306,7 @@ public class ScalarWebChannel {
      * @return a non-null, non-empty channel id
      */
     public static String createChannelId(final String id) {
-        Validate.notEmpty(id, "id cannot be empty");
+        SonyUtil.validateNotEmpty(id, "id cannot be empty");
         return createChannelId(id, id);
     }
 
@@ -320,13 +318,13 @@ public class ScalarWebChannel {
      * @return a non-null, non-empty channel id
      */
     public static String createChannelId(final String category, final String id) {
-        Validate.notEmpty(id, "id cannot be empty");
-        return StringUtils.equalsIgnoreCase(category, id) ? id : (category + CATEGORYSEPARATOR + id);
+        SonyUtil.validateNotEmpty(id, "id cannot be empty");
+        return category.equalsIgnoreCase(id) ? id : (category + CATEGORYSEPARATOR + id);
     }
 
     @Override
     public String toString() {
-        return getChannelId() + " (cid=" + id + ", ctgy=" + category + ", path=" + StringUtils.join(paths, ',') + ")";
+        return getChannelId() + " (cid=" + id + ", ctgy=" + category + ", path=" + String.join(",", paths) + ")";
     }
 
     @Override
@@ -352,6 +350,6 @@ public class ScalarWebChannel {
         }
 
         final ScalarWebChannel other = (ScalarWebChannel) obj;
-        return StringUtils.equals(category, other.category) && StringUtils.equals(id, other.id);
+        return category.equals(other.category) && id.equals(other.id);
     }
 }

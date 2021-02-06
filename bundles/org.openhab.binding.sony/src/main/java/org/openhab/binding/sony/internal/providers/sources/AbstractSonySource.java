@@ -16,6 +16,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -31,10 +33,6 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.sony.internal.SonyBindingConstants;
@@ -164,7 +162,7 @@ public abstract class AbstractSonySource implements SonySource {
      * @throws JsonSyntaxException if a json syntax error occurs
      */
     protected void readFiles(final String folder) throws IOException, JsonSyntaxException {
-        Validate.notEmpty(folder, "folder cannot be empty");
+        SonyUtil.validateNotEmpty(folder, "folder cannot be empty");
 
         logger.debug("Reading all files in {}", folder);
 
@@ -202,7 +200,7 @@ public abstract class AbstractSonySource implements SonySource {
             return Collections.emptyList();
         }
 
-        final String fileName = FilenameUtils.getName(filePath);
+        final String fileName = Path.of(filePath).getFileName().toString();
         return addThingDefinitions(fileName, ttds);
     }
 
@@ -216,22 +214,21 @@ public abstract class AbstractSonySource implements SonySource {
      */
     protected List<SonyThingDefinition> readThingDefinitions(final @Nullable String filePath)
             throws IOException, JsonSyntaxException {
-        if (filePath != null && StringUtils.isEmpty(filePath)) {
+        if (filePath != null && filePath.isEmpty()) {
             logger.debug("Unknown file: {}", filePath);
             return Collections.emptyList();
         }
 
-        final String fileName = FilenameUtils.getName(filePath);
-
-        final String ext = FilenameUtils.getExtension(filePath);
-        if (!StringUtils.equalsIgnoreCase(JSONEXT, ext)) {
+        final Path path = Path.of(filePath);
+        final String fileName = path.getFileName().toString();
+        if (!fileName.toLowerCase().endsWith("." + JSONEXT)) {
             logger.debug("Ignoring {} since it's not a .{} file", fileName, JSONEXT);
             return Collections.emptyList();
         }
 
         logger.debug("Reading file {} as a SonyThingDefinition[]", filePath);
-        final String contents = FileUtils.readFileToString(new File(filePath));
-        if (contents == null || StringUtils.isEmpty(contents)) {
+        final String contents = Files.readString(path);
+        if (contents == null || contents.isEmpty()) {
             logger.debug("Ignoring {} since it was an empty file", JSONEXT);
             return Collections.emptyList();
         }
@@ -241,7 +238,7 @@ public abstract class AbstractSonySource implements SonySource {
             return Objects.requireNonNull(gson.fromJson(def, SonyThingDefinition.LISTTYPETOKEN));
         } else {
             final SonyThingDefinition ttd = Objects.requireNonNull(gson.fromJson(def, SonyThingDefinition.class));
-                return Collections.singletonList(ttd);
+            return Collections.singletonList(ttd);
         }
     }
 
@@ -254,7 +251,7 @@ public abstract class AbstractSonySource implements SonySource {
      */
     protected List<Map.Entry<ThingType, SonyThingDefinition>> addThingDefinitions(final String referenceName,
             final List<SonyThingDefinition> ttds) {
-        Validate.notEmpty(referenceName, "referenceName cannot be empty");
+        SonyUtil.validateNotEmpty(referenceName, "referenceName cannot be empty");
         Objects.requireNonNull(ttds, "ttds cannot be null");
 
         logger.debug("Processing {}", referenceName);
@@ -272,14 +269,14 @@ public abstract class AbstractSonySource implements SonySource {
                 final Map<String, String> channelGroups = ttd.getChannelGroups();
 
                 final String service = ttd.getService();
-                if (service == null || StringUtils.isEmpty(service)) {
+                if (service == null || service.isEmpty()) {
                     validationMessage.add("Invalid/missing service element");
                 } else if (!service.matches(AbstractUID.SEGMENT_PATTERN)) {
                     validationMessage.add("Invalid service element (must be a valid UID): " + service);
                 }
 
                 final String modelName = ttd.getModelName();
-                if (modelName == null || StringUtils.isEmpty(modelName)) {
+                if (modelName == null || modelName.isEmpty()) {
                     validationMessage.add("Invalid/missing modelName element");
                 } else if (!modelName.matches(AbstractUID.SEGMENT_PATTERN)) {
                     validationMessage.add("Invalid modelName element (must be a valid UID): " + modelName);
@@ -296,21 +293,21 @@ public abstract class AbstractSonySource implements SonySource {
                     final List<String> channelValidationMessage = new ArrayList<>();
 
                     final String channelId = chl.getChannelId();
-                    if (channelId == null || StringUtils.isEmpty(channelId)) {
+                    if (channelId == null || channelId.isEmpty()) {
                         channelValidationMessage.add("Missing channelID element");
                         continue;
                     }
 
-                    final String groupId = StringUtils.substringBefore(channelId, "#");
-                    if (groupId == null || StringUtils.isEmpty(groupId)) {
+                    final String groupId = SonyUtil.substringBefore(channelId, "#");
+                    if (groupId == null || groupId.isEmpty()) {
                         channelValidationMessage.add("Missing groupID from channelId: " + channelId);
                         continue;
                     }
 
-                    final String idWithoutGroup = StringUtils.substringAfter(channelId, "#");
+                    final String idWithoutGroup = SonyUtil.substringAfter(channelId, "#");
 
                     final String channelType = chl.getChannelType();
-                    if (channelType == null || StringUtils.isEmpty(channelType)) {
+                    if (channelType == null || channelType.isEmpty()) {
                         channelValidationMessage.add("Missing channelType element");
                         continue;
                     } else if (!channelType.matches(AbstractUID.SEGMENT_PATTERN)) {
@@ -323,7 +320,7 @@ public abstract class AbstractSonySource implements SonySource {
                     for (final Entry<@Nullable String, @Nullable String> entry : chl.getProperties().entrySet()) {
                         final @Nullable String propKey = entry.getKey();
                         final @Nullable String propValue = entry.getValue();
-                        if (propKey == null || StringUtils.isEmpty(propKey)) {
+                        if (propKey == null || propKey.isEmpty()) {
                             channelValidationMessage.add("Missing property key value");
                         } else {
                             props.put(propKey, propValue == null ? "" : propValue);
@@ -353,7 +350,7 @@ public abstract class AbstractSonySource implements SonySource {
                 }
 
                 final String configUriStr = ttd.getConfigUri();
-                if (configUriStr == null || StringUtils.isEmpty(configUriStr)) {
+                if (configUriStr == null || configUriStr.isEmpty()) {
                     validationMessage.add("Invalid thing definition - missing configUri string");
                 }
 
@@ -416,7 +413,7 @@ public abstract class AbstractSonySource implements SonySource {
     @Override
     public void addListener(final String modelName, final ThingTypeUID currentThingTypeUID,
             final SonyModelListener listener) {
-        Validate.notEmpty(modelName, "modelName cannot be empty");
+        SonyUtil.validateNotEmpty(modelName, "modelName cannot be empty");
         Objects.requireNonNull(currentThingTypeUID, "currentThingTypeUID cannot be null");
         Objects.requireNonNull(listener, "listener cannot be null");
 
@@ -565,7 +562,7 @@ public abstract class AbstractSonySource implements SonySource {
      */
     protected static int getPropertyInt(final Map<String, String> properties, final String key) {
         Objects.requireNonNull(properties, "properties cannot be null");
-        Validate.notEmpty(key, "key cannot be empty");
+        SonyUtil.validateNotEmpty(key, "key cannot be empty");
 
         final String prop = getProperty(properties, key);
         try {
@@ -585,14 +582,14 @@ public abstract class AbstractSonySource implements SonySource {
      */
     protected static String getProperty(final Map<String, String> properties, final String key) {
         Objects.requireNonNull(properties, "properties cannot be null");
-        Validate.notEmpty(key, "key cannot be empty");
+        SonyUtil.validateNotEmpty(key, "key cannot be empty");
 
         String prop = null;
         if (properties.containsKey(key)) {
             prop = properties.get(key);
         }
 
-        if (prop == null || StringUtils.isEmpty(prop)) {
+        if (prop == null || prop.isEmpty()) {
             throw new IllegalArgumentException("Property key " + key + " was not found");
 
         }
@@ -606,7 +603,7 @@ public abstract class AbstractSonySource implements SonySource {
      * @return true if created, false if not (which means it already existed)
      */
     protected static boolean createFolder(final String path) {
-        Validate.notEmpty(path, "path cannot be empty");
+        SonyUtil.validateNotEmpty(path, "path cannot be empty");
         final File filePath = new File(path);
         if (!filePath.exists()) {
             filePath.mkdirs();
@@ -633,8 +630,8 @@ public abstract class AbstractSonySource implements SonySource {
          * @param modelName a non-null, non-empty model name
          */
         public ServiceModelName(final String serviceName, final String modelName) {
-            Validate.notEmpty(serviceName, "serviceName cannot be empty");
-            Validate.notEmpty(modelName, "modelName cannot be empty");
+            SonyUtil.validateNotEmpty(serviceName, "serviceName cannot be empty");
+            SonyUtil.validateNotEmpty(modelName, "modelName cannot be empty");
 
             this.serviceName = serviceName;
             this.modelName = modelName;
@@ -679,7 +676,7 @@ public abstract class AbstractSonySource implements SonySource {
                 return false;
             }
             final ServiceModelName other = (ServiceModelName) obj;
-            return StringUtils.equals(modelName, other.modelName) && StringUtils.equals(serviceName, other.serviceName);
+            return modelName.equals(other.modelName) && serviceName.equals(other.serviceName);
         }
     }
 }

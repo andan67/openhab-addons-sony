@@ -12,8 +12,8 @@
  */
 package org.openhab.binding.sony.internal.net;
 
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.openhab.binding.sony.internal.SonyUtil;
 
 /**
  * The class simply represents a header as a single entity
@@ -36,8 +36,8 @@ public class Header {
      * @param value the non-null, non-empty value
      */
     public Header(final String name, final String value) {
-        Validate.notEmpty(name, "name cannot be empty");
-        Validate.notEmpty(value, "value cannot be empty");
+        SonyUtil.validateNotEmpty(name, "name cannot be empty");
+        SonyUtil.validateNotEmpty(value, "value cannot be empty");
 
         this.name = name;
         this.value = value;

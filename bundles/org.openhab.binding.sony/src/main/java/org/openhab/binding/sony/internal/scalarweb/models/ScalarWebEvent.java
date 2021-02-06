@@ -14,9 +14,9 @@ package org.openhab.binding.sony.internal.scalarweb.models;
 
 import java.util.Objects;
 
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.sony.internal.SonyUtil;
 import org.openhab.binding.sony.internal.scalarweb.gson.ScalarWebEventDeserializer;
 
 import com.google.gson.JsonArray;
@@ -62,14 +62,14 @@ public class ScalarWebEvent extends AbstractScalarResponse {
     /**
      * Instantiates a new scalar web event
      *
-     * @param methodName the non-null, non-empty method name
-     * @param parmas the non-null, possibly empty parameters
+     * @param method the non-null, non-empty method name
+     * @param params the non-null, possibly empty parameters
      * @param version the non-null, non-empty version
      */
     public ScalarWebEvent(final String method, final JsonArray params, final String version) {
-        Validate.notEmpty(method, "method cannot be empty");
+        SonyUtil.validateNotEmpty(method, "method cannot be empty");
         Objects.requireNonNull(params, "params cannot be null");
-        Validate.notEmpty(version, "version cannot be empty");
+        SonyUtil.validateNotEmpty(version, "version cannot be empty");
 
         this.method = method;
         this.params = params;

@@ -14,10 +14,9 @@ package org.openhab.binding.sony.internal.scalarweb.models.api;
 
 import java.util.Arrays;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.sony.internal.SonyUtil;
 
 /**
  * This class represents a current external terminal status
@@ -66,8 +65,8 @@ public class CurrentExternalTerminalsStatus_1_0 {
      * @param title a non-null, non-empty title
      */
     public CurrentExternalTerminalsStatus_1_0(final String uri, final String title) {
-        Validate.notEmpty(uri, "uri cannot be empty");
-        Validate.notEmpty(title, "title cannot be empty");
+        SonyUtil.validateNotEmpty(uri, "uri cannot be empty");
+        SonyUtil.validateNotEmpty(title, "title cannot be empty");
 
         this.uri = uri;
         this.title = title;
@@ -134,9 +133,9 @@ public class CurrentExternalTerminalsStatus_1_0 {
      * @return a non-null, non-empty title
      */
     public String getTitle(final String defaultValue) {
-        Validate.notEmpty(defaultValue, "defaultValue cannot be empty");
-        final String titleOrLabel = StringUtils.defaultIfEmpty(title, label);
-        return StringUtils.defaultIfEmpty(titleOrLabel, defaultValue);
+        SonyUtil.validateNotEmpty(defaultValue, "defaultValue cannot be empty");
+        final String titleOrLabel = SonyUtil.defaultIfEmpty(title, label);
+        return SonyUtil.defaultIfEmpty(titleOrLabel, defaultValue);
     }
 
     /**
@@ -149,7 +148,7 @@ public class CurrentExternalTerminalsStatus_1_0 {
     }
 
     public boolean isOutput() {
-        return StringUtils.equalsIgnoreCase(meta, META_ZONEOUTPUT) || StringUtils.startsWith(uri, Scheme.EXT_OUTPUT);
+        return META_ZONEOUTPUT.equalsIgnoreCase(meta) || (uri != null && uri.startsWith(Scheme.EXT_OUTPUT));
     }
 
     @Override

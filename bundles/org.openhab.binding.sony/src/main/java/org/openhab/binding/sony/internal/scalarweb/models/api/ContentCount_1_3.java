@@ -12,8 +12,8 @@
  */
 package org.openhab.binding.sony.internal.scalarweb.models.api;
 
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.openhab.binding.sony.internal.SonyUtil;
 
 /**
  * This class represents a content count request and is used for serialization only
@@ -37,7 +37,7 @@ public class ContentCount_1_3 {
      * @param uri the non-null, non-empty uri
      */
     public ContentCount_1_3(final String uri) {
-        Validate.notEmpty(uri, "uri cannot be empty");
+        SonyUtil.validateNotEmpty(uri, "uri cannot be empty");
         this.uri = uri;
     }
 

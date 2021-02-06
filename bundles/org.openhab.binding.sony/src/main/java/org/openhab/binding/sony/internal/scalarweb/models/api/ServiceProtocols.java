@@ -17,7 +17,6 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
-import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.binding.sony.internal.scalarweb.models.ScalarWebResult;
 
@@ -53,7 +52,7 @@ public class ServiceProtocols {
                 final JsonArray ja = elm.getAsJsonArray();
                 if (ja.size() > 0) {
                     final String serviceName = ja.get(0).getAsString();
-                    if (serviceName == null || StringUtils.isEmpty(serviceName)) {
+                    if (serviceName == null || serviceName.isEmpty()) {
                         continue;
                     }
                     final Set<String> protocols = new HashSet<>();

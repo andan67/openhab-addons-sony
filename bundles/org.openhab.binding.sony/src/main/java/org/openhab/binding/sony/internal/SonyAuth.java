@@ -17,8 +17,6 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Objects;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.http.HttpStatus;
@@ -107,7 +105,7 @@ public class SonyAuth {
         }
 
         this.activationUrl = actUrl;
-        this.activationVersion = StringUtils.defaultIfEmpty(actVersion, ScalarWebMethod.V1_0);
+        this.activationVersion = SonyUtil.defaultIfEmpty(actVersion, ScalarWebMethod.V1_0);
     }
 
     /**
@@ -119,7 +117,7 @@ public class SonyAuth {
         final IrccClient irccClient = irccClientProvider == null ? null : irccClientProvider.getClient();
         final IrccSystemInformation sysInfo = irccClient == null ? null : irccClient.getSystemInformation();
         final String actionHeader = sysInfo == null ? null : sysInfo.getActionHeader();
-        return "X-" + StringUtils.defaultIfEmpty(actionHeader, "CERS-DEVICE-ID");
+        return "X-" + SonyUtil.defaultIfEmpty(actionHeader, "CERS-DEVICE-ID");
     }
 
     /**
@@ -140,7 +138,7 @@ public class SonyAuth {
     private @Nullable String getRegistrationUrl() {
         final IrccClient irccClient = irccClientProvider == null ? null : irccClientProvider.getClient();
         return irccClient == null ? null
-                : StringUtils.defaultIfEmpty(irccClient.getUrlForAction(IrccClient.AN_REGISTER), null);
+                : SonyUtil.defaultIfEmpty(irccClient.getUrlForAction(IrccClient.AN_REGISTER), null);
     }
 
     /**
@@ -149,7 +147,7 @@ public class SonyAuth {
      * @return a non-empty URL if found, null if not
      */
     private @Nullable String getActivationUrl() {
-        if (activationUrl != null && StringUtils.isNotEmpty(activationUrl)) {
+        if (activationUrl != null && !activationUrl.isEmpty()) {
             return activationUrl;
         }
 
@@ -167,7 +165,7 @@ public class SonyAuth {
     public AccessResult requestAccess(final SonyHttpTransport transport, final @Nullable String accessCode) {
         Objects.requireNonNull(transport, "transport cannot be null");
 
-        logger.debug("Requesting access: {}", StringUtils.defaultIfEmpty(accessCode, "(initial)"));
+        logger.debug("Requesting access: {}", SonyUtil.defaultIfEmpty(accessCode, "(initial)"));
 
         if (accessCode != null) {
             transport.setOption(new TransportOptionHeader(NetUtil.createAccessCodeHeader(accessCode)));
@@ -179,7 +177,7 @@ public class SonyAuth {
 
         final String registrationUrl = getRegistrationUrl();
         if (httpResponse.getHttpCode() == HttpStatus.UNAUTHORIZED_401) {
-            if (registrationUrl == null || StringUtils.isEmpty(registrationUrl)) {
+            if (registrationUrl == null || registrationUrl.isEmpty()) {
                 return accessCode == null ? AccessResult.PENDING : AccessResult.NOTACCEPTED;
             }
         }
@@ -189,7 +187,7 @@ public class SonyAuth {
                         && httpResponse.getHttpCode() == HttpStatus.SERVICE_UNAVAILABLE_503)
                 || httpResponse.getHttpCode() == HttpStatus.UNAUTHORIZED_401
                 || httpResponse.getHttpCode() == HttpStatus.FORBIDDEN_403) {
-            if (registrationUrl != null && StringUtils.isNotEmpty(registrationUrl)) {
+            if (registrationUrl != null && !registrationUrl.isEmpty()) {
                 final HttpResponse irccResponse = irccRegister(transport, accessCode);
                 if (irccResponse.getHttpCode() == HttpStatus.OK_200) {
                     return AccessResult.OK;
@@ -241,7 +239,7 @@ public class SonyAuth {
         // return it as well
         final String registrationUrl = getRegistrationUrl();
         if (response.getHttpResponse().getHttpCode() == HttpStatus.UNAUTHORIZED_401
-                && (registrationUrl == null || StringUtils.isEmpty(registrationUrl))) {
+                && (registrationUrl == null || registrationUrl.isEmpty())) {
             return AccessResult.NEEDSPAIRING;
         }
 
@@ -264,7 +262,7 @@ public class SonyAuth {
         Objects.requireNonNull(transport, "transport cannot be null");
 
         final String registrationUrl = getRegistrationUrl();
-        if (registrationUrl == null || StringUtils.isEmpty(registrationUrl)) {
+        if (registrationUrl == null || registrationUrl.isEmpty()) {
             return new HttpResponse(HttpStatus.SERVICE_UNAVAILABLE_503, "No registration URL");
         }
 
@@ -312,7 +310,7 @@ public class SonyAuth {
         Objects.requireNonNull(transport, "transport cannot be null");
 
         final String registrationUrl = getRegistrationUrl();
-        if (registrationUrl == null || StringUtils.isEmpty(registrationUrl)) {
+        if (registrationUrl == null || registrationUrl.isEmpty()) {
             return new HttpResponse(HttpStatus.SERVICE_UNAVAILABLE_503, "No registration URL");
         }
 
@@ -360,7 +358,7 @@ public class SonyAuth {
      * @param transports the transports to set header authentication
      */
     public static void setupHeader(final String accessCode, final SonyTransport... transports) {
-        Validate.notEmpty(accessCode, "accessCode cannot be empty");
+        SonyUtil.validateNotEmpty(accessCode, "accessCode cannot be empty");
         for (final SonyTransport transport : transports) {
             transport.setOption(TransportOptionAutoAuth.FALSE);
             transport.setOption(new TransportOptionHeader(NetUtil.createAccessCodeHeader(accessCode)));

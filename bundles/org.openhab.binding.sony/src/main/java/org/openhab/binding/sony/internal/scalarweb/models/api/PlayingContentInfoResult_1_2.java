@@ -14,10 +14,9 @@ package org.openhab.binding.sony.internal.scalarweb.models.api;
 
 import java.util.Arrays;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.sony.internal.SonyUtil;
 
 /**
  * This class represents the request to play content information and is used for deserialization only
@@ -289,8 +288,8 @@ public class PlayingContentInfoResult_1_2 extends PlayingContentInfoResult_1_0 {
      * @return a non-null, non-empty output value
      */
     public String getOutput(final String defValue) {
-        Validate.notEmpty(defValue, "defValue cannot be empty");
-        return StringUtils.defaultIfEmpty(output, defValue);
+        SonyUtil.validateNotEmpty(defValue, "defValue cannot be empty");
+        return SonyUtil.defaultIfEmpty(output, defValue);
     }
 
     /**

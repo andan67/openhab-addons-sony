@@ -16,10 +16,10 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.http.HttpStatus;
+import org.openhab.binding.sony.internal.SonyUtil;
 import org.openhab.binding.sony.internal.net.HttpResponse;
 import org.openhab.binding.sony.internal.scalarweb.gson.ScalarWebResultDeserializer;
 
@@ -122,7 +122,7 @@ public class ScalarWebResult extends AbstractScalarResponse {
      * @return a non-null result
      */
     public static ScalarWebResult createNotImplemented(final String methodName) {
-        Validate.notEmpty(methodName, "methodName cannot be empty");
+        SonyUtil.validateNotEmpty(methodName, "methodName cannot be empty");
         final JsonArray ja = new JsonArray();
         ja.add(ScalarWebError.NOTIMPLEMENTED);
         ja.add(methodName + " is not implemented");

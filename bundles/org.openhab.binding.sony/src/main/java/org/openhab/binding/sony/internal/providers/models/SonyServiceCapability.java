@@ -17,7 +17,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.sony.internal.SonyUtil;
@@ -63,9 +62,9 @@ public class SonyServiceCapability {
      */
     public SonyServiceCapability(final String serviceName, final String version, final String transport,
             final List<ScalarWebMethod> methods, final List<ScalarWebMethod> notifications) {
-        Validate.notEmpty(serviceName, "serviceName cannot be empty");
-        Validate.notEmpty(version, "version cannot be empty");
-        Validate.notEmpty(transport, "transport cannot be empty");
+        SonyUtil.validateNotEmpty(serviceName, "serviceName cannot be empty");
+        SonyUtil.validateNotEmpty(version, "version cannot be empty");
+        SonyUtil.validateNotEmpty(transport, "transport cannot be empty");
         Objects.requireNonNull(methods, "methods cannot be null");
         Objects.requireNonNull(notifications, "notifications cannot be null");
 

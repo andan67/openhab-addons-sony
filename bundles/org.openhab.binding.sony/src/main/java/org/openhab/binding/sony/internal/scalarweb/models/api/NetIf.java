@@ -12,8 +12,8 @@
  */
 package org.openhab.binding.sony.internal.scalarweb.models.api;
 
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.openhab.binding.sony.internal.SonyUtil;
 
 /**
  * This class represents the request to get the network interface information and is used for serialization only
@@ -32,7 +32,7 @@ public class NetIf {
      * @param netif the non-null, non-empty interface name
      */
     public NetIf(final String netif) {
-        Validate.notEmpty(netif, "netif cannot be empty");
+        SonyUtil.validateNotEmpty(netif, "netif cannot be empty");
         this.netif = netif;
     }
 

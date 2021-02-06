@@ -21,11 +21,10 @@ import java.util.Objects;
 
 import javax.ws.rs.client.ClientBuilder;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.http.HttpStatus;
+import org.openhab.binding.sony.internal.SonyUtil;
 import org.openhab.binding.sony.internal.dial.models.DialClient;
 import org.openhab.binding.sony.internal.dial.models.DialDeviceInfo;
 import org.openhab.binding.sony.internal.dial.models.DialRoot;
@@ -52,13 +51,13 @@ public class DialClientFactory {
      * @throws IOException if an IO exception occurs getting the client
      */
     public static @Nullable DialClient get(final String dialUrl, final ClientBuilder clientBuilder) throws IOException {
-        Validate.notEmpty(dialUrl, "dialUrl cannot be empty");
+        SonyUtil.validateNotEmpty(dialUrl, "dialUrl cannot be empty");
 
         final Logger logger = LoggerFactory.getLogger(DialClientFactory.class);
 
         try {
             final URL dialURL = new URL(dialUrl);
-            if (StringUtils.isEmpty(dialURL.getPath())) {
+            if (dialUrl.isEmpty()) {
                 logger.debug("Creating default DIAL client for {}", dialUrl);
                 return createDefaultClient(dialUrl);
             } else {
@@ -79,7 +78,7 @@ public class DialClientFactory {
      * @throws MalformedURLException if the URL was malformed
      */
     private static DialClient createDefaultClient(final String dialUrl) throws MalformedURLException {
-        Validate.notEmpty(dialUrl, "dialUrl cannot be empty");
+        SonyUtil.validateNotEmpty(dialUrl, "dialUrl cannot be empty");
 
         final String appUrl = dialUrl + "/DIAL/apps/";
         final DialDeviceInfo ddi = new DialDeviceInfo(dialUrl + "/DIAL/sony/applist", null, null);
@@ -97,7 +96,7 @@ public class DialClientFactory {
      */
     private static @Nullable DialClient queryDialClient(final String dialUrl, final Logger logger,
             final ClientBuilder clientBuilder) throws URISyntaxException, IOException {
-        Validate.notEmpty(dialUrl, "dialUrl cannot be empty");
+        SonyUtil.validateNotEmpty(dialUrl, "dialUrl cannot be empty");
         Objects.requireNonNull(logger, "logger cannot be null");
 
         try (SonyHttpTransport transport = SonyTransportFactory.createHttpTransport(dialUrl, clientBuilder)) {

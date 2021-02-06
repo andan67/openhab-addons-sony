@@ -12,9 +12,9 @@
  */
 package org.openhab.binding.sony.internal.scalarweb.models.api;
 
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.sony.internal.SonyUtil;
 
 /**
  * This class represents the request to set the LED status and is used for serialization/deserialization only
@@ -43,8 +43,8 @@ public class LedIndicatorStatus {
      * @param status the non-null, non-empty status
      */
     public LedIndicatorStatus(final String mode, final String status) {
-        Validate.notEmpty(mode, "mode cannot be empty");
-        Validate.notEmpty(status, "status cannot be empty");
+        SonyUtil.validateNotEmpty(mode, "mode cannot be empty");
+        SonyUtil.validateNotEmpty(status, "status cannot be empty");
         this.mode = mode;
         this.status = status;
     }

@@ -17,9 +17,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.sony.internal.SonyUtil;
 import org.openhab.binding.sony.internal.scalarweb.gson.SupportedApiDeserializer;
 import org.openhab.binding.sony.internal.scalarweb.models.ScalarWebMethod;
 import org.openhab.binding.sony.internal.scalarweb.models.ScalarWebRequest;
@@ -62,7 +62,7 @@ public class SupportedApi {
      */
     public SupportedApi(final String service, final List<SupportedApiInfo> apis,
             final List<SupportedApiInfo> notifications, final Set<String> protocols) {
-        Validate.notEmpty(service, "service cannot be empty");
+        SonyUtil.validateNotEmpty(service, "service cannot be empty");
         Objects.requireNonNull(apis, "apis cannot be null");
         Objects.requireNonNull(notifications, "notifications cannot be null");
         Objects.requireNonNull(protocols, "protocols cannot be null");
@@ -117,7 +117,7 @@ public class SupportedApi {
      * @return the supported API or null if none found
      */
     public @Nullable SupportedApiInfo getMethod(final String methodName) {
-        Validate.notEmpty(methodName, "methodName cannot be null");
+        SonyUtil.validateNotEmpty(methodName, "methodName cannot be null");
         return apis.get(methodName);
     }
 
@@ -129,8 +129,8 @@ public class SupportedApi {
      * @return a non-null, possibly empty set of protocols
      */
     public Set<String> getProtocols(final String methodName, final String version) {
-        Validate.notEmpty(methodName, "methodName cannot be null");
-        Validate.notEmpty(version, "version cannot be null");
+        SonyUtil.validateNotEmpty(methodName, "methodName cannot be null");
+        SonyUtil.validateNotEmpty(version, "version cannot be null");
 
         final SupportedApiInfo info = apis.get(methodName);
         final SupportedApiVersionInfo vers = info == null ? null : info.getVersions(version);
@@ -150,7 +150,7 @@ public class SupportedApi {
     public static SupportedApi getSupportedApi(final ScalarWebService service, final String serviceName,
             final SonyTransport transport, final Logger logger) {
         Objects.requireNonNull(service, "service cannot be null");
-        Validate.notEmpty(serviceName, "serviceName cannot be empty");
+        SonyUtil.validateNotEmpty(serviceName, "serviceName cannot be empty");
         Objects.requireNonNull(transport, "transport cannot be null");
         Objects.requireNonNull(logger, "logger cannot be null");
 
@@ -169,7 +169,7 @@ public class SupportedApi {
     private static @Nullable SupportedApi getSupportApi(final ScalarWebService service, final String serviceName,
             final Logger logger) {
         Objects.requireNonNull(service, "service cannot be null");
-        Validate.notEmpty(serviceName, "serviceName cannot be empty");
+        SonyUtil.validateNotEmpty(serviceName, "serviceName cannot be empty");
         Objects.requireNonNull(logger, "logger cannot be null");
 
         try {
@@ -192,7 +192,7 @@ public class SupportedApi {
      */
     public static SupportedApi getSupportApiAlternate(final String serviceName, final SonyTransport transport,
             final Logger logger) {
-        Validate.notEmpty(serviceName, "serviceName cannot be empty");
+        SonyUtil.validateNotEmpty(serviceName, "serviceName cannot be empty");
         Objects.requireNonNull(transport, "transport cannot be null");
         Objects.requireNonNull(logger, "logger cannot be null");
 

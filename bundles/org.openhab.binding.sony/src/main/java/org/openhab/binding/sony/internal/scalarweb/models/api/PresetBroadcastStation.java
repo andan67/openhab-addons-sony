@@ -12,9 +12,9 @@
  */
 package org.openhab.binding.sony.internal.scalarweb.models.api;
 
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.sony.internal.SonyUtil;
 
 /**
  * This class represents a preset broadcast station and is used for serialization only
@@ -35,7 +35,7 @@ public class PresetBroadcastStation {
      * @param uri a non-null, non-empty URI
      */
     public PresetBroadcastStation(final String uri) {
-        Validate.notEmpty(uri, "uri");
+        SonyUtil.validateNotEmpty(uri, "uri");
 
         this.uri = uri;
         this.frequency = null;

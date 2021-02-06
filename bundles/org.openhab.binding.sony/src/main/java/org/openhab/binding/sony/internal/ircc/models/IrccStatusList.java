@@ -14,10 +14,9 @@ package org.openhab.binding.sony.internal.ircc.models;
 
 import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.sony.internal.SonyUtil;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamImplicit;
@@ -56,7 +55,7 @@ public class IrccStatusList {
      * @return a possibly null {@link IrccStatusList}
      */
     public static @Nullable IrccStatusList get(final String xml) {
-        Validate.notEmpty(xml, "xml cannot be empty");
+        SonyUtil.validateNotEmpty(xml, "xml cannot be empty");
         return IrccXmlReader.STATUS.fromXML(xml);
     }
 
@@ -69,7 +68,7 @@ public class IrccStatusList {
         final List<@Nullable IrccStatus> localStatuses = statuses;
         if (localStatuses != null) {
             for (final IrccStatus status : localStatuses) {
-                if (status != null && StringUtils.equalsIgnoreCase(IrccStatus.TEXTINPUT, status.getName())) {
+                if (status != null && IrccStatus.TEXTINPUT.equalsIgnoreCase(status.getName())) {
                     return true;
                 }
             }
@@ -86,7 +85,7 @@ public class IrccStatusList {
         final List<@Nullable IrccStatus> localStatuses = statuses;
         if (localStatuses != null) {
             for (final IrccStatus status : localStatuses) {
-                if (status != null && StringUtils.equalsIgnoreCase(IrccStatus.WEBBROWSER, status.getName())) {
+                if (status != null && IrccStatus.WEBBROWSER.equalsIgnoreCase(status.getName())) {
                     return true;
                 }
             }
@@ -103,7 +102,7 @@ public class IrccStatusList {
         final List<@Nullable IrccStatus> localStatuses = statuses;
         if (localStatuses != null) {
             for (final IrccStatus status : localStatuses) {
-                if (status != null && StringUtils.equalsIgnoreCase(IrccStatus.DISC, status.getName())) {
+                if (status != null && IrccStatus.DISC.equalsIgnoreCase(status.getName())) {
                     return true;
                 }
             }
@@ -120,7 +119,7 @@ public class IrccStatusList {
         final List<@Nullable IrccStatus> localStatuses = statuses;
         if (localStatuses != null) {
             for (final IrccStatus status : localStatuses) {
-                if (status != null && StringUtils.equalsIgnoreCase(IrccStatus.VIEWING, status.getName())) {
+                if (status != null && IrccStatus.VIEWING.equalsIgnoreCase(status.getName())) {
                     return status;
                 }
             }

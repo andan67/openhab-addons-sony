@@ -17,10 +17,9 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.sony.internal.SonyUtil;
 import org.openhab.binding.sony.internal.transports.SonyTransport;
 import org.openhab.binding.sony.internal.transports.SonyTransportFactory;
 
@@ -44,7 +43,7 @@ public class ServiceProtocol {
      * @param protocols a non-null, possibly empty set of protocols
      */
     public ServiceProtocol(final String serviceName, final Set<String> protocols) {
-        Validate.notEmpty(serviceName, "serviceName cannot be empty");
+        SonyUtil.validateNotEmpty(serviceName, "serviceName cannot be empty");
         Objects.requireNonNull(protocols, "protocols cannot be null");
 
         this.serviceName = serviceName;
@@ -104,7 +103,7 @@ public class ServiceProtocol {
             return false;
         }
         final ServiceProtocol other = (ServiceProtocol) obj;
-        return StringUtils.equals(serviceName, other.serviceName);
+        return SonyUtil.equals(serviceName, other.serviceName);
     }
 
     @Override

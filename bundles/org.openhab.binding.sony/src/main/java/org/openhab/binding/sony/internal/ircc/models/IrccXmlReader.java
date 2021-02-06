@@ -14,7 +14,6 @@ package org.openhab.binding.sony.internal.ircc.models;
 
 import java.util.Objects;
 
-import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.jupnp.UpnpService;
@@ -90,7 +89,7 @@ public class IrccXmlReader<T> {
     public T fromXML(final String xml) {
         Objects.requireNonNull(xml, "xml cannot be null");
 
-        if (StringUtils.isNotEmpty(xml)) {
+        if (!xml.isEmpty()) {
             return (T) this.xstream.fromXML(xml);
         }
 

@@ -13,8 +13,8 @@
 package org.openhab.binding.sony.internal.ircc;
 
 import java.util.Map;
+import java.util.Objects;
 
-import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.sony.internal.AbstractConfig;
@@ -61,7 +61,7 @@ public class IrccConfig extends AbstractConfig {
      * @return the commands map file
      */
     public @Nullable String getCommandsMapFile() {
-        return StringUtils.defaultIfEmpty(commandsMapFile, discoveredCommandsMapFile);
+        return commandsMapFile != null && !commandsMapFile.isEmpty() ? commandsMapFile : discoveredCommandsMapFile;
     }
 
     /**
@@ -86,7 +86,7 @@ public class IrccConfig extends AbstractConfig {
     public Map<String, Object> asProperties() {
         final Map<String, Object> props = super.asProperties();
 
-        props.put("discoveredCommandsMapFile", StringUtils.defaultIfEmpty(discoveredCommandsMapFile, ""));
+        props.put("discoveredCommandsMapFile", Objects.requireNonNullElse(discoveredCommandsMapFile, ""));
 
         conditionallyAddProperty(props, "accessCode", accessCode);
         conditionallyAddProperty(props, "commandsMapFile", commandsMapFile);

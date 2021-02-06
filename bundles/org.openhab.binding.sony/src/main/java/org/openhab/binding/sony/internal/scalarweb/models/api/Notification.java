@@ -12,9 +12,9 @@
  */
 package org.openhab.binding.sony.internal.scalarweb.models.api;
 
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.sony.internal.SonyUtil;
 
 /**
  * The class represents a specific notification and is used for serialization/deserialization only
@@ -42,8 +42,8 @@ public class Notification {
      * @param version a non-null, non-empty version
      */
     public Notification(final String name, final String version) {
-        Validate.notEmpty(name, "name cannot be empty");
-        Validate.notEmpty(version, "version cannot be empty");
+        SonyUtil.validateNotEmpty(name, "name cannot be empty");
+        SonyUtil.validateNotEmpty(version, "version cannot be empty");
 
         this.name = name;
         this.version = version;

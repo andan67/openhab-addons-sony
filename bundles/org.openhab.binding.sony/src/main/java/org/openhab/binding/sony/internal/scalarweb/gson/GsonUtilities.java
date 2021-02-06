@@ -14,9 +14,9 @@ package org.openhab.binding.sony.internal.scalarweb.gson;
 
 import java.util.Objects;
 
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.sony.internal.SonyUtil;
 import org.openhab.binding.sony.internal.scalarweb.models.ScalarWebEvent;
 import org.openhab.binding.sony.internal.scalarweb.models.ScalarWebResult;
 import org.openhab.binding.sony.internal.scalarweb.models.api.SupportedApi;
@@ -91,7 +91,7 @@ public class GsonUtilities {
      */
     public static JsonArray getArray(final JsonObject jo, final String elementName) {
         Objects.requireNonNull(jo, "jo cannot be null");
-        Validate.notEmpty(elementName, "elementName cannot be empty");
+        SonyUtil.validateNotEmpty(elementName, "elementName cannot be empty");
 
         final JsonArray ja = new JsonArray();
 

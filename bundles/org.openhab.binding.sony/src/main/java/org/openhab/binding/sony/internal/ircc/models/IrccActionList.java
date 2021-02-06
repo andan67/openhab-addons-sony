@@ -15,10 +15,9 @@ package org.openhab.binding.sony.internal.ircc.models;
 import java.util.List;
 import java.util.Objects;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.sony.internal.SonyUtil;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
@@ -65,12 +64,12 @@ public class IrccActionList {
      */
     @Nullable
     public String getUrlForAction(final String actionName) {
-        Validate.notEmpty(actionName, "actionName cannot be empty");
+        SonyUtil.validateNotEmpty(actionName, "actionName cannot be empty");
 
         final List<@Nullable IrccAction> localActions = actions;
         if (localActions != null) {
             for (final IrccAction action : localActions) {
-                if (action != null && StringUtils.equalsIgnoreCase(actionName, action.getName())) {
+                if (actionName.equalsIgnoreCase(action.getName())) {
                     return action.getUrl();
                 }
             }
@@ -88,7 +87,7 @@ public class IrccActionList {
         if (localActions != null) {
             for (final IrccAction action : localActions) {
                 if (action != null && action.getMode() != null && !action.getMode().isEmpty()
-                        && StringUtils.equalsIgnoreCase(IrccAction.REGISTER, action.getName())) {
+                        && IrccAction.REGISTER.equalsIgnoreCase(action.getName())) {
                     try {
                         return Integer.parseInt(Objects.requireNonNull(action.getMode()));
                     } catch (final NumberFormatException e) {

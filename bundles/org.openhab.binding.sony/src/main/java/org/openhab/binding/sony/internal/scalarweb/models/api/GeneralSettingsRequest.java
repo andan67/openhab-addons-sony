@@ -16,9 +16,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.sony.internal.SonyUtil;
 
 /**
  * This class represents a general setting request. Please note the API supports setting multiple values at a time but
@@ -39,7 +39,7 @@ public class GeneralSettingsRequest {
      * @param uri a possibly null, possibly empty URI target
      */
     public GeneralSettingsRequest(final String target, final String value, final @Nullable String uri) {
-        Validate.notEmpty(target, "target cannot be empty");
+        SonyUtil.validateNotEmpty(target, "target cannot be empty");
         Objects.requireNonNull(value, "value cannot be null");
         settings = Collections.singletonList(new Setting(target, value, uri));
     }
@@ -71,7 +71,7 @@ public class GeneralSettingsRequest {
          * @param uri a possibly null uri
          */
         private Setting(final String target, final String value, final @Nullable String uri) {
-            Validate.notEmpty(target, "target cannot be empty");
+            SonyUtil.validateNotEmpty(target, "target cannot be empty");
             Objects.requireNonNull(value, "value cannot be null");
             this.target = target;
             this.value = value;

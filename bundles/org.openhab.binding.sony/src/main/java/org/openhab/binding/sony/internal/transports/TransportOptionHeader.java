@@ -14,9 +14,9 @@ package org.openhab.binding.sony.internal.transports;
 
 import java.util.Objects;
 
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jetty.http.HttpHeader;
+import org.openhab.binding.sony.internal.SonyUtil;
 import org.openhab.binding.sony.internal.net.Header;
 
 /**
@@ -47,7 +47,7 @@ public class TransportOptionHeader implements TransportOption {
      */
     public TransportOptionHeader(final HttpHeader hdr, final String value) {
         Objects.requireNonNull(hdr, "hdr cannot be null");
-        Validate.notEmpty(value, "value cannot be empty");
+        SonyUtil.validateNotEmpty(value, "value cannot be empty");
 
         this.header = new Header(hdr.asString(), value);
     }
@@ -59,8 +59,8 @@ public class TransportOptionHeader implements TransportOption {
      * @param value a non-null, non-empty header value
      */
     public TransportOptionHeader(final String key, final String value) {
-        Validate.notEmpty(value, "value cannot be empty");
-        Validate.notEmpty(value, "value cannot be empty");
+        SonyUtil.validateNotEmpty(value, "value cannot be empty");
+        SonyUtil.validateNotEmpty(value, "value cannot be empty");
         this.header = new Header(key, value);
     }
 

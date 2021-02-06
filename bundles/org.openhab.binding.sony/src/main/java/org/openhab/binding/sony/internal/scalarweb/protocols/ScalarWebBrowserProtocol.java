@@ -21,8 +21,6 @@ import java.util.Objects;
 
 import javax.ws.rs.client.ClientBuilder;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.sony.internal.SonyUtil;
@@ -162,7 +160,7 @@ class ScalarWebBrowserProtocol<T extends ThingCallback<String>> extends Abstract
             stateChanged(TEXTFAVICON, SonyUtil.newStringType(url.getFavicon()));
 
             final String iconUrl = url.getFavicon();
-            if (iconUrl == null || StringUtils.isEmpty(iconUrl)) {
+            if (iconUrl == null || iconUrl.isEmpty()) {
                 callback.stateChanged(TEXTFAVICON, UnDefType.UNDEF);
             } else {
                 try (SonyHttpTransport transport = SonyTransportFactory
@@ -216,7 +214,7 @@ class ScalarWebBrowserProtocol<T extends ThingCallback<String>> extends Abstract
      */
     private void setActivateBrowserControl(final @Nullable String control) {
         handleExecute(ScalarWebMethod.ACTIVATEBROWSERCONTROL,
-                new BrowserControl(StringUtils.defaultIfEmpty(control, null)));
+                new BrowserControl(SonyUtil.defaultIfEmpty(control, null)));
     }
 
     /**
@@ -225,7 +223,7 @@ class ScalarWebBrowserProtocol<T extends ThingCallback<String>> extends Abstract
      * @param url the new URL text
      */
     private void setTextUrl(final String url) {
-        Validate.notEmpty(url, "url cannot be empty");
+        SonyUtil.validateNotEmpty(url, "url cannot be empty");
         handleExecute(ScalarWebMethod.SETTEXTURL, new TextUrl(url));
     }
 }

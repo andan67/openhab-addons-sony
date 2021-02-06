@@ -20,11 +20,10 @@ import java.util.Objects;
 import javax.ws.rs.client.ClientBuilder;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.http.HttpStatus;
+import org.openhab.binding.sony.internal.SonyUtil;
 import org.openhab.binding.sony.internal.net.HttpResponse;
 import org.openhab.binding.sony.internal.scalarweb.gson.GsonUtilities;
 import org.openhab.binding.sony.internal.scalarweb.models.ScalarWebMethod;
@@ -77,7 +76,7 @@ public class ScalarWebClientFactory {
     public static ScalarWebClient get(final String scalarWebUrl, final ScalarWebContext context,
             final ClientBuilder clientBuilder)
             throws IOException, ParserConfigurationException, SAXException, URISyntaxException {
-        Validate.notEmpty(scalarWebUrl, "scalarWebUrl cannot be empty");
+        SonyUtil.validateNotEmpty(scalarWebUrl, "scalarWebUrl cannot be empty");
         Objects.requireNonNull(context, "context cannot be null");
 
         return get(new URL(scalarWebUrl), context, clientBuilder);
@@ -101,7 +100,7 @@ public class ScalarWebClientFactory {
         Objects.requireNonNull(context, "context cannot be null");
 
         final Logger logger = LoggerFactory.getLogger(ScalarWebClientFactory.class);
-        if (StringUtils.isEmpty(scalarWebUrl.getPath())) {
+        if (SonyUtil.isEmpty(scalarWebUrl.getPath())) {
             return getDefaultClient(scalarWebUrl, context, logger, clientBuilder);
         } else {
             return queryScalarWebSclient(scalarWebUrl, context, logger, clientBuilder);

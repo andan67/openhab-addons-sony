@@ -14,11 +14,9 @@ package org.openhab.binding.sony.internal.scalarweb.models.api;
 
 import java.util.List;
 
-import org.apache.commons.lang.BooleanUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.sony.internal.SonyUtil;
 
 /**
  * This class represents information about a specific sony general setting. Sony has created this as a simplified way of
@@ -104,7 +102,7 @@ public class GeneralSetting {
      */
     public GeneralSetting(final String target, @Nullable final String uri, @Nullable final String type,
             @Nullable final String currentValue) {
-        Validate.notEmpty(target, "target cannot be empty");
+        SonyUtil.validateNotEmpty(target, "target cannot be empty");
         this.target = target;
         this.uri = uri;
         this.type = type;
@@ -117,7 +115,7 @@ public class GeneralSetting {
      * @return true if available, false otherwise
      */
     public boolean isAvailable() {
-        return isAvailable == null || BooleanUtils.isTrue(isAvailable);
+        return isAvailable == null || Boolean.TRUE.equals(isAvailable);
     }
 
     /**
@@ -189,7 +187,7 @@ public class GeneralSetting {
      * @return true if a slider, false otherwise
      */
     public boolean isUiSlider() {
-        return StringUtils.contains(deviceUIInfo, SLIDER);
+        return deviceUIInfo != null && deviceUIInfo.contains(SLIDER);
     }
 
     /**
@@ -198,7 +196,7 @@ public class GeneralSetting {
      * @return true if a picker, false otherwise
      */
     public boolean isUiPicker() {
-        return StringUtils.contains(deviceUIInfo, PICKER);
+        return deviceUIInfo != null && deviceUIInfo.contains(PICKER);
     }
 
     /**

@@ -14,10 +14,9 @@ package org.openhab.binding.sony.internal.upnp.models;
 
 import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.sony.internal.SonyUtil;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamImplicit;
@@ -117,7 +116,7 @@ public class UpnpScpd {
         final List<UpnpScpdAction> actions = localActionList == null ? null : localActionList.actions;
         if (actions != null) {
             for (final UpnpScpdAction action : actions) {
-                if (StringUtils.equalsIgnoreCase(actionName, action.getActionName())) {
+                if (actionName.equalsIgnoreCase(action.getActionName())) {
                     return action;
                 }
             }
@@ -134,14 +133,14 @@ public class UpnpScpd {
      * @return a string representing the SOAP action or null if serviceType/actionName was not found
      */
     public @Nullable String getSoap(final String serviceType, final String actionName, final String... parms) {
-        Validate.notEmpty(serviceType, "serviceType cannnot be empty");
-        Validate.notEmpty(actionName, "actionName cannnot be empty");
+        SonyUtil.validateNotEmpty(serviceType, "serviceType cannnot be empty");
+        SonyUtil.validateNotEmpty(actionName, "actionName cannnot be empty");
 
         final UpnpScpdActionList localActionList = actionList;
         final List<UpnpScpdAction> actions = localActionList == null ? null : localActionList.actions;
         if (actions != null) {
             for (final UpnpScpdAction action : actions) {
-                if (StringUtils.equalsIgnoreCase(actionName, action.getActionName())) {
+                if (actionName.equalsIgnoreCase(action.getActionName())) {
                     final StringBuilder sb = new StringBuilder(
                             "<?xml version=\"1.0\"?>\n<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\" s:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">\n  <s:Body>\n    <u:");
                     sb.append(actionName);

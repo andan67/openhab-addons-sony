@@ -22,7 +22,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.core.thing.ChannelUID;
 
@@ -78,7 +77,7 @@ public class ScalarWebChannelTracker {
             boolean found = false;
             for (final String id : new HashSet<String>(linkedChannelIds.keySet())) {
                 final Set<ScalarWebChannel> channels = linkedChannelIds.get(id);
-                if (channels.removeIf(ch -> StringUtils.equalsIgnoreCase(ch.getChannelId(), channelId))) {
+                if (channels.removeIf(ch -> ch.getChannelId().equalsIgnoreCase(channelId))) {
                     found = true;
                     if (channels.isEmpty()) {
                         linkedChannelIds.remove(id);
@@ -107,7 +106,7 @@ public class ScalarWebChannelTracker {
             final String channelId = channel.getChannelId();
             for (final Set<ScalarWebChannel> chnls : linkedChannelIds.values()) {
                 for (final ScalarWebChannel chnl : chnls) {
-                    if (StringUtils.equalsIgnoreCase(chnl.getChannelId(), channelId)) {
+                    if (chnl.getChannelId().equalsIgnoreCase(channelId)) {
                         return true;
                     }
                 }

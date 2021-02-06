@@ -18,7 +18,6 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 
-import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.binding.sony.internal.scalarweb.models.ScalarWebResult;
 
@@ -81,7 +80,7 @@ public class CurrentTime {
                 myDstOffsetMinute = dstElm.getAsInt();
             }
 
-            if (StringUtils.isEmpty(myDateTime)) {
+            if (myDateTime == null || myDateTime.isEmpty()) {
                 throw new JsonParseException("'dateTime' property was not found: " + obj);
             }
 

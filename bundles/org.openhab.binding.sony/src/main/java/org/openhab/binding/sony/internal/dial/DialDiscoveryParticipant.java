@@ -18,7 +18,6 @@ import java.util.Objects;
 
 import javax.ws.rs.client.ClientBuilder;
 
-import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.jupnp.model.meta.RemoteDevice;
@@ -113,7 +112,7 @@ public class DialDiscoveryParticipant extends AbstractDiscoveryParticipant imple
 
         final String thingId = UidUtils.getThingId(identity.getUdn());
         return DiscoveryResultBuilder.create(uid).withProperties(config.asProperties())
-                .withProperty("DialUDN", StringUtils.defaultIfEmpty(thingId, uid.getId()))
+                .withProperty("DialUDN", thingId != null && !thingId.isEmpty() ? thingId : uid.getId())
                 .withRepresentationProperty("DialUDN").withLabel(getLabel(device, "DIAL")).build();
     }
 
@@ -127,7 +126,7 @@ public class DialDiscoveryParticipant extends AbstractDiscoveryParticipant imple
 
         if (isSonyDevice(device)) {
             final String modelName = getModelName(device);
-            if (modelName == null || StringUtils.isEmpty(modelName)) {
+            if (modelName == null || modelName.isEmpty()) {
                 logger.debug("Found Sony device but it has no model name - ignoring");
                 return null;
             }

@@ -17,7 +17,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 
@@ -76,7 +75,7 @@ public class DialClient {
      * @return the first device ID or null
      */
     public @Nullable String getFirstDeviceId() {
-        return deviceInfos.stream().map(e -> e.getDeviceId()).filter(e -> StringUtils.isNotEmpty(e)).findFirst()
+        return deviceInfos.stream().map(e -> e.getDeviceId()).filter(e -> e != null && !e.isEmpty()).findFirst()
                 .orElse(null);
     }
 

@@ -12,8 +12,8 @@
  */
 package org.openhab.binding.sony.internal.scalarweb.models.api;
 
-import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.openhab.binding.sony.internal.SonyUtil;
 
 /**
  * The storage list request class used for serialization only.
@@ -40,7 +40,7 @@ public class StorageListRequest_1_2 extends StorageListRequest_1_1 {
      */
     public StorageListRequest_1_2(final String uri, final String isRegistered) {
         super(uri);
-        this.isRegistered = StringUtils.defaultIfEmpty(isRegistered, "");
+        this.isRegistered = SonyUtil.defaultIfEmpty(isRegistered, "");
     }
 
     @Override

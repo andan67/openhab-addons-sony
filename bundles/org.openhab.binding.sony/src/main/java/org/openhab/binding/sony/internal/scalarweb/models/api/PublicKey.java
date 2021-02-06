@@ -12,9 +12,9 @@
  */
 package org.openhab.binding.sony.internal.scalarweb.models.api;
 
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.sony.internal.SonyUtil;
 
 /**
  * This class represents the public key to use and is used for deserialization/serialization only
@@ -33,7 +33,7 @@ public class PublicKey {
      * @param publicKey the non-null, non-empty public key
      */
     public PublicKey(final String publicKey) {
-        Validate.notEmpty(publicKey, "publicKey cannot be null");
+        SonyUtil.validateNotEmpty(publicKey, "publicKey cannot be null");
         this.publicKey = publicKey;
     }
 

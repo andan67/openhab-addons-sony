@@ -18,7 +18,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.sony.internal.SonyUtil;
@@ -54,7 +53,7 @@ public class SonyDeviceCapability {
      * @param services a non-null, possibly empty list of services
      */
     public SonyDeviceCapability(final String modelName, final URL baseURL, final List<SonyServiceCapability> services) {
-        Validate.notEmpty(modelName, "modelName cannot be empty");
+        SonyUtil.validateNotEmpty(modelName, "modelName cannot be empty");
         Objects.requireNonNull(baseURL, "baseURL cannot be null");
         Objects.requireNonNull(services, "services cannot be null");
 

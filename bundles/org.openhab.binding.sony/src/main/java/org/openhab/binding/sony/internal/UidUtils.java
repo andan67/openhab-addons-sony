@@ -14,7 +14,6 @@ package org.openhab.binding.sony.internal;
 
 import java.util.Objects;
 
-import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.jupnp.model.types.UDN;
@@ -40,7 +39,7 @@ public class UidUtils {
 
         final String uuid = udn.getIdentifierString();
 
-        final String[] uuidParts = StringUtils.split(uuid, ':');
+        final String[] uuidParts = uuid.split(":");
         if (uuidParts == null || uuidParts.length == 0) {
             return null;
         } else if (uuidParts.length == 1) {
@@ -62,7 +61,7 @@ public class UidUtils {
         Objects.requireNonNull(udn, "udn cannot be null");
 
         final String uuid = getDeviceId(udn);
-        if (StringUtils.isEmpty(uuid)) {
+        if (SonyUtil.isEmpty(uuid)) {
             return null;
         }
 
@@ -71,7 +70,7 @@ public class UidUtils {
         // Close enough to unique for our purposes - we just
         // verify the mac address is 12 characters in length
         // if not, we fall back to using the full uuid
-        final String[] uuidParts = StringUtils.split(uuid, '-');
+        final String[] uuidParts = uuid.split("-");
         final String macAddress = uuidParts[uuidParts.length - 1];
         return macAddress.length() == 12 ? macAddress : uuid;
     }

@@ -12,8 +12,8 @@
  */
 package org.openhab.binding.sony.internal.scalarweb.models.api;
 
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.openhab.binding.sony.internal.SonyUtil;
 
 /**
  * This class represents a content count request and is used for serialization only
@@ -39,7 +39,7 @@ public class ContentCount_1_0 {
      * @param source the non-null, non-empty source
      */
     public ContentCount_1_0(final String source) {
-        Validate.notEmpty(source, "source cannot be empty");
+        SonyUtil.validateNotEmpty(source, "source cannot be empty");
         this.source = source;
     }
 

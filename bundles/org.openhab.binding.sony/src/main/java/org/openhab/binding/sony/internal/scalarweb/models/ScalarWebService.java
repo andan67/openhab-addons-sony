@@ -24,11 +24,10 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.http.HttpStatus;
+import org.openhab.binding.sony.internal.SonyUtil;
 import org.openhab.binding.sony.internal.scalarweb.models.api.MethodTypes;
 import org.openhab.binding.sony.internal.scalarweb.models.api.ServiceProtocol;
 import org.openhab.binding.sony.internal.scalarweb.models.api.SupportedApi;
@@ -116,7 +115,7 @@ public class ScalarWebService implements AutoCloseable {
             final String version, final SupportedApi supportedApi) {
         Objects.requireNonNull(transportFactory, "transportFactory cannot be null");
         Objects.requireNonNull(serviceProtocol, "serviceProtocol cannot be null");
-        Validate.notEmpty(version, "version cannot be empty");
+        SonyUtil.validateNotEmpty(version, "version cannot be empty");
         Objects.requireNonNull(supportedApi, "supportedApi cannot be null");
 
         this.transportFactory = transportFactory;
@@ -145,7 +144,7 @@ public class ScalarWebService implements AutoCloseable {
             // Retrieve the api versions for the service
             versions.addAll(execute(new ScalarWebRequest(ScalarWebMethod.GETVERSIONS, version)).asArray(String.class));
         } catch (final IOException e) {
-            if (StringUtils.contains(e.getMessage(), String.valueOf(HttpStatus.NOT_FOUND_404))) {
+            if (e.getMessage().contains(String.valueOf(HttpStatus.NOT_FOUND_404))) {
                 logger.debug("Could not retrieve method versions - missing method {}: {}", ScalarWebMethod.GETVERSIONS,
                         e.getMessage());
             } else {
@@ -169,8 +168,8 @@ public class ScalarWebService implements AutoCloseable {
         // Merge in any methods reported that weren't returned by getmethodtypes/version
         supportedApi.getApis().forEach(api -> {
             api.getVersions().forEach(v -> {
-                if (!methods.stream().anyMatch(m -> StringUtils.equalsIgnoreCase(m.getMethodName(), api.getName())
-                        && StringUtils.equalsIgnoreCase(v.getVersion(), m.getVersion()))) {
+                if (!methods.stream().anyMatch(m -> m.getMethodName().equalsIgnoreCase(api.getName())
+                        && v.getVersion().equalsIgnoreCase(m.getVersion()))) {
                     methods.add(new ScalarWebMethod(api.getName(), new ArrayList<>(), new ArrayList<>(), v.getVersion(),
                             ScalarWebMethod.UNKNOWN_VARIATION));
                 }
@@ -204,7 +203,7 @@ public class ScalarWebService implements AutoCloseable {
      * @return the latest version or null if not found
      */
     public @Nullable String getVersion(final String methodName) {
-        Validate.notEmpty(methodName, "methodName cannto be empty");
+        SonyUtil.validateNotEmpty(methodName, "methodName cannto be empty");
         final SupportedApiInfo api = supportedApi.getMethod(methodName);
         final SupportedApiVersionInfo vers = api == null ? null : api.getLatestVersion();
         return vers == null ? null : vers.getVersion();
@@ -217,7 +216,7 @@ public class ScalarWebService implements AutoCloseable {
      * @return the non-null, possibly empty list of versions
      */
     public List<String> getVersions(final String methodName) {
-        Validate.notEmpty(methodName, "methodName cannto be empty");
+        SonyUtil.validateNotEmpty(methodName, "methodName cannto be empty");
         final SupportedApiInfo api = supportedApi.getMethod(methodName);
         return api == null ? new ArrayList<>()
                 : api.getVersions().stream().map(v -> v.getVersion()).collect(Collectors.toList());
@@ -230,7 +229,7 @@ public class ScalarWebService implements AutoCloseable {
      * @return true if it exists, false otherwise
      */
     public boolean hasMethod(final String methodName) {
-        Validate.notEmpty(methodName, "methodName cannto be empty");
+        SonyUtil.validateNotEmpty(methodName, "methodName cannto be empty");
         return supportedApi.getMethod(methodName) != null;
     }
 
@@ -269,7 +268,7 @@ public class ScalarWebService implements AutoCloseable {
      * @return the scalar web result
      */
     public ScalarWebResult execute(final String methodName, final Object... parms) {
-        Validate.notEmpty(methodName, "methodName cannot be empty");
+        SonyUtil.validateNotEmpty(methodName, "methodName cannot be empty");
         return executeSpecific(methodName, null, parms);
     }
 
@@ -283,9 +282,9 @@ public class ScalarWebService implements AutoCloseable {
      */
     public ScalarWebResult executeSpecific(final String methodName, final @Nullable String version,
             final Object... parms) {
-        Validate.notEmpty(methodName, "methodName cannot be empty");
+        SonyUtil.validateNotEmpty(methodName, "methodName cannot be empty");
 
-        if (version == null || StringUtils.isEmpty(version)) {
+        if (version == null || version.isEmpty()) {
             final String mtdVersion = getVersion(methodName);
             if (mtdVersion == null) {
                 logger.debug("Method {} doesn't exist in the service {}", methodName, serviceName);
@@ -333,7 +332,7 @@ public class ScalarWebService implements AutoCloseable {
      * @return the label for the service
      */
     private static String labelFor(final String serviceName) {
-        Validate.notEmpty(serviceName, "serviceName cannot be empty");
+        SonyUtil.validateNotEmpty(serviceName, "serviceName cannot be empty");
         switch (serviceName) {
             case ACCESSCONTROL:
                 return "Access Control";

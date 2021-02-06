@@ -12,9 +12,9 @@
  */
 package org.openhab.binding.sony.internal.scalarweb.models.api;
 
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.sony.internal.SonyUtil;
 
 /**
  * This class represents the request for the power savings mode and is used for deserialization/serialization only
@@ -38,7 +38,7 @@ public class PowerSavingMode {
      * @param mode the mode
      */
     public PowerSavingMode(final String mode) {
-        Validate.notEmpty(mode, "mode cannot be empty");
+        SonyUtil.validateNotEmpty(mode, "mode cannot be empty");
         this.mode = mode;
     }
 

@@ -18,7 +18,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.binding.sony.internal.SonyUtil;
 import org.openhab.binding.sony.internal.ThingCallback;
@@ -265,7 +264,7 @@ class ScalarWebVideoScreenProtocol<T extends ThingCallback<String>> extends Abst
      * @param audioSource the new non-null, non-empty audio source
      */
     private void setAudioSource(final String audioSource) {
-        Validate.notEmpty(audioSource, "audioSource cannot be empty");
+        SonyUtil.validateNotEmpty(audioSource, "audioSource cannot be empty");
         handleExecute(ScalarWebMethod.SETAUDIOSOURCESCREEN, new Screen(audioSource));
     }
 
@@ -275,7 +274,7 @@ class ScalarWebVideoScreenProtocol<T extends ThingCallback<String>> extends Abst
      * @param bannerMode the new non-null, non-empty banner mode
      */
     private void setBannerMode(final String bannerMode) {
-        Validate.notEmpty(bannerMode, "bannerMode cannot be empty");
+        SonyUtil.validateNotEmpty(bannerMode, "bannerMode cannot be empty");
         handleExecute(ScalarWebMethod.SETBANNERMODE, new Value(bannerMode));
     }
 
@@ -285,7 +284,7 @@ class ScalarWebVideoScreenProtocol<T extends ThingCallback<String>> extends Abst
      * @param multiScreenMode the new non-null, non-empty multi screen mode
      */
     private void setMultiScreenMode(final String multiScreenMode) {
-        Validate.notEmpty(multiScreenMode, "multiScreenMode cannot be empty");
+        SonyUtil.validateNotEmpty(multiScreenMode, "multiScreenMode cannot be empty");
         handleExecute(ScalarWebMethod.SETMULTISCREENMODE, new Mode(multiScreenMode));
     }
 
@@ -295,7 +294,7 @@ class ScalarWebVideoScreenProtocol<T extends ThingCallback<String>> extends Abst
      * @param pipPosition the new non-null, non-empty pip sub screen position
      */
     private void setPipSubScreenPosition(final String pipPosition) {
-        Validate.notEmpty(pipPosition, "pipPosition cannot be empty");
+        SonyUtil.validateNotEmpty(pipPosition, "pipPosition cannot be empty");
         handleExecute(ScalarWebMethod.SETPIPSUBSCREENPOSITION, new Position(pipPosition));
     }
 
@@ -305,7 +304,7 @@ class ScalarWebVideoScreenProtocol<T extends ThingCallback<String>> extends Abst
      * @param sceneSetting the new scene setting
      */
     private void setSceneSetting(final String sceneSetting) {
-        Validate.notEmpty(sceneSetting, "sceneSetting cannot be empty");
+        SonyUtil.validateNotEmpty(sceneSetting, "sceneSetting cannot be empty");
         handleExecute(ScalarWebMethod.SETSCENESETTING, new Value(sceneSetting));
     }
 }

@@ -14,11 +14,9 @@ package org.openhab.binding.sony.internal.ircc.models;
 
 import java.util.Objects;
 
-import org.apache.commons.lang.NotImplementedException;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.sony.internal.SonyUtil;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.converters.Converter;
@@ -57,8 +55,8 @@ class IrccCode {
      * @param value a non-null, non-empty value
      */
     private IrccCode(final String command, final String value) {
-        Validate.notEmpty(command, "command cannot be empty");
-        Validate.notEmpty(value, "value cannot be empty");
+        SonyUtil.validateNotEmpty(command, "command cannot be empty");
+        SonyUtil.validateNotEmpty(value, "value cannot be empty");
         this.command = command;
         this.value = value;
     }
@@ -83,7 +81,7 @@ class IrccCode {
 
     /**
      * The converter used to unmarshal the {@link IrccCode}. Please note this should only be used to unmarshal XML
-     * (marshaling will throw a {@link NotImplementedException})
+     * (marshaling will throw a {@link UnsupportedOperationException})
      *
      * @author Tim Roberts - Initial contribution
      */
@@ -96,7 +94,7 @@ class IrccCode {
         @Override
         public void marshal(final @Nullable Object arg0, final @Nullable HierarchicalStreamWriter arg1,
                 final @Nullable MarshallingContext arg2) {
-            throw new NotImplementedException();
+            throw new UnsupportedOperationException();
         }
 
         @Override
@@ -106,12 +104,12 @@ class IrccCode {
             Objects.requireNonNull(context, "context cannot be null");
 
             final String command = reader.getAttribute("command");
-            if (StringUtils.isEmpty(command)) {
+            if (command.isEmpty()) {
                 return null;
             }
 
             final String value = reader.getValue();
-            if (StringUtils.isEmpty(value)) {
+            if (value.isEmpty()) {
                 return null;
             }
 

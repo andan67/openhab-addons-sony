@@ -25,10 +25,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.client.ClientBuilder;
 
-import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.websocket.client.WebSocketClient;
+import org.openhab.binding.sony.internal.SonyUtil;
 import org.openhab.binding.sony.internal.scalarweb.gson.GsonUtilities;
 import org.openhab.binding.sony.internal.scalarweb.models.ScalarWebRequest;
 import org.openhab.binding.sony.internal.scalarweb.models.ScalarWebResult;
@@ -126,31 +126,31 @@ public class SonyServlet extends HttpServlet {
         final CommandRequest cmdRqst = gson.fromJson(req.getReader(), CommandRequest.class);
 
         final String baseUrl = cmdRqst.getBaseUrl();
-        if (baseUrl == null || StringUtils.isEmpty(baseUrl)) {
+        if (baseUrl == null || baseUrl.isEmpty()) {
             write(resp, gson.toJson(new CommandResponse(false, "baseUrl is required")));
             return;
         }
 
         final String serviceName = cmdRqst.getServiceName();
-        if (serviceName == null || StringUtils.isEmpty(serviceName)) {
+        if (serviceName == null || serviceName.isEmpty()) {
             write(resp, gson.toJson(new CommandResponse(false, "serviceName is required")));
             return;
         }
 
         final String transportName = cmdRqst.getTransport();
-        if (transportName == null || StringUtils.isEmpty(transportName)) {
+        if (transportName == null || transportName.isEmpty()) {
             write(resp, gson.toJson(new CommandResponse(false, "transport is required")));
             return;
         }
 
         final String command = cmdRqst.getCommand();
-        if (command == null || StringUtils.isEmpty(command)) {
+        if (command == null || command.isEmpty()) {
             write(resp, gson.toJson(new CommandResponse(false, "command is required")));
             return;
         }
 
         final String version = cmdRqst.getVersion();
-        if (version == null || StringUtils.isEmpty(version)) {
+        if (version == null || version.isEmpty()) {
             write(resp, gson.toJson(new CommandResponse(false, "version is required")));
             return;
         }
@@ -179,11 +179,11 @@ public class SonyServlet extends HttpServlet {
                 final ScalarWebResult result = transport.execute(rqst, TransportOptionAutoAuth.TRUE);
                 if (result.isError()) {
                     write(resp, gson.toJson(new CommandResponse(false,
-                            StringUtils.defaultIfEmpty(result.getDeviceErrorDesc(), "failure"))));
+                            SonyUtil.defaultIfEmpty(result.getDeviceErrorDesc(), "failure"))));
                 } else {
                     final JsonArray ja = result.getResults();
                     final String resString = ja == null ? null : gson.toJson(ja);
-                    write(resp, gson.toJson(new CommandResponse(StringUtils.defaultIfEmpty(resString, "Success"))));
+                    write(resp, gson.toJson(new CommandResponse(SonyUtil.defaultIfEmpty(resString, "Success"))));
                 }
             }
         }
@@ -202,7 +202,7 @@ public class SonyServlet extends HttpServlet {
         resp.setContentType("application/json");
         resp.setCharacterEncoding("UTF-8");
         final PrintWriter pw = resp.getWriter();
-        if (StringUtils.isEmpty(str)) {
+        if (SonyUtil.isEmpty(str)) {
             pw.print("{}");
         } else {
             pw.print(str);

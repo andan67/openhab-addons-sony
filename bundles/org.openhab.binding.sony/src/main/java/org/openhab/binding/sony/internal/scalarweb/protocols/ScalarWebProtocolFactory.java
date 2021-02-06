@@ -21,7 +21,6 @@ import java.util.stream.Collectors;
 
 import javax.ws.rs.client.ClientBuilder;
 
-import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.sony.internal.ThingCallback;
@@ -129,7 +128,7 @@ public class ScalarWebProtocolFactory<T extends ThingCallback<String>> implement
      * @return the protocol or null if not found
      */
     public @Nullable ScalarWebProtocol<T> getProtocol(final @Nullable String name) {
-        if (name == null || StringUtils.isEmpty(name)) {
+        if (name == null || name.isEmpty()) {
             return null;
         }
         return protocols.get(name);

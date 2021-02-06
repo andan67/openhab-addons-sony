@@ -23,10 +23,10 @@ import java.util.concurrent.TimeoutException;
 
 import javax.ws.rs.client.ClientBuilder;
 
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.websocket.client.WebSocketClient;
+import org.openhab.binding.sony.internal.SonyUtil;
 import org.openhab.binding.sony.internal.scalarweb.gson.GsonUtilities;
 import org.openhab.binding.sony.internal.scalarweb.models.api.ServiceProtocol;
 import org.slf4j.Logger;
@@ -123,7 +123,7 @@ public class SonyTransportFactory {
      * @return the sony transport or null if none could be found
      */
     public @Nullable SonyTransport getSonyTransport(final String serviceName) {
-        Validate.notEmpty(serviceName, "serviceName cannot be empty");
+        SonyUtil.validateNotEmpty(serviceName, "serviceName cannot be empty");
 
         return getSonyTransport(serviceName, AUTO);
     }
@@ -136,8 +136,8 @@ public class SonyTransportFactory {
      * @return the sony transport or null if none could be found
      */
     public @Nullable SonyTransport getSonyTransport(final String serviceName, final String protocol) {
-        Validate.notEmpty(serviceName, "serviceName cannot be empty");
-        Validate.notEmpty(protocol, "protocol cannot be empty");
+        SonyUtil.validateNotEmpty(serviceName, "serviceName cannot be empty");
+        SonyUtil.validateNotEmpty(protocol, "protocol cannot be empty");
 
         switch (protocol) {
             case AUTO:
@@ -163,7 +163,7 @@ public class SonyTransportFactory {
      * @return the sony websocket transport or null if none could be found
      */
     private @Nullable SonyWebSocketTransport createWebSocketTransport(final String serviceName) {
-        Validate.notEmpty(serviceName, "serviceName cannot be empty");
+        SonyUtil.validateNotEmpty(serviceName, "serviceName cannot be empty");
 
         final WebSocketClient localWebSocketClient = webSocketClient;
         if (localWebSocketClient == null) {
@@ -192,7 +192,7 @@ public class SonyTransportFactory {
      * @return the sony http transport or null if none could be found
      */
     private @Nullable SonyHttpTransport createServiceHttpTransport(final String serviceName) {
-        Validate.notEmpty(serviceName, "serviceName cannot be empty");
+        SonyUtil.validateNotEmpty(serviceName, "serviceName cannot be empty");
 
         final String base = baseUrl.toString();
         final String baseUrlString = base + (base.endsWith("/") ? "" : "/")
@@ -216,7 +216,7 @@ public class SonyTransportFactory {
      */
     public static SonyHttpTransport createHttpTransport(final String baseUrl, final Gson gson,
             final ClientBuilder clientBuilder) throws URISyntaxException {
-        Validate.notEmpty(baseUrl, "baseUrl cannot be empty");
+        SonyUtil.validateNotEmpty(baseUrl, "baseUrl cannot be empty");
         Objects.requireNonNull(gson, "gson cannot be null");
         return new SonyHttpTransport(baseUrl, gson, clientBuilder);
     }
@@ -230,7 +230,7 @@ public class SonyTransportFactory {
      */
     public static SonyHttpTransport createHttpTransport(final String baseUrl, final ClientBuilder clientBuilder)
             throws URISyntaxException {
-        Validate.notEmpty(baseUrl, "baseUrl cannot be empty");
+        SonyUtil.validateNotEmpty(baseUrl, "baseUrl cannot be empty");
         return createHttpTransport(baseUrl, GsonUtilities.getApiGson(), clientBuilder);
     }
 
@@ -273,7 +273,7 @@ public class SonyTransportFactory {
     public static SonyHttpTransport createHttpTransport(final URL baseUrl, final String serviceName,
             final ClientBuilder clientBuilder) throws URISyntaxException {
         Objects.requireNonNull(baseUrl, "baseUrl cannot be null");
-        Validate.notEmpty(serviceName, "serviceName cannot be empty");
+        SonyUtil.validateNotEmpty(serviceName, "serviceName cannot be empty");
         final String base = baseUrl.toString();
         final String baseUrlString = base + (base.endsWith("/") ? "" : "/")
                 + (serviceName.startsWith("/") ? serviceName.substring(1) : serviceName);

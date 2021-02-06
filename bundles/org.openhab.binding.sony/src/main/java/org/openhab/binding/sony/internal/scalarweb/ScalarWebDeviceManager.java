@@ -28,10 +28,9 @@ import java.util.TreeSet;
 
 import javax.ws.rs.client.ClientBuilder;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.sony.internal.SonyUtil;
 import org.openhab.binding.sony.internal.scalarweb.gson.GsonUtilities;
 import org.openhab.binding.sony.internal.scalarweb.models.ScalarWebMethod;
 import org.openhab.binding.sony.internal.scalarweb.models.ScalarWebService;
@@ -105,7 +104,7 @@ public class ScalarWebDeviceManager implements ScalarWebClient {
             final ScalarWebContext context, final ClientBuilder clientBuilder)
             throws IOException, DOMException, MalformedURLException, URISyntaxException {
         Objects.requireNonNull(baseUrl, "baseUrl cannot be null");
-        Validate.notEmpty(version, "version cannot be empty");
+        SonyUtil.validateNotEmpty(version, "version cannot be empty");
         Objects.requireNonNull(serviceProtocols, "serviceProtocols cannot be null");
         Objects.requireNonNull(context, "context cannot be null");
 
@@ -142,7 +141,7 @@ public class ScalarWebDeviceManager implements ScalarWebClient {
 
             for (ServiceProtocol serviceProtocol : myServiceProtocols) {
                 // Ignore the guid - we already added it above
-                if (StringUtils.equalsIgnoreCase(ScalarWebService.GUIDE, serviceProtocol.getServiceName())) {
+                if (ScalarWebService.GUIDE.equalsIgnoreCase(serviceProtocol.getServiceName())) {
                     continue;
                 }
 

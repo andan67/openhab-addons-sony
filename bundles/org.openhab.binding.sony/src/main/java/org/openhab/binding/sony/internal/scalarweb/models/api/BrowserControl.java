@@ -12,9 +12,9 @@
  */
 package org.openhab.binding.sony.internal.scalarweb.models.api;
 
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.sony.internal.SonyUtil;
 
 /**
  * This class represents the browser control and is used for serialization only
@@ -32,8 +32,8 @@ public class BrowserControl {
      *
      * @param control the non-null, non-empty control
      */
-    public BrowserControl(final @Nullable String control) {
-        Validate.notEmpty(control, "control cannot be empty");
+    public BrowserControl(final String control) {
+        SonyUtil.validateNotEmpty(control, "control cannot be empty");
         this.control = control;
     }
 

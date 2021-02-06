@@ -12,9 +12,9 @@
  */
 package org.openhab.binding.sony.internal.scalarweb.models.api;
 
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.sony.internal.SonyUtil;
 
 /**
  * This class represents the request to set the postal code and is used for deserialization/serialization only
@@ -38,7 +38,7 @@ public class PostalCode {
      * @param postalCode the postal code
      */
     public PostalCode(final String postalCode) {
-        Validate.notEmpty(postalCode, "postalCode cannot be empty");
+        SonyUtil.validateNotEmpty(postalCode, "postalCode cannot be empty");
         this.postalCode = postalCode;
     }
 

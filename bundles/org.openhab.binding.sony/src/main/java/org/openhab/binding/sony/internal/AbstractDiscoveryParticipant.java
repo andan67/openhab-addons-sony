@@ -19,8 +19,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.jupnp.model.meta.DeviceDetails;
@@ -64,7 +62,7 @@ public abstract class AbstractDiscoveryParticipant {
      * @param sonyDefinitionProvider a non-null sony definition provider
      */
     protected AbstractDiscoveryParticipant(final String service, final SonyDefinitionProvider sonyDefinitionProvider) {
-        Validate.notEmpty(service, "service cannot be empty");
+        SonyUtil.validateNotEmpty(service, "service cannot be empty");
         Objects.requireNonNull(sonyDefinitionProvider, "sonyDefinitionProvider cannot be null");
 
         this.service = service;
@@ -101,8 +99,8 @@ public abstract class AbstractDiscoveryParticipant {
         final DeviceDetails details = device.getDetails();
         final String manufacturer = details == null || details.getManufacturerDetails() == null ? null
                 : details.getManufacturerDetails().getManufacturer();
-        return details != null
-                && StringUtils.containsIgnoreCase(manufacturer, SonyBindingConstants.SONY_REMOTEDEVICE_ID);
+        return details != null && manufacturer != null
+                && manufacturer.toLowerCase().contains(SonyBindingConstants.SONY_REMOTEDEVICE_ID.toLowerCase());
     }
 
     /**
@@ -120,16 +118,16 @@ public abstract class AbstractDiscoveryParticipant {
         }
 
         final String modelName = details.getModelDetails() == null ? null : details.getModelDetails().getModelName();
-        if (modelName != null && StringUtils.isNotEmpty(modelName) && SonyUtil.isValidModelName(modelName)) {
+        if (modelName != null && !modelName.isEmpty() && SonyUtil.isValidModelName(modelName)) {
             return modelName;
         }
 
         final String friendlyName = details.getFriendlyName();
-        if (friendlyName != null && StringUtils.isNotEmpty(friendlyName) && SonyUtil.isValidModelName(friendlyName)) {
+        if (friendlyName != null && !friendlyName.isEmpty() && SonyUtil.isValidModelName(friendlyName)) {
             return friendlyName;
         }
 
-        return StringUtils.isNotEmpty(friendlyName) ? friendlyName : modelName;
+        return friendlyName != null && !friendlyName.isEmpty() ? friendlyName : modelName;
     }
 
     /**
@@ -175,16 +173,16 @@ public abstract class AbstractDiscoveryParticipant {
      */
     protected static String getLabel(final RemoteDevice device, final String suffix) {
         Objects.requireNonNull(device, "device cannot be null");
-        Validate.notEmpty(suffix, "suffix cannot be empty");
+        SonyUtil.validateNotEmpty(suffix, "suffix cannot be empty");
 
         final String modelName = getModelName(device);
         final String friendlyName = device.getDetails().getFriendlyName();
 
         final StringBuilder sb = new StringBuilder();
 
-        if (StringUtils.isNotEmpty(friendlyName)) {
+        if (!SonyUtil.isEmpty(friendlyName)) {
             sb.append(friendlyName);
-        } else if (StringUtils.isNotEmpty(modelName)) {
+        } else if (!SonyUtil.isEmpty(modelName)) {
             sb.append(modelName);
         } else {
             sb.append(device.getDisplayString());
@@ -226,9 +224,9 @@ public abstract class AbstractDiscoveryParticipant {
      * @return a ThingTypeUID if found, null if not
      */
     private @Nullable ThingTypeUID getThingTypeUID(final String service, final @Nullable String modelName) {
-        Validate.notEmpty(service, "service cannot be empty");
+        SonyUtil.validateNotEmpty(service, "service cannot be empty");
 
-        if (modelName == null || StringUtils.isEmpty(modelName)) {
+        if (modelName == null || modelName.isEmpty()) {
             logger.debug("Emtpy model name!");
             return null;
         }
@@ -280,7 +278,7 @@ public abstract class AbstractDiscoveryParticipant {
 
         final Dictionary<String, @Nullable Object> properties = componentContext.getProperties();
         final String discoveryEnabled = (String) properties.get("background");
-        if (discoveryEnabled == null || StringUtils.isEmpty(discoveryEnabled)) {
+        if (discoveryEnabled == null || discoveryEnabled.isEmpty()) {
             this.discoveryEnabled.set(getDiscoveryEnableDefault());
         } else {
             this.discoveryEnabled.set(Boolean.valueOf(discoveryEnabled));

@@ -21,10 +21,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.sony.internal.SonyUtil;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.reflect.TypeToken;
@@ -92,11 +91,11 @@ public class SonyThingDefinition {
     public SonyThingDefinition(final String service, final String configUri, final String modelName, final String label,
             final String description, final Map<String, String> channelGroups,
             final List<SonyThingChannelDefinition> channels) {
-        Validate.notEmpty(service, "service cannot be empty");
-        Validate.notEmpty(configUri, "configUri cannot be empty");
-        Validate.notEmpty(modelName, "modelName cannot be empty");
-        Validate.notEmpty(label, "label cannot be empty");
-        Validate.notEmpty(description, "description cannot be empty");
+        SonyUtil.validateNotEmpty(service, "service cannot be empty");
+        SonyUtil.validateNotEmpty(configUri, "configUri cannot be empty");
+        SonyUtil.validateNotEmpty(modelName, "modelName cannot be empty");
+        SonyUtil.validateNotEmpty(label, "label cannot be empty");
+        SonyUtil.validateNotEmpty(description, "description cannot be empty");
         Objects.requireNonNull(channelGroups, "channelGroups cannot be null");
         Objects.requireNonNull(channels, "channels cannot be null");
 
@@ -142,7 +141,7 @@ public class SonyThingDefinition {
      * @return a non-null, non-empty label
      */
     public String getLabel() {
-        return StringUtils.defaultIfEmpty(label, "Sony " + modelName);
+        return SonyUtil.defaultIfEmpty(label, "Sony " + modelName);
     }
 
     /**
@@ -151,7 +150,7 @@ public class SonyThingDefinition {
      * @return a non-null, non-empty description
      */
     public String getDescription() {
-        return StringUtils.defaultIfEmpty(description, "Sony " + modelName);
+        return SonyUtil.defaultIfEmpty(description, "Sony " + modelName);
     }
 
     /**
@@ -170,8 +169,7 @@ public class SonyThingDefinition {
         localChannelGroups.entrySet().stream().forEach(e -> {
             final String localKey = e.getKey();
             final String localValue = e.getValue();
-            if (localKey != null && StringUtils.isNotEmpty(localKey) && localValue != null
-                    && StringUtils.isNotEmpty(localValue)) {
+            if (localKey != null && !localKey.isEmpty() && localValue != null && !localValue.isEmpty()) {
                 rc.put(localKey, localValue);
             }
         });
@@ -198,11 +196,11 @@ public class SonyThingDefinition {
      * @return a channel definition or null if not found
      */
     public @Nullable SonyThingChannelDefinition getChannel(final String channelId) {
-        Validate.notEmpty(channelId, "channelId cannot be empty");
+        SonyUtil.validateNotEmpty(channelId, "channelId cannot be empty");
         final List<@Nullable SonyThingChannelDefinition> localChannels = channels;
         if (localChannels != null) {
-            return localChannels.stream()
-                    .filter(chl -> chl != null && StringUtils.equalsIgnoreCase(channelId, chl.getChannelId()))
+            return localChannels.stream().filter(
+                    chl -> chl != null && chl.getChannelId() != null && chl.getChannelId().equalsIgnoreCase(channelId))
                     .findFirst().orElse(null);
         }
         return null;

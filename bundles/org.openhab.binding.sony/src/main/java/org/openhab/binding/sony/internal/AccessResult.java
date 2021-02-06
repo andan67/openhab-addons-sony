@@ -14,8 +14,6 @@ package org.openhab.binding.sony.internal;
 
 import java.util.Objects;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.sony.internal.net.HttpResponse;
@@ -58,8 +56,8 @@ public class AccessResult {
      * @param msg the non-null, non-empty msg
      */
     public AccessResult(final String code, final String msg) {
-        Validate.notEmpty(code, "code cannot be empty");
-        Validate.notEmpty(msg, "msg cannot be empty");
+        SonyUtil.validateNotEmpty(code, "code cannot be empty");
+        SonyUtil.validateNotEmpty(msg, "msg cannot be empty");
 
         this.code = code;
         this.msg = msg;
@@ -75,7 +73,7 @@ public class AccessResult {
         this.code = AccessResult.OTHER;
 
         final String content = resp.getContent();
-        this.msg = resp.getHttpCode() + " - " + (StringUtils.defaultIfEmpty(content, resp.getHttpReason()));
+        this.msg = resp.getHttpCode() + " - " + (SonyUtil.defaultIfEmpty(content, resp.getHttpReason()));
     }
 
     /**
@@ -106,6 +104,6 @@ public class AccessResult {
         }
 
         final AccessResult other = (AccessResult) obj;
-        return StringUtils.equals(code, other.code);
+        return code.equals(other.code);
     }
 }

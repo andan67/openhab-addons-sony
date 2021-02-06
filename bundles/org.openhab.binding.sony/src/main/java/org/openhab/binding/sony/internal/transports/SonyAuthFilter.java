@@ -49,6 +49,7 @@ import com.google.gson.Gson;
  * This class represents authorization filter used to reauthorize our sony connection
  *
  * @author Tim Roberts - Initial contribution
+ * @author andan - Changed cookie handling
  */
 @NonNullByDefault
 public class SonyAuthFilter implements ClientRequestFilter, ClientResponseFilter {

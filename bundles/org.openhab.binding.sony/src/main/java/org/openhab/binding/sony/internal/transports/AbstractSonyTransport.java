@@ -21,7 +21,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.binding.sony.internal.net.Header;
 import org.openhab.binding.sony.internal.scalarweb.models.ScalarWebEvent;
@@ -106,7 +105,7 @@ public abstract class AbstractSonyTransport implements SonyTransport {
         if (option instanceof TransportOptionHeader) {
             final String headerName = ((TransportOptionHeader) option).getHeader().getName();
             options.removeIf(e -> e instanceof TransportOptionHeader
-                    && StringUtils.equalsIgnoreCase(headerName, ((TransportOptionHeader) e).getHeader().getName()));
+                    && headerName.equalsIgnoreCase(((TransportOptionHeader) e).getHeader().getName()));
         } else {
             final Class<?> optionClass = option.getClass();
             options.removeIf(e -> optionClass.equals(e.getClass()));

@@ -19,8 +19,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.sony.internal.SonyUtil;
@@ -214,16 +212,14 @@ public class ScalarWebMethod {
      */
     public ScalarWebMethod(final String methodName, final List<String> parms, final List<String> retVals,
             final String version, final int variation) {
-        Validate.notEmpty(methodName, "methodName cannot be empty");
+        SonyUtil.validateNotEmpty(methodName, "methodName cannot be empty");
         Objects.requireNonNull(parms, "parms cannot be null");
         Objects.requireNonNull(retVals, "retVals cannot be null");
-        Validate.notEmpty(version, "getVolumeInformationersion cannot be empty");
+        SonyUtil.validateNotEmpty(version, "getVolumeInformationersion cannot be empty");
 
         this.methodName = methodName;
-        this.parms = Collections
-                .unmodifiableList(parms.stream().map(s -> StringUtils.trim(s)).collect(Collectors.toList()));
-        this.retVals = Collections
-                .unmodifiableList(retVals.stream().map(s -> StringUtils.trim(s)).collect(Collectors.toList()));
+        this.parms = Collections.unmodifiableList(parms.stream().map(s -> s.trim()).collect(Collectors.toList()));
+        this.retVals = Collections.unmodifiableList(retVals.stream().map(s -> s.trim()).collect(Collectors.toList()));
         this.version = version;
         this.variation = variation;
     }
@@ -285,9 +281,9 @@ public class ScalarWebMethod {
             sb.append(getVariation());
         }
         sb.append("](");
-        sb.append(StringUtils.join(parms, ','));
+        sb.append(String.join(",", parms));
         sb.append("): ");
-        sb.append(StringUtils.join(retVals, ','));
+        sb.append(String.join(",", retVals));
 
         return sb.toString();
     }
@@ -307,8 +303,7 @@ public class ScalarWebMethod {
         }
 
         final ScalarWebMethod other = (ScalarWebMethod) obj;
-        return StringUtils.equalsIgnoreCase(methodName, other.methodName)
-                && StringUtils.equalsIgnoreCase(version, other.version)
+        return methodName.equalsIgnoreCase(other.methodName) && version.equalsIgnoreCase(other.version)
                 && SonyUtil.equalsIgnoreCase(new HashSet<>(parms), new HashSet<>(other.parms))
                 && SonyUtil.equalsIgnoreCase(new HashSet<>(retVals), new HashSet<>(other.retVals))
                 && variation == ((ScalarWebMethod) obj).variation;

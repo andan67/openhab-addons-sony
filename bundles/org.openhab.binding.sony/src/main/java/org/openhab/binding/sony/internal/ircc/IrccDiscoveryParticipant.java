@@ -19,7 +19,6 @@ import java.util.Objects;
 
 import javax.ws.rs.client.ClientBuilder;
 
-import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.jupnp.model.meta.RemoteDevice;
@@ -101,13 +100,14 @@ public class IrccDiscoveryParticipant extends AbstractDiscoveryParticipant imple
 
         final IrccConfig config = new IrccConfig();
         config.setDiscoveredCommandsMapFile("ircc-" + uid.getId() + ".map");
-        config.setDiscoveredMacAddress(StringUtils.defaultIfEmpty(sysWolAddress, getMacAddress(identity, uid)));
+        config.setDiscoveredMacAddress(
+                sysWolAddress != null && !sysWolAddress.isEmpty() ? sysWolAddress : getMacAddress(identity, uid));
 
         config.setDeviceAddress(irccURL.toString());
 
         final String thingId = UidUtils.getThingId(identity.getUdn());
         return DiscoveryResultBuilder.create(uid).withProperties(config.asProperties())
-                .withProperty("IrccUDN", StringUtils.defaultIfEmpty(thingId, uid.getId()))
+                .withProperty("IrccUDN", thingId != null && !thingId.isEmpty() ? thingId : uid.getId())
                 .withRepresentationProperty("IrccUDN").withLabel(getLabel(device, "IRCC")).build();
     }
 
@@ -121,7 +121,7 @@ public class IrccDiscoveryParticipant extends AbstractDiscoveryParticipant imple
 
         if (isSonyDevice(device)) {
             final String modelName = getModelName(device);
-            if (modelName == null || StringUtils.isEmpty(modelName)) {
+            if (modelName == null || modelName.isEmpty()) {
                 logger.debug("Found Sony device but it has no model name - ignoring");
                 return null;
             }

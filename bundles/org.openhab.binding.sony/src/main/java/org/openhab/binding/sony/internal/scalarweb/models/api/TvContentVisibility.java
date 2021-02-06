@@ -12,9 +12,9 @@
  */
 package org.openhab.binding.sony.internal.scalarweb.models.api;
 
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.sony.internal.SonyUtil;
 
 /**
  * This class represents the TV content visibility and is used for serialization only
@@ -45,7 +45,7 @@ public class TvContentVisibility {
      */
     public TvContentVisibility(final String uri, final @Nullable String epgVisibility,
             final @Nullable String channelSurfingVisibility, final @Nullable String visibility) {
-        Validate.notEmpty(uri, "uri cannot be null");
+        SonyUtil.validateNotEmpty(uri, "uri cannot be null");
         this.uri = uri;
         this.epgVisibility = epgVisibility;
         this.channelSurfingVisibility = channelSurfingVisibility;

@@ -15,10 +15,9 @@ package org.openhab.binding.sony.internal.upnp.models;
 import java.net.URL;
 import java.util.Objects;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.sony.internal.SonyUtil;
 import org.openhab.binding.sony.internal.net.NetUtil;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
@@ -65,10 +64,10 @@ public class UpnpService {
      */
     public UpnpService(final String serviceId, final String serviceType, final String scpdUrl,
             final String controlUrl) {
-        Validate.notEmpty(serviceId, "serviceId cannot be empty");
-        Validate.notEmpty(serviceType, "serviceType cannot be empty");
-        Validate.notEmpty(scpdUrl, "scpdUrl cannot be empty");
-        Validate.notEmpty(controlUrl, "controlUrl cannot be empty");
+        SonyUtil.validateNotEmpty(serviceId, "serviceId cannot be empty");
+        SonyUtil.validateNotEmpty(serviceType, "serviceType cannot be empty");
+        SonyUtil.validateNotEmpty(scpdUrl, "scpdUrl cannot be empty");
+        SonyUtil.validateNotEmpty(controlUrl, "controlUrl cannot be empty");
 
         this.serviceId = serviceId;
         this.serviceType = serviceType;
@@ -87,7 +86,7 @@ public class UpnpService {
         Objects.requireNonNull(baseUrl, "baseUrl cannot be null");
 
         final String localScpdUrl = scpdUrl;
-        return localScpdUrl == null || StringUtils.isEmpty(localScpdUrl) ? null : NetUtil.getUrl(baseUrl, localScpdUrl);
+        return localScpdUrl == null || localScpdUrl.isEmpty() ? null : NetUtil.getUrl(baseUrl, localScpdUrl);
     }
 
     /**
@@ -100,8 +99,7 @@ public class UpnpService {
         Objects.requireNonNull(baseUrl, "baseUrl cannot be null");
 
         final String localControlUrl = controlUrl;
-        return localControlUrl == null || StringUtils.isEmpty(localControlUrl) ? null
-                : NetUtil.getUrl(baseUrl, localControlUrl);
+        return localControlUrl == null || localControlUrl.isEmpty() ? null : NetUtil.getUrl(baseUrl, localControlUrl);
     }
 
     /**

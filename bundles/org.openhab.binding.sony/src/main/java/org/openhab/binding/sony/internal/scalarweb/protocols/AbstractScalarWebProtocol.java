@@ -19,10 +19,6 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang.BooleanUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-import org.apache.commons.lang.math.NumberUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.sony.internal.SonyUtil;
@@ -195,8 +191,8 @@ public abstract class AbstractScalarWebProtocol<T extends ThingCallback<String>>
      * @return a {@link ScalarWebService} or null if not found
      */
     protected @Nullable ScalarWebService getService(final String serviceName) {
-        Validate.notEmpty(serviceName, "serviceName cannot be empty");
-        if (StringUtils.equals(serviceName, service.getServiceName())) {
+        SonyUtil.validateNotEmpty(serviceName, "serviceName cannot be empty");
+        if (SonyUtil.equals(serviceName, service.getServiceName())) {
             return service;
         }
 
@@ -241,10 +237,10 @@ public abstract class AbstractScalarWebProtocol<T extends ThingCallback<String>>
      * @throws IOException Signals that an I/O exception has occurred.
      */
     protected ScalarWebResult execute(final String mthd, final GetParms getParms) throws IOException {
-        Validate.notEmpty(mthd, "mthd cannot be empty");
+        SonyUtil.validateNotEmpty(mthd, "mthd cannot be empty");
         Objects.requireNonNull(getParms, "getParms cannot be empty");
         final String version = getService().getVersion(mthd);
-        if (version == null || StringUtils.isEmpty(version)) {
+        if (version == null || version.isEmpty()) {
             logger.debug("Can't find a version for method {} - ignoring", mthd);
             return ScalarWebResult.createNotImplemented(mthd);
         }
@@ -261,7 +257,7 @@ public abstract class AbstractScalarWebProtocol<T extends ThingCallback<String>>
      * @throws IOException Signals that an I/O exception has occurred.
      */
     protected ScalarWebResult execute(final String mthd, final Object... parms) throws IOException {
-        Validate.notEmpty(mthd, "mthd cannot be empty");
+        SonyUtil.validateNotEmpty(mthd, "mthd cannot be empty");
         final ScalarWebResult result = handleExecute(mthd, parms);
         if (result.isError()) {
             throw result.getHttpResponse().createException();
@@ -278,11 +274,11 @@ public abstract class AbstractScalarWebProtocol<T extends ThingCallback<String>>
      * @return a non-null result
      */
     protected ScalarWebResult handleExecute(final String mthd, final GetParms getParms) {
-        Validate.notEmpty(mthd, "mthd cannot be empty");
+        SonyUtil.validateNotEmpty(mthd, "mthd cannot be empty");
         Objects.requireNonNull(getParms, "getParms cannot be empty");
 
         final String version = getService().getVersion(mthd);
-        if (version == null || StringUtils.isEmpty(version)) {
+        if (version == null || version.isEmpty()) {
             logger.debug("Can't find a version for method {} - ignoring", mthd);
             return ScalarWebResult.createNotImplemented(mthd);
         }
@@ -298,45 +294,55 @@ public abstract class AbstractScalarWebProtocol<T extends ThingCallback<String>>
      * @return the scalar web result
      */
     protected ScalarWebResult handleExecute(final String mthd, final Object... parms) {
-        Validate.notEmpty(mthd, "mthd cannot be empty");
+        SonyUtil.validateNotEmpty(mthd, "mthd cannot be empty");
         final ScalarWebResult result = service.execute(mthd, parms);
         if (result.isError()) {
             switch (result.getDeviceErrorCode()) {
                 case ScalarWebError.NOTIMPLEMENTED:
                     logger.debug("Method is not implemented on service {} - {}({}): {}", service.getServiceName(), mthd,
-                            StringUtils.join(parms, ','), result.getDeviceErrorDesc());
+                            Arrays.stream(parms).map(String::valueOf).collect(Collectors.joining(",")),
+                            result.getDeviceErrorDesc());
                     break;
 
                 case ScalarWebError.ILLEGALARGUMENT:
                     logger.debug("Method arguments are incorrect on service {} - {}({}): {}", service.getServiceName(),
-                            mthd, StringUtils.join(parms, ','), result.getDeviceErrorDesc());
+                            mthd, Arrays.stream(parms).map(String::valueOf).collect(Collectors.joining(",")),
+                            result.getDeviceErrorDesc());
                     break;
 
                 case ScalarWebError.ILLEGALSTATE:
                     logger.debug("Method state is incorrect on service {} - {}({}): {}", service.getServiceName(), mthd,
-                            StringUtils.join(parms, ','), result.getDeviceErrorDesc());
+                            Arrays.stream(parms).map(String::valueOf).collect(Collectors.joining(",")),
+                            result.getDeviceErrorDesc());
                     break;
 
                 case ScalarWebError.DISPLAYISOFF:
                     logger.debug("The display is off and command cannot be executed on service {} - {}({}): {}",
-                            service.getServiceName(), mthd, StringUtils.join(parms, ','), result.getDeviceErrorDesc());
+                            service.getServiceName(), mthd,
+                            Arrays.stream(parms).map(String::valueOf).collect(Collectors.joining(",")),
+                            result.getDeviceErrorDesc());
                     break;
 
                 case ScalarWebError.FAILEDTOLAUNCH:
                     logger.debug("The application failed to launch (probably display is off) {} - {}({}): {}",
-                            service.getServiceName(), mthd, StringUtils.join(parms, ','), result.getDeviceErrorDesc());
+                            service.getServiceName(), mthd,
+                            Arrays.stream(parms).map(String::valueOf).collect(Collectors.joining(",")),
+                            result.getDeviceErrorDesc());
                     break;
 
                 case ScalarWebError.HTTPERROR:
                     final IOException e = result.getHttpResponse().createException();
                     logger.debug("Communication error executing method {}({}) on service {}: {}", mthd,
-                            StringUtils.join(parms, ','), service.getServiceName(), e.getMessage(), e);
+                            Arrays.stream(parms).map(String::valueOf).collect(Collectors.joining(",")),
+                            service.getServiceName(), e.getMessage(), e);
                     callback.statusChanged(ThingStatus.OFFLINE, ThingStatusDetail.COMMUNICATION_ERROR, e.getMessage());
                     break;
 
                 default:
                     logger.debug("Device error ({}) on service {} - {}({}): {}", result.getDeviceErrorCode(),
-                            service.getServiceName(), mthd, StringUtils.join(parms, ','), result.getDeviceErrorDesc());
+                            service.getServiceName(), mthd,
+                            Arrays.stream(parms).map(String::valueOf).collect(Collectors.joining(",")),
+                            result.getDeviceErrorDesc());
                     break;
             }
         }
@@ -352,7 +358,7 @@ public abstract class AbstractScalarWebProtocol<T extends ThingCallback<String>>
      * @return the scalar web channel
      */
     protected ScalarWebChannel createChannel(final String id) {
-        Validate.notEmpty(id, "id cannot be empty");
+        SonyUtil.validateNotEmpty(id, "id cannot be empty");
         return createChannel(id, id, new String[0]);
     }
 
@@ -366,8 +372,8 @@ public abstract class AbstractScalarWebProtocol<T extends ThingCallback<String>>
      * @return the scalar web channel
      */
     protected ScalarWebChannel createChannel(final String category, final String id, final String... addtlPaths) {
-        Validate.notEmpty(category, "category cannot be empty");
-        Validate.notEmpty(id, "id cannot be empty");
+        SonyUtil.validateNotEmpty(category, "category cannot be empty");
+        SonyUtil.validateNotEmpty(id, "id cannot be empty");
         return new ScalarWebChannel(service.getServiceName(), category, id, addtlPaths);
     }
 
@@ -383,8 +389,8 @@ public abstract class AbstractScalarWebProtocol<T extends ThingCallback<String>>
     protected ScalarWebChannelDescriptor createDescriptor(final ScalarWebChannel channel, final String acceptedItemType,
             final String channelType) {
         Objects.requireNonNull(channel, "channel cannot be empty");
-        Validate.notEmpty(acceptedItemType, "acceptedItemType cannot be empty");
-        Validate.notEmpty(channelType, "channelType cannot be empty");
+        SonyUtil.validateNotEmpty(acceptedItemType, "acceptedItemType cannot be empty");
+        SonyUtil.validateNotEmpty(channelType, "channelType cannot be empty");
         return createDescriptor(channel, acceptedItemType, channelType, null, null);
     }
 
@@ -401,8 +407,8 @@ public abstract class AbstractScalarWebProtocol<T extends ThingCallback<String>>
     protected ScalarWebChannelDescriptor createDescriptor(final ScalarWebChannel channel, final String acceptedItemType,
             final String channelType, final @Nullable String label, final @Nullable String description) {
         Objects.requireNonNull(channel, "channel cannot be empty");
-        Validate.notEmpty(acceptedItemType, "acceptedItemType cannot be empty");
-        Validate.notEmpty(channelType, "channelType cannot be empty");
+        SonyUtil.validateNotEmpty(acceptedItemType, "acceptedItemType cannot be empty");
+        SonyUtil.validateNotEmpty(channelType, "channelType cannot be empty");
         return new ScalarWebChannelDescriptor(channel, acceptedItemType, channelType, label, description);
     }
 
@@ -413,7 +419,7 @@ public abstract class AbstractScalarWebProtocol<T extends ThingCallback<String>>
      * @param state the non-null new state
      */
     protected void stateChanged(final String id, final State state) {
-        Validate.notEmpty(id, "id cannot be empty");
+        SonyUtil.validateNotEmpty(id, "id cannot be empty");
         Objects.requireNonNull(state, "state cannot be empty");
         stateChanged(id, id, state);
     }
@@ -426,8 +432,8 @@ public abstract class AbstractScalarWebProtocol<T extends ThingCallback<String>>
      * @param state the non-null new state
      */
     protected void stateChanged(final String category, final String id, final State state) {
-        Validate.notEmpty(category, "category cannot be empty");
-        Validate.notEmpty(id, "id cannot be empty");
+        SonyUtil.validateNotEmpty(category, "category cannot be empty");
+        SonyUtil.validateNotEmpty(id, "id cannot be empty");
         Objects.requireNonNull(state, "state cannot be empty");
         callback.stateChanged(
                 SonyUtil.createChannelId(service.getServiceName(), ScalarWebChannel.createChannelId(category, id)),
@@ -450,7 +456,7 @@ public abstract class AbstractScalarWebProtocol<T extends ThingCallback<String>>
      * @return a possibly null (if not found) method's latest version
      */
     protected @Nullable String getVersion(final String methodName) {
-        Validate.notEmpty(methodName, "methodName cannot be empty");
+        SonyUtil.validateNotEmpty(methodName, "methodName cannot be empty");
         return getService().getVersion(methodName);
     }
 
@@ -465,9 +471,9 @@ public abstract class AbstractScalarWebProtocol<T extends ThingCallback<String>>
     protected void addGeneralSettingsDescriptor(final List<ScalarWebChannelDescriptor> descriptors,
             final String getMethodName, final String ctgy, final String prefix) {
         Objects.requireNonNull(descriptors, "descriptors cannot be null");
-        Validate.notEmpty(getMethodName, "getMethodName cannot be empty");
-        Validate.notEmpty(ctgy, "ctgy cannot be empty");
-        Validate.notEmpty(prefix, "prefix cannot be empty");
+        SonyUtil.validateNotEmpty(getMethodName, "getMethodName cannot be empty");
+        SonyUtil.validateNotEmpty(ctgy, "ctgy cannot be empty");
+        SonyUtil.validateNotEmpty(prefix, "prefix cannot be empty");
 
         try {
             // TODO support versioning of the getMethodName?
@@ -480,14 +486,13 @@ public abstract class AbstractScalarWebProtocol<T extends ThingCallback<String>>
                 // continue;
                 // }
                 final String target = set.getTarget();
-                if (target == null || StringUtils.isEmpty(target)) {
+                if (target == null || target.isEmpty()) {
                     logger.debug("Target not valid for {} {} - ignoring", prefix, set);
                     continue;
                 }
 
-                final String uri = StringUtils.defaultIfEmpty(set.getUri(), null);
-                final String uriLabel = uri == null ? null
-                        : StringUtils.defaultIfEmpty(Source.getSourcePart(uri), null);
+                final String uri = SonyUtil.defaultIfEmpty(set.getUri(), null);
+                final String uriLabel = uri == null ? null : SonyUtil.defaultIfEmpty(Source.getSourcePart(uri), null);
 
                 final String label = textLookup(set.getTitle(), target)
                         + (uriLabel == null ? "" : String.format(" (%s)", uriLabel));
@@ -496,20 +501,21 @@ public abstract class AbstractScalarWebProtocol<T extends ThingCallback<String>>
 
                 String settingType = set.getType();
                 // -- no explicit type - try guessing it from the value
-                if (settingType == null || StringUtils.isEmpty(settingType)) {
+                if (settingType == null || settingType.isEmpty()) {
                     String currValue = set.getCurrentValue();
-                    if (currValue == null || StringUtils.isEmpty(currValue)) {
+                    if (currValue == null || currValue.isEmpty()) {
                         // No value - get the first non-null/non-empty one from the candidates
-                        currValue = candidates.stream().map(e -> e.getValue()).filter(e -> StringUtils.isNotEmpty(e))
-                                .findFirst().orElse(null);
+                        currValue = candidates.stream().map(e -> e.getValue()).filter(e -> !e.isEmpty()).findFirst()
+                                .orElse(null);
                     }
 
-                    if (BooleanUtils.toBooleanObject(currValue) != null) {
+                    if (SonyUtil.toBooleanObject(currValue) != null) {
                         // we'll further validate the boolean target candidates below
                         settingType = GeneralSetting.BOOLEANTARGET;
-                    } else if (NumberUtils.isNumber(currValue)) {
-                        settingType = StringUtils.isNumeric(currValue) ? GeneralSetting.INTEGERTARGET
-                                : GeneralSetting.DOUBLETARGET;
+                    } else if (SonyUtil.isNumeric(currValue)) {
+                        settingType = GeneralSetting.INTEGERTARGET;
+                    } else if (SonyUtil.isNumber(currValue)) {
+                        settingType = GeneralSetting.DOUBLETARGET;
                     } else {
                         settingType = candidates.size() > 0 ? GeneralSetting.ENUMTARGET : GeneralSetting.STRINGTARGET;
                     }
@@ -519,7 +525,7 @@ public abstract class AbstractScalarWebProtocol<T extends ThingCallback<String>>
                         uri != null ? uri : "");
 
                 final String ui = set.getDeviceUIInfo();
-                if (ui == null || StringUtils.isEmpty(ui)) {
+                if (ui == null || ui.isEmpty()) {
                     if (candidates.size() > 0) {
                         final GeneralSettingsCandidate candidate = candidates.get(0);
                         if (candidate != null && candidate.getMax() != null && candidate.getMin() != null
@@ -543,14 +549,14 @@ public abstract class AbstractScalarWebProtocol<T extends ThingCallback<String>>
                 // 3. Both cannot be the same (must be true/false or false/true)
                 // If all three aren't true - revert to an enum target
                 // If they are true - save the actual value used for the boolean (on/off or true/false or yes/no)
-                if (StringUtils.equals(settingType, GeneralSetting.BOOLEANTARGET) && candidates.size() > 0) {
+                if (SonyUtil.equals(settingType, GeneralSetting.BOOLEANTARGET) && candidates.size() > 0) {
                     if (candidates.size() != 2) {
                         settingType = GeneralSetting.ENUMTARGET;
                     } else {
                         final @Nullable String value1 = candidates.get(0).getValue();
                         final @Nullable String value2 = candidates.get(1).getValue();
-                        final @Nullable Boolean bool1 = BooleanUtils.toBooleanObject(value1);
-                        final @Nullable Boolean bool2 = BooleanUtils.toBooleanObject(value2);
+                        final @Nullable Boolean bool1 = SonyUtil.toBooleanObject(value1);
+                        final @Nullable Boolean bool2 = SonyUtil.toBooleanObject(value2);
 
                         if (value1 == null || value2 == null || bool1 == null || bool2 == null || bool1.equals(bool2)) {
                             settingType = GeneralSetting.ENUMTARGET;
@@ -707,8 +713,8 @@ public abstract class AbstractScalarWebProtocol<T extends ThingCallback<String>>
      * @return
      */
     private @Nullable String getGeneralSettingChannelId(String target, @Nullable String uri) {
-        Validate.notEmpty(target, "target cannot be empty");
-        return SonyUtil.createValidChannelUId(target + (uri == null || StringUtils.isEmpty(uri) ? "" : "-" + uri));
+        SonyUtil.validateNotEmpty(target, "target cannot be empty");
+        return SonyUtil.createValidChannelUId(target + (uri == null || uri.isEmpty() ? "" : "-" + uri));
     }
 
     /**
@@ -719,7 +725,7 @@ public abstract class AbstractScalarWebProtocol<T extends ThingCallback<String>>
      */
     protected void refreshGeneralSettings(final Set<ScalarWebChannel> channels, final String getMethodName) {
         Objects.requireNonNull(channels, "channels cannot be null");
-        Validate.notEmpty(getMethodName, "getMethodName cannot be empty");
+        SonyUtil.validateNotEmpty(getMethodName, "getMethodName cannot be empty");
 
         try {
             final GeneralSettings_1_0 ss = handleExecute(getMethodName, new Target()).as(GeneralSettings_1_0.class);
@@ -742,11 +748,11 @@ public abstract class AbstractScalarWebProtocol<T extends ThingCallback<String>>
         final Map<Map.Entry<String, String>, GeneralSetting> settingValues = new HashMap<>();
         for (final GeneralSetting set : settings) {
             final String target = set.getTarget();
-            if (target == null || StringUtils.isEmpty(target)) {
+            if (target == null || target.isEmpty()) {
                 continue;
             }
             final Map.Entry<String, String> key = new AbstractMap.SimpleEntry<>(target,
-                    StringUtils.defaultIfEmpty(set.getUri(), ""));
+                    SonyUtil.defaultIfEmpty(set.getUri(), ""));
             settingValues.put(key, set);
         }
 
@@ -757,7 +763,7 @@ public abstract class AbstractScalarWebProtocol<T extends ThingCallback<String>>
                 continue;
             }
 
-            final String uri = StringUtils.defaultIfEmpty(chl.getPathPart(1), "");
+            final String uri = SonyUtil.defaultIfEmpty(chl.getPathPart(1), "");
             final Map.Entry<String, String> key = new AbstractMap.SimpleEntry<>(target, uri);
 
             final GeneralSetting setting = settingValues.get(key);
@@ -769,21 +775,21 @@ public abstract class AbstractScalarWebProtocol<T extends ThingCallback<String>>
             final String currentValue = setting.getCurrentValue();
 
             final String settingType = chl.getProperty(PROP_SETTINGTYPE,
-                    StringUtils.defaultIfEmpty(setting.getType(), GeneralSetting.STRINGTARGET));
-            final String ui = chl.getProperty(PROP_DEVICEUI, StringUtils.defaultIfEmpty(setting.getDeviceUIInfo(), ""));
+                    SonyUtil.defaultIfEmpty(setting.getType(), GeneralSetting.STRINGTARGET));
+            final String ui = chl.getProperty(PROP_DEVICEUI, SonyUtil.defaultIfEmpty(setting.getDeviceUIInfo(), ""));
 
             switch (settingType) {
                 case GeneralSetting.BOOLEANTARGET:
-                    final String onValue = StringUtils.defaultIfEmpty(chl.getProperty(PROP_ONVALUE),
+                    final String onValue = SonyUtil.defaultIfEmpty(chl.getProperty(PROP_ONVALUE),
                             GeneralSetting.DEFAULTON);
 
                     stateChanged(chl.getCategory(), chl.getId(),
-                            StringUtils.equalsIgnoreCase(currentValue, onValue) ? OnOffType.ON : OnOffType.OFF);
+                            currentValue.equalsIgnoreCase(onValue) ? OnOffType.ON : OnOffType.OFF);
                     break;
 
                 case GeneralSetting.DOUBLETARGET:
                 case GeneralSetting.INTEGERTARGET:
-                    if (StringUtils.containsIgnoreCase(ui, GeneralSetting.SLIDER)) {
+                    if (ui.toLowerCase().contains(GeneralSetting.SLIDER.toLowerCase())) {
                         final StateDescription sd = getContext().getStateProvider()
                                 .getStateDescription(getContext().getThingUID(), chl.getChannelId());
                         final BigDecimal min = sd == null ? BigDecimal.ZERO : sd.getMinimum();
@@ -823,17 +829,17 @@ public abstract class AbstractScalarWebProtocol<T extends ThingCallback<String>>
      * @param cmd a non-null command to execute
      */
     protected void setGeneralSetting(final String method, final ScalarWebChannel chl, final Command cmd) {
-        Validate.notEmpty(method, "method cannot be empty");
+        SonyUtil.validateNotEmpty(method, "method cannot be empty");
         Objects.requireNonNull(chl, "chl cannot be null");
         Objects.requireNonNull(cmd, "cmd cannot be null");
 
-        final String target = StringUtils.defaultIfEmpty(chl.getPathPart(0), null);
+        final String target = SonyUtil.defaultIfEmpty(chl.getPathPart(0), null);
         if (target == null) {
             logger.debug("Cannot set general setting {} for channel {} because it has no target: {}", method, chl, cmd);
             return;
         }
 
-        final String uri = StringUtils.defaultIfEmpty(chl.getPathPart(1), null);
+        final String uri = SonyUtil.defaultIfEmpty(chl.getPathPart(1), null);
 
         final String settingType = chl.getProperty(PROP_SETTINGTYPE, GeneralSetting.STRINGTARGET);
         final String deviceUi = chl.getProperty(PROP_DEVICEUI);
@@ -848,9 +854,9 @@ public abstract class AbstractScalarWebProtocol<T extends ThingCallback<String>>
         switch (settingType) {
             case GeneralSetting.BOOLEANTARGET:
                 if (cmd instanceof OnOffType) {
-                    final String onValue = StringUtils.defaultIfEmpty(chl.getProperty(PROP_ONVALUE),
+                    final String onValue = SonyUtil.defaultIfEmpty(chl.getProperty(PROP_ONVALUE),
                             GeneralSetting.DEFAULTON);
-                    final String offValue = StringUtils.defaultIfEmpty(chl.getProperty(PROP_OFFVALUE),
+                    final String offValue = SonyUtil.defaultIfEmpty(chl.getProperty(PROP_OFFVALUE),
                             GeneralSetting.DEFAULTOFF);
 
                     handleExecute(method,
@@ -862,7 +868,7 @@ public abstract class AbstractScalarWebProtocol<T extends ThingCallback<String>>
 
             case GeneralSetting.DOUBLETARGET:
             case GeneralSetting.INTEGERTARGET:
-                if (StringUtils.contains(deviceUi, GeneralSetting.SLIDER)) {
+                if (deviceUi != null && deviceUi.contains(GeneralSetting.SLIDER)) {
                     final BigDecimal sdMin = sd == null ? null : sd.getMinimum();
                     final BigDecimal sdMax = sd == null ? null : sd.getMaximum();
                     final BigDecimal min = sdMin == null ? BigDecimal.ZERO : sdMin;
@@ -934,7 +940,7 @@ public abstract class AbstractScalarWebProtocol<T extends ThingCallback<String>>
     /**
      * Called when notifying the protocol of a settings update
      * 
-     * @param setting a non-null notify
+     * @param notify a non-null notify
      */
     public void notifySettingUpdate(final NotifySettingUpdate notify) {
         Objects.requireNonNull(notify, "notify cannot be null");
@@ -946,12 +952,12 @@ public abstract class AbstractScalarWebProtocol<T extends ThingCallback<String>>
         }
 
         final String serviceName = apiMappingUpdate.getService();
-        if (serviceName == null || StringUtils.isEmpty(serviceName)) {
+        if (serviceName == null || serviceName.isEmpty()) {
             logger.debug("Received a notifySettingUpdate with no service name - ignoring: {}", notify);
             return;
         }
 
-        if (StringUtils.equalsIgnoreCase(serviceName, getService().getServiceName())) {
+        if (serviceName.equalsIgnoreCase(getService().getServiceName())) {
             internalNotifySettingUpdate(notify);
         } else {
             final @Nullable ScalarWebProtocol<T> protocol = getFactory().getProtocol(serviceName);
@@ -978,7 +984,7 @@ public abstract class AbstractScalarWebProtocol<T extends ThingCallback<String>>
         }
 
         final String target = apiMapping.getTarget();
-        if (target == null || StringUtils.isEmpty(target)) {
+        if (target == null || target.isEmpty()) {
             logger.debug("Trying to update setting but target is empty: {}", setting);
             return;
         }
@@ -994,13 +1000,13 @@ public abstract class AbstractScalarWebProtocol<T extends ThingCallback<String>>
         }
 
         final String getMethodName = getApi.getName();
-        if (getMethodName == null || StringUtils.isEmpty(getMethodName)) {
+        if (getMethodName == null || getMethodName.isEmpty()) {
             logger.debug("Trying to update setting but getAPI had no name: {}", setting);
             return;
         }
 
         final String ctgy = apiToCtgy.get(getMethodName);
-        if (ctgy == null || StringUtils.isEmpty(ctgy)) {
+        if (ctgy == null || ctgy.isEmpty()) {
             logger.debug("Trying to update setting but couldn't find the category for the getAPI {}: {}", getMethodName,
                     setting);
             return;
@@ -1011,7 +1017,7 @@ public abstract class AbstractScalarWebProtocol<T extends ThingCallback<String>>
 
         // Get the channels linked to that category and for that identifier
         final Set<ScalarWebChannel> channels = getChannelTracker().getLinkedChannelsForCategory(ctgy).stream()
-                .filter(e -> StringUtils.equalsIgnoreCase(e.getId(), id)).collect(Collectors.toSet());
+                .filter(e -> e.getId().equalsIgnoreCase(id)).collect(Collectors.toSet());
 
         refreshGeneralSettings(settings, channels);
     }
@@ -1024,44 +1030,44 @@ public abstract class AbstractScalarWebProtocol<T extends ThingCallback<String>>
      * @return the translated text or text if not recognized
      */
     private static @Nullable String textLookup(final @Nullable String text, final @Nullable String target) {
-        if (StringUtils.equalsIgnoreCase("IDMR_TEXT_FOOTBALL_STRING", text)) {
+        if ("IDMR_TEXT_FOOTBALL_STRING".equalsIgnoreCase(text)) {
             return "Football";
         }
 
-        if (StringUtils.equalsIgnoreCase("IDMR_TEXT_NARRATION_OFF_STRING", text)) {
+        if ("IDMR_TEXT_NARRATION_OFF_STRING".equalsIgnoreCase(text)) {
             return "Narration Off";
         }
 
-        if (StringUtils.equalsIgnoreCase("IDMR_TEXT_NARRATION_ON_STRING", text)) {
+        if ("IDMR_TEXT_NARRATION_ON_STRING".equalsIgnoreCase(text)) {
             return "Narration On";
         }
 
-        if (StringUtils.equalsIgnoreCase("IDMR_TEXT_XMBSETUP_GRACENOTESETTING_STRING", text)) {
+        if ("IDMR_TEXT_XMBSETUP_GRACENOTESETTING_STRING".equalsIgnoreCase(text)) {
             return "Gracenote";
         }
 
-        if (StringUtils.equalsIgnoreCase("IDMR_TEXT_SETUP_PULLDOWN_MANUAL_STRING", text)) {
+        if ("IDMR_TEXT_SETUP_PULLDOWN_MANUAL_STRING".equalsIgnoreCase(text)) {
             return "Manual";
         }
 
-        if (StringUtils.equalsIgnoreCase("IDMR_TEXT_COMMON_AUTO_STRING", text)) {
+        if ("IDMR_TEXT_COMMON_AUTO_STRING".equalsIgnoreCase(text)) {
             return "Auto";
         }
 
-        if (StringUtils.equalsIgnoreCase("IDMR_TEXT_XMBSETUP_REMOTE_START_STRING", text)) {
+        if ("IDMR_TEXT_XMBSETUP_REMOTE_START_STRING".equalsIgnoreCase(text)) {
             return "Remote Start";
         }
 
-        if (StringUtils.equalsIgnoreCase("IDMR_TEXT_BT_DEVICE_NAME_STRING", text)) {
+        if ("IDMR_TEXT_BT_DEVICE_NAME_STRING".equalsIgnoreCase(text)) {
             return "Device Name";
         }
 
-        if (text != null && StringUtils.isNotEmpty(text)) {
+        if (text != null && !text.isEmpty()) {
             return text;
         }
 
         // If we have a target, un-camel case it
-        return target == null || StringUtils.isEmpty(target) ? "Unknown"
+        return target == null || target.isEmpty() ? "Unknown"
                 : target.replaceAll(String.format("%s|%s|%s", "(?<=[A-Z])(?=[A-Z][a-z])", "(?<=[^A-Z])(?=[A-Z])",
                         "(?<=[A-Za-z])(?=[^A-Za-z])"), " ");
     }

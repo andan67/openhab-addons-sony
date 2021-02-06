@@ -28,8 +28,6 @@ import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.sony.internal.SonyUtil;
@@ -214,7 +212,7 @@ class SimpleIpProtocol implements SocketSessionListener, AutoCloseable {
                     "No MAP transformation service (please install service to use this functionality) - skipping writing a map file");
         } else {
             final String cmdMap = config.getCommandsMapFile();
-            if (StringUtils.isEmpty(cmdMap)) {
+            if (SonyUtil.isEmpty(cmdMap)) {
                 logger.debug("No command map defined - ignoring");
                 return;
             }
@@ -260,15 +258,15 @@ class SimpleIpProtocol implements SocketSessionListener, AutoCloseable {
      * @param parm the non-null, non-empty parameters for the command. Must be exactly {@link #PARMSIZE} in length
      */
     private void sendCommand(final char type, final String command, final String parm) {
-        Validate.notEmpty(command, "command cannot be empty");
-        Validate.notEmpty(parm, "parm cannot be empty");
+        SonyUtil.validateNotEmpty(command, "command cannot be empty");
+        SonyUtil.validateNotEmpty(parm, "parm cannot be empty");
 
         if (parm.length() != PARMSIZE) {
             throw new IllegalArgumentException("parm must be exactly " + PARMSIZE + " in length: " + parm);
         }
 
         final String ipAddress = config.getDeviceIpAddress();
-        if (ipAddress == null || StringUtils.isEmpty(ipAddress)) {
+        if (ipAddress == null || ipAddress.isEmpty()) {
             throw new IllegalArgumentException("ipAddress cannot be empty");
         }
 
@@ -281,7 +279,7 @@ class SimpleIpProtocol implements SocketSessionListener, AutoCloseable {
             NetUtil.sendSocketRequest(ipAddress, SimpleIpConstants.PORT, cmd, new SocketSessionListener() {
                 @Override
                 public boolean responseReceived(final String response) {
-                    final String rsp = StringUtils.trim(response); // remove whitespace
+                    final String rsp = response.trim(); // remove whitespace
                     // See if the response is valid
                     final Matcher m = RSP_NOTIFICATION.matcher(rsp);
                     if (m.matches() && m.groupCount() == 3) {
@@ -297,7 +295,7 @@ class SimpleIpProtocol implements SocketSessionListener, AutoCloseable {
                             }
                             return true;
                         }
-                    } else if (StringUtils.isEmpty(rsp)) {
+                    } else if (SonyUtil.isEmpty(rsp)) {
                         logger.debug("Empty reponse (or unsupported command): '{}'", cmd);
                     } else {
                         logger.debug("Unparsable response '{}' to command '{}'", rsp, cmd);
@@ -396,8 +394,8 @@ class SimpleIpProtocol implements SocketSessionListener, AutoCloseable {
      * @param netInterface the non-null, non-empty network interface to inquire
      */
     private void refreshBroadcastAddress(final String netInterface) {
-        Validate.notEmpty(netInterface, "netInterface cannot be empty");
-        sendCommand(TYPE_QUERY, BROADCAST_ADDRESS, StringUtils.rightPad(netInterface, PARMSIZE, '#'));
+        SonyUtil.validateNotEmpty(netInterface, "netInterface cannot be empty");
+        sendCommand(TYPE_QUERY, BROADCAST_ADDRESS, SonyUtil.rightPad(netInterface, PARMSIZE, '#'));
     }
 
     /**
@@ -406,8 +404,8 @@ class SimpleIpProtocol implements SocketSessionListener, AutoCloseable {
      * @param netInterface the non-null, non-empty interface
      */
     private void refreshMacAddress(final String netInterface) {
-        Validate.notEmpty(netInterface, "netInterface cannot be empty");
-        sendCommand(TYPE_QUERY, MACADDRESS, StringUtils.rightPad(netInterface, PARMSIZE, '#'));
+        SonyUtil.validateNotEmpty(netInterface, "netInterface cannot be empty");
+        sendCommand(TYPE_QUERY, MACADDRESS, SonyUtil.rightPad(netInterface, PARMSIZE, '#'));
     }
 
     /**
@@ -416,7 +414,7 @@ class SimpleIpProtocol implements SocketSessionListener, AutoCloseable {
      * @param irCmd the non-null, non-empty IR command to send
      */
     void setIR(final String irCmd) {
-        Validate.notEmpty(irCmd, "irCmd cannot be empty");
+        SonyUtil.validateNotEmpty(irCmd, "irCmd cannot be empty");
 
         final String cmdMap = config.getCommandsMapFile();
 
@@ -430,7 +428,7 @@ class SimpleIpProtocol implements SocketSessionListener, AutoCloseable {
                 logger.debug("Commmand map file was not specified in configuration - code will not be transformed");
             } else {
                 final String newCode = localTransformationService.transform(cmdMap, irCmd);
-                if (StringUtils.isNotEmpty(newCode) && !StringUtils.equalsIgnoreCase(newCode, irCmd)) {
+                if (!SonyUtil.isEmpty(newCode) && !newCode.equalsIgnoreCase(irCmd)) {
                     logger.debug("Transformed {} with map file '{}' to {}", irCmd, cmdMap, newCode);
                     code = newCode;
                 }
@@ -453,7 +451,7 @@ class SimpleIpProtocol implements SocketSessionListener, AutoCloseable {
 
         logger.debug("Sending code {}", code);
 
-        sendCommand(TYPE_CONTROL, IRCC, StringUtils.leftPad(code, PARMSIZE, '0'));
+        sendCommand(TYPE_CONTROL, IRCC, SonyUtil.leftPad(code, PARMSIZE, '0'));
         refreshState(true);
     }
 
@@ -466,7 +464,7 @@ class SimpleIpProtocol implements SocketSessionListener, AutoCloseable {
         if (on) {
             SonyUtil.sendWakeOnLan(logger, config.getDeviceIpAddress(), config.getDeviceMacAddress());
         }
-        sendCommand(TYPE_CONTROL, POWER, StringUtils.leftPad(on ? "1" : "0", PARMSIZE, '0'));
+        sendCommand(TYPE_CONTROL, POWER, SonyUtil.leftPad(on ? "1" : "0", PARMSIZE, '0'));
     }
 
     /**
@@ -486,7 +484,7 @@ class SimpleIpProtocol implements SocketSessionListener, AutoCloseable {
         if (volume < 0 || volume > 100) {
             throw new IllegalArgumentException("volume must be between 0-100");
         }
-        sendCommand(TYPE_CONTROL, VOLUME, StringUtils.leftPad(Integer.toString(volume), PARMSIZE, '0'));
+        sendCommand(TYPE_CONTROL, VOLUME, SonyUtil.leftPad(Integer.toString(volume), PARMSIZE, '0'));
     }
 
     /**
@@ -495,7 +493,7 @@ class SimpleIpProtocol implements SocketSessionListener, AutoCloseable {
      * @param on true for muted, false otherwise
      */
     void setAudioMute(final boolean on) {
-        sendCommand(TYPE_CONTROL, AUDIO_MUTE, StringUtils.leftPad(on ? "1" : "0", PARMSIZE, '0'));
+        sendCommand(TYPE_CONTROL, AUDIO_MUTE, SonyUtil.leftPad(on ? "1" : "0", PARMSIZE, '0'));
     }
 
     /**
@@ -505,16 +503,16 @@ class SimpleIpProtocol implements SocketSessionListener, AutoCloseable {
      * @throws IllegalArgumentException if channel is not in the form of "x.x" or "x" where x is numeric
      */
     void setChannel(final String channel) {
-        Validate.notEmpty(channel, "channel cannot be empty");
+        SonyUtil.validateNotEmpty(channel, "channel cannot be empty");
 
         final int period = channel.indexOf('.');
-        final String pre = StringUtils.trimToNull(period < 0 ? channel : channel.substring(0, period));
-        final String post = StringUtils.trimToNull(period < 0 ? "0" : channel.substring(period + 1));
+        final String pre = SonyUtil.trimToEmpty(period < 0 ? channel : channel.substring(0, period));
+        final String post = SonyUtil.trimToEmpty(period < 0 ? "0" : channel.substring(period + 1));
         try {
-            final int preNum = pre == null ? 0 : Integer.parseInt(pre);
-            final int postNum = post == null ? 0 : Integer.parseInt(post);
-            final String cmd = StringUtils.leftPad(Integer.toString(preNum), 8, '0') + "."
-                    + StringUtils.rightPad(Integer.toString(postNum), 7, '0');
+            final int preNum = pre.isEmpty() ? 0 : Integer.parseInt(pre);
+            final int postNum = post.isEmpty() ? 0 : Integer.parseInt(post);
+            final String cmd = SonyUtil.leftPad(Integer.toString(preNum), 8, '0') + "."
+                    + SonyUtil.rightPad(Integer.toString(postNum), 7, '0');
             sendCommand(TYPE_CONTROL, CHANNEL, cmd);
 
         } catch (final NumberFormatException e) {
@@ -529,7 +527,7 @@ class SimpleIpProtocol implements SocketSessionListener, AutoCloseable {
      * @throws IllegalArgumentException if channel is not in the form of "x.x.x"
      */
     void setTripletChannel(final String channel) {
-        Validate.notEmpty(channel, "channel cannot be empty");
+        SonyUtil.validateNotEmpty(channel, "channel cannot be empty");
 
         final int firstPeriod = channel.indexOf('.');
         if (firstPeriod < 0) {
@@ -543,17 +541,17 @@ class SimpleIpProtocol implements SocketSessionListener, AutoCloseable {
                     "Could not find the number of the second part of the triplet channel: " + channel);
         }
 
-        final String first = StringUtils.trimToNull(channel.substring(0, firstPeriod));
-        final String second = StringUtils.trimToNull(channel.substring(firstPeriod + 1, secondPeriod));
-        final String third = StringUtils.trimToNull(channel.substring(secondPeriod + 1));
+        final String first = SonyUtil.trimToEmpty(channel.substring(0, firstPeriod));
+        final String second = SonyUtil.trimToEmpty(channel.substring(firstPeriod + 1, secondPeriod));
+        final String third = SonyUtil.trimToEmpty(channel.substring(secondPeriod + 1));
         try {
-            final int firstNum = first == null ? 0 : Integer.parseInt(first);
-            final int secondNum = second == null ? 0 : Integer.parseInt(second);
-            final int thirdNum = third == null ? 0 : Integer.parseInt(third);
+            final int firstNum = first.isEmpty() ? 0 : Integer.parseInt(first);
+            final int secondNum = second.isEmpty() ? 0 : Integer.parseInt(second);
+            final int thirdNum = third.isEmpty() ? 0 : Integer.parseInt(third);
 
-            final String firstHex = StringUtils.leftPad(Integer.toHexString(firstNum), 4, '0');
-            final String secondHex = StringUtils.leftPad(Integer.toHexString(secondNum), 4, '0');
-            final String thirdHex = StringUtils.leftPad(Integer.toHexString(thirdNum), 4, '0');
+            final String firstHex = SonyUtil.leftPad(Integer.toHexString(firstNum), 4, '0');
+            final String secondHex = SonyUtil.leftPad(Integer.toHexString(secondNum), 4, '0');
+            final String thirdHex = SonyUtil.leftPad(Integer.toHexString(thirdNum), 4, '0');
 
             sendCommand(TYPE_CONTROL, CHANNEL, firstHex + secondHex + thirdHex + "####");
         } catch (final NumberFormatException e) {
@@ -568,9 +566,9 @@ class SimpleIpProtocol implements SocketSessionListener, AutoCloseable {
      * @param source a non-null, non-empty input source
      */
     void setInputSource(final String source) {
-        Validate.notEmpty(source, "source cannot be empty");
+        SonyUtil.validateNotEmpty(source, "source cannot be empty");
 
-        sendCommand(TYPE_CONTROL, INPUT_SOURCE, StringUtils.rightPad(source, PARMSIZE, '#'));
+        sendCommand(TYPE_CONTROL, INPUT_SOURCE, SonyUtil.rightPad(source, PARMSIZE, '#'));
     }
 
     /**
@@ -579,9 +577,9 @@ class SimpleIpProtocol implements SocketSessionListener, AutoCloseable {
      * @param scene a non-null, non-empty scene name
      */
     void setScene(final String scene) {
-        Validate.notEmpty(scene, "scene cannot be empty");
+        SonyUtil.validateNotEmpty(scene, "scene cannot be empty");
 
-        sendCommand(TYPE_CONTROL, SCENE, StringUtils.rightPad(scene, PARMSIZE, '#'));
+        sendCommand(TYPE_CONTROL, SCENE, SonyUtil.rightPad(scene, PARMSIZE, '#'));
     }
 
     /**
@@ -593,7 +591,7 @@ class SimpleIpProtocol implements SocketSessionListener, AutoCloseable {
      * @param input a non-null, non-empty input port
      */
     void setInput(final String input) {
-        Validate.notEmpty(input, "input cannot be empty");
+        SonyUtil.validateNotEmpty(input, "input cannot be empty");
 
         int typeCode = -1;
         int portNbr = -1;
@@ -603,8 +601,8 @@ class SimpleIpProtocol implements SocketSessionListener, AutoCloseable {
                 typeCode = entry.getKey();
                 if (typeCode != INPUT_TV) {
                     try {
-                        final String portS = StringUtils.trimToNull(input.substring(entry.getValue().length()));
-                        portNbr = portS == null ? 0 : Integer.parseInt(portS);
+                        final String portS = SonyUtil.trimToEmpty(input.substring(entry.getValue().length()));
+                        portNbr = portS.isEmpty() ? 0 : Integer.parseInt(portS);
                     } catch (final NumberFormatException e) {
                         throw new IllegalArgumentException(
                                 "The port number on the input is invalid (not an integer): " + input);
@@ -618,8 +616,8 @@ class SimpleIpProtocol implements SocketSessionListener, AutoCloseable {
         if (typeCode == -1) {
             throw new IllegalArgumentException("Unknown input: " + input);
         }
-        sendCommand(TYPE_CONTROL, INPUT, StringUtils.leftPad(Integer.toString(typeCode), 12, '0')
-                + StringUtils.leftPad(Integer.toString(portNbr), 4, '0'));
+        sendCommand(TYPE_CONTROL, INPUT, SonyUtil.leftPad(Integer.toString(typeCode), 12, '0')
+                + SonyUtil.leftPad(Integer.toString(portNbr), 4, '0'));
     }
 
     /**
@@ -628,7 +626,7 @@ class SimpleIpProtocol implements SocketSessionListener, AutoCloseable {
      * @param on true for muted, false otherwise
      */
     void setPictureMute(final boolean on) {
-        sendCommand(TYPE_CONTROL, PICTURE_MUTE, StringUtils.leftPad(on ? "1" : "0", PARMSIZE, '0'));
+        sendCommand(TYPE_CONTROL, PICTURE_MUTE, SonyUtil.leftPad(on ? "1" : "0", PARMSIZE, '0'));
     }
 
     /**
@@ -644,7 +642,7 @@ class SimpleIpProtocol implements SocketSessionListener, AutoCloseable {
      * @param on true to enable, false otherwise
      */
     void setPictureInPicture(final boolean on) {
-        sendCommand(TYPE_CONTROL, PICTURE_IN_PICTURE, StringUtils.leftPad(on ? "1" : "0", PARMSIZE, '0'));
+        sendCommand(TYPE_CONTROL, PICTURE_IN_PICTURE, SonyUtil.leftPad(on ? "1" : "0", PARMSIZE, '0'));
     }
 
     /**
@@ -819,7 +817,7 @@ class SimpleIpProtocol implements SocketSessionListener, AutoCloseable {
             logger.debug("{} command failed: {}", POWER, parms);
         } else {
             try {
-                final int power = StringUtils.isEmpty(parms) ? 0 : Integer.parseInt(parms);
+                final int power = SonyUtil.isEmpty(parms) ? 0 : Integer.parseInt(parms);
                 if (power == 0) {
                     callback.stateChanged(SimpleIpConstants.CHANNEL_POWER, OnOffType.OFF);
                 } else if (power == 1) {
@@ -866,7 +864,7 @@ class SimpleIpProtocol implements SocketSessionListener, AutoCloseable {
             callback.stateChanged(SimpleIpConstants.CHANNEL_VOLUME, new PercentType(0));
         } else {
             try {
-                final int volume = StringUtils.isEmpty(parms) ? 0 : Integer.parseInt(parms);
+                final int volume = SonyUtil.isEmpty(parms) ? 0 : Integer.parseInt(parms);
                 callback.stateChanged(SimpleIpConstants.CHANNEL_VOLUME, new PercentType(volume));
             } catch (final NumberFormatException e) {
                 logger.debug("Unparsable {} response: {}", VOLUME, parms);
@@ -903,7 +901,7 @@ class SimpleIpProtocol implements SocketSessionListener, AutoCloseable {
             logger.debug("{} command failed: {}", AUDIO_MUTE, parms);
         } else {
             try {
-                final int mute = StringUtils.isEmpty(parms) ? 0 : Integer.parseInt(parms);
+                final int mute = SonyUtil.isEmpty(parms) ? 0 : Integer.parseInt(parms);
                 if (mute == 0) {
                     callback.stateChanged(SimpleIpConstants.CHANNEL_AUDIOMUTE, OnOffType.OFF);
                 } else if (mute == 1) {
@@ -953,10 +951,10 @@ class SimpleIpProtocol implements SocketSessionListener, AutoCloseable {
             try {
                 final int idx = parms.indexOf('.');
                 if (idx >= 0) {
-                    final String preS = StringUtils.trimToNull(StringUtils.stripStart(parms.substring(0, idx), "0"));
-                    final String postS = StringUtils.trimToNull(StringUtils.stripEnd(parms.substring(idx + 1), "0"));
-                    final int pre = preS == null ? 0 : Integer.parseInt(preS);
-                    final int post = postS == null ? 0 : Integer.parseInt(postS);
+                    final String preS = SonyUtil.trimToEmpty(SonyUtil.stripStart(parms.substring(0, idx), "0"));
+                    final String postS = SonyUtil.trimToEmpty(SonyUtil.stripEnd(parms.substring(idx + 1), "0"));
+                    final int pre = preS.isEmpty() ? 0 : Integer.parseInt(preS);
+                    final int post = postS.isEmpty() ? 0 : Integer.parseInt(postS);
                     callback.stateChanged(SimpleIpConstants.CHANNEL_CHANNEL, new StringType(pre + "." + post));
                 } else {
                     logger.debug("Unparsable {} response: {}", CHANNEL, parms);
@@ -1001,12 +999,12 @@ class SimpleIpProtocol implements SocketSessionListener, AutoCloseable {
         } else {
             if (parms.length() >= 12) {
                 try {
-                    final String firstS = StringUtils.trimToNull(parms.substring(0, 4));
-                    final String secondS = StringUtils.trimToNull(parms.substring(4, 8));
-                    final String thirdS = StringUtils.trimToNull(StringUtils.stripEnd(parms.substring(9, 13), "#"));
-                    final int first = firstS == null ? 0 : Integer.parseInt(firstS, 16);
-                    final int second = secondS == null ? 0 : Integer.parseInt(secondS, 16);
-                    final int third = thirdS == null ? 0 : Integer.parseInt(thirdS, 16);
+                    final String firstS = SonyUtil.trimToEmpty(parms.substring(0, 4));
+                    final String secondS = SonyUtil.trimToEmpty(parms.substring(4, 8));
+                    final String thirdS = SonyUtil.trimToEmpty(SonyUtil.stripEnd(parms.substring(9, 13), "#"));
+                    final int first = firstS.isEmpty() ? 0 : Integer.parseInt(firstS, 16);
+                    final int second = secondS.isEmpty() ? 0 : Integer.parseInt(secondS, 16);
+                    final int third = thirdS.isEmpty() ? 0 : Integer.parseInt(thirdS, 16);
 
                     callback.stateChanged(SimpleIpConstants.CHANNEL_TRIPLETCHANNEL,
                             new StringType(first + "." + second + "." + third));
@@ -1095,10 +1093,10 @@ class SimpleIpProtocol implements SocketSessionListener, AutoCloseable {
         } else {
             if (parms.length() >= 13) {
                 try {
-                    final String inputS = StringUtils.trimToNull(parms.substring(0, 12));
-                    final String portS = StringUtils.trimToNull(parms.substring(13));
-                    final int inputType = inputS == null ? 0 : Integer.parseInt(inputS);
-                    final int portNbr = portS == null ? 0 : Integer.parseInt(portS);
+                    final String inputS = SonyUtil.trimToEmpty(parms.substring(0, 12));
+                    final String portS = SonyUtil.trimToEmpty(parms.substring(13));
+                    final int inputType = inputS.isEmpty() ? 0 : Integer.parseInt(inputS);
+                    final int portNbr = portS.isEmpty() ? 0 : Integer.parseInt(portS);
 
                     // workaround to @NonNullByDefault and maps.get issue
                     final String inputName = INPUT_TYPES.containsKey(inputType) ? INPUT_TYPES.get(inputType) : null;
@@ -1189,7 +1187,7 @@ class SimpleIpProtocol implements SocketSessionListener, AutoCloseable {
             logger.debug("{} command failed: {}", PICTURE_MUTE, parms);
         } else {
             try {
-                final int mute = StringUtils.isEmpty(parms) ? 0 : Integer.parseInt(parms);
+                final int mute = SonyUtil.isEmpty(parms) ? 0 : Integer.parseInt(parms);
                 if (mute == 0) {
                     callback.stateChanged(SimpleIpConstants.CHANNEL_PICTUREMUTE, OnOffType.OFF);
                 } else if (mute == 1) {
@@ -1249,7 +1247,7 @@ class SimpleIpProtocol implements SocketSessionListener, AutoCloseable {
             logger.debug("{} command failed: {}", PICTURE_IN_PICTURE, parms);
         } else {
             try {
-                final int enabled = StringUtils.isEmpty(parms) ? 0 : Integer.parseInt(parms);
+                final int enabled = SonyUtil.isEmpty(parms) ? 0 : Integer.parseInt(parms);
                 if (enabled == 0) {
                     callback.stateChanged(SimpleIpConstants.CHANNEL_PICTUREINPICTURE, OnOffType.OFF);
                 } else if (enabled == 1) {
@@ -1349,7 +1347,7 @@ class SimpleIpProtocol implements SocketSessionListener, AutoCloseable {
     public boolean responseReceived(final String response) {
         Objects.requireNonNull(response, "response cannot be null");
 
-        if (StringUtils.isEmpty(response)) {
+        if (SonyUtil.isEmpty(response)) {
             return true;
         }
 

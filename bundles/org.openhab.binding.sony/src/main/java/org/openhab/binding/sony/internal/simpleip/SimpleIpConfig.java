@@ -14,10 +14,10 @@ package org.openhab.binding.sony.internal.simpleip;
 
 import java.util.Map;
 
-import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.sony.internal.AbstractConfig;
+import org.openhab.binding.sony.internal.SonyUtil;
 
 /**
  * Configuration class for the {@link SimpleIpHandler}.
@@ -48,7 +48,7 @@ public class SimpleIpConfig extends AbstractConfig {
      * @return the network interface
      */
     public String getNetInterface() {
-        return StringUtils.defaultIfEmpty(netInterface, "eth0");
+        return SonyUtil.defaultIfEmpty(netInterface, "eth0");
     }
 
     /**
@@ -67,7 +67,7 @@ public class SimpleIpConfig extends AbstractConfig {
      */
 
     public @Nullable String getCommandsMapFile() {
-        return StringUtils.defaultIfEmpty(commandsMapFile, discoveredCommandsMapFile);
+        return SonyUtil.defaultIfEmpty(commandsMapFile, discoveredCommandsMapFile);
     }
 
     /**
@@ -92,7 +92,7 @@ public class SimpleIpConfig extends AbstractConfig {
     public Map<String, Object> asProperties() {
         final Map<String, Object> props = super.asProperties();
 
-        props.put("discoveredCommandsMapFile", StringUtils.defaultIfEmpty(discoveredCommandsMapFile, ""));
+        props.put("discoveredCommandsMapFile", SonyUtil.defaultIfEmpty(discoveredCommandsMapFile, ""));
         conditionallyAddProperty(props, "commandsMapFile", commandsMapFile);
         conditionallyAddProperty(props, "netInterface", netInterface);
 

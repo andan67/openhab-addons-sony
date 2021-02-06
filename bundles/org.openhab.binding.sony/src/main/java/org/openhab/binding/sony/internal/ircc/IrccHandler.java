@@ -20,7 +20,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.ClientBuilder;
 
-import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.sony.internal.AbstractThingHandler;
@@ -155,7 +154,7 @@ public class IrccHandler extends AbstractThingHandler<IrccConfig> {
                 switch (channelId) {
                     case IrccConstants.CHANNEL_CMD:
                         if (command instanceof StringType) {
-                            if (StringUtils.isEmpty(command.toString())) {
+                            if (command.toString().isEmpty()) {
                                 logger.debug("Received a COMMAND channel command that is empty - ignoring");
                             } else {
                                 localProtocolHandler.sendCommand(command.toString());
@@ -174,7 +173,7 @@ public class IrccHandler extends AbstractThingHandler<IrccConfig> {
                         break;
                     case IrccConstants.CHANNEL_CONTENTURL:
                         if (command instanceof StringType) {
-                            if (StringUtils.isEmpty(command.toString())) {
+                            if (command.toString().isEmpty()) {
                                 logger.debug("Received a CONTENTURL channel command that is empty - ignoring");
                             } else {
                                 localProtocolHandler.sendContentUrl(command.toString());
@@ -185,7 +184,7 @@ public class IrccHandler extends AbstractThingHandler<IrccConfig> {
                         break;
                     case IrccConstants.CHANNEL_TEXT:
                         if (command instanceof StringType) {
-                            if (StringUtils.isEmpty(command.toString())) {
+                            if (command.toString().isEmpty()) {
                                 logger.debug("Received a TEXT channel command that is empty - ignoring");
                             } else {
                                 localProtocolHandler.sendText(command.toString());
@@ -225,7 +224,7 @@ public class IrccHandler extends AbstractThingHandler<IrccConfig> {
     protected void connect() {
         final IrccConfig config = getSonyConfig();
 
-        if (StringUtils.isEmpty(config.getDeviceAddress())) {
+        if (config.getDeviceAddress() == null || config.getDeviceAddress().isEmpty()) {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR,
                     "IRCC URL is missing from configuration");
             return;

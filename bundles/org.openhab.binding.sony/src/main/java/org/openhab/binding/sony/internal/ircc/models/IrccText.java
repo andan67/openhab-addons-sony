@@ -12,9 +12,9 @@
  */
 package org.openhab.binding.sony.internal.ircc.models;
 
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.sony.internal.SonyUtil;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
@@ -58,7 +58,7 @@ public class IrccText {
      * @return the non-null IrccText
      */
     public @Nullable static IrccText get(final String xml) {
-        Validate.notEmpty(xml, "xml cannot be empty");
+        SonyUtil.validateNotEmpty(xml, "xml cannot be empty");
 
         final StringBuilder sb = new StringBuilder(xml);
         final int idx = sb.indexOf("<text");

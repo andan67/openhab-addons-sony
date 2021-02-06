@@ -15,23 +15,13 @@ package org.openhab.binding.sony.internal;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 import javax.measure.Quantity;
 import javax.measure.Unit;
 
-import org.apache.commons.lang.ClassUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.sony.internal.net.NetUtil;
@@ -55,6 +45,22 @@ import org.slf4j.LoggerFactory;
 @NonNullByDefault
 public class SonyUtil {
 
+    /**
+     * Maps primitive {@code Class}es to their corresponding wrapper {@code Class}.
+     */
+    private static final Map<Class<?>, Class<?>> primitiveWrapperMap = new HashMap<>();
+    static {
+        primitiveWrapperMap.put(Boolean.TYPE, Boolean.class);
+        primitiveWrapperMap.put(Byte.TYPE, Byte.class);
+        primitiveWrapperMap.put(Character.TYPE, Character.class);
+        primitiveWrapperMap.put(Short.TYPE, Short.class);
+        primitiveWrapperMap.put(Integer.TYPE, Integer.class);
+        primitiveWrapperMap.put(Long.TYPE, Long.class);
+        primitiveWrapperMap.put(Double.TYPE, Double.class);
+        primitiveWrapperMap.put(Float.TYPE, Float.class);
+        primitiveWrapperMap.put(Void.TYPE, Void.TYPE);
+    }
+
     /** Bigdecimal hundred (used in scale/unscale methods) */
     public static final BigDecimal BIGDECIMAL_HUNDRED = BigDecimal.valueOf(100);
 
@@ -66,8 +72,8 @@ public class SonyUtil {
      * @return a non-null, non-empty channel id
      */
     public static String createChannelId(final @Nullable String groupId, final String channelId) {
-        Validate.notEmpty(channelId, "channelId cannot be empty");
-        return groupId == null || StringUtils.isEmpty(groupId) ? channelId : (groupId + "#" + channelId);
+        SonyUtil.validateNotEmpty(channelId, "channelId cannot be empty");
+        return groupId == null || groupId.isEmpty() ? channelId : (groupId + "#" + channelId);
     }
 
     /**
@@ -80,7 +86,7 @@ public class SonyUtil {
     public static String createValidChannelUId(final String channelUID) {
         Objects.requireNonNull(channelUID, "channelUID cannot be null");
         final String id = channelUID.replaceAll("[^A-Za-z0-9_-]", "").toLowerCase();
-        return StringUtils.isEmpty(id) ? "na" : id;
+        return SonyUtil.isEmpty(id) ? "na" : id;
     }
 
     /**
@@ -191,7 +197,7 @@ public class SonyUtil {
      * @return either a DecimalType or UnDefType.UNDEF is null
      */
     public static State newDecimalType(final @Nullable String nbr) {
-        return nbr == null || StringUtils.isEmpty(nbr) ? UnDefType.UNDEF : new DecimalType(nbr);
+        return nbr == null || nbr.isEmpty() ? UnDefType.UNDEF : new DecimalType(nbr);
     }
 
     /**
@@ -301,8 +307,8 @@ public class SonyUtil {
             final @Nullable String deviceMacAddress) {
         Objects.requireNonNull(logger, "logger cannot be null");
 
-        if (deviceIpAddress != null && deviceMacAddress != null && StringUtils.isNotBlank(deviceIpAddress)
-                && StringUtils.isNotBlank(deviceMacAddress)) {
+        if (deviceIpAddress != null && deviceMacAddress != null && !deviceIpAddress.isBlank()
+                && !deviceMacAddress.isBlank()) {
             try {
                 NetUtil.sendWol(deviceIpAddress, deviceMacAddress);
                 logger.debug("WOL packet sent to {}", deviceMacAddress);
@@ -331,16 +337,179 @@ public class SonyUtil {
         }
 
         final Map<String, String> lowerMap1 = map1.entrySet().stream()
-                .map(s -> new AbstractMap.SimpleEntry<>(StringUtils.lowerCase(s.getKey()),
-                        StringUtils.lowerCase(s.getValue())))
+                .map(s -> new AbstractMap.SimpleEntry<>(s.getKey().toLowerCase(), s.getValue().toLowerCase()))
                 .collect(Collectors.toMap(k -> k.getKey(), v -> v.getValue()));
 
         final Map<String, String> lowerMap2 = map1.entrySet().stream()
-                .map(s -> new AbstractMap.SimpleEntry<>(StringUtils.lowerCase(s.getKey()),
-                        StringUtils.lowerCase(s.getValue())))
+                .map(s -> new AbstractMap.SimpleEntry<>(s.getKey().toLowerCase(), s.getValue().toLowerCase()))
                 .collect(Collectors.toMap(k -> k.getKey(), v -> v.getValue()));
 
         return lowerMap1.equals(lowerMap2);
+    }
+
+    /**
+     * Null safety compare of two strings
+     *
+     * @param str1 a possibly null string
+     * @param str2 a possibly null string to compare
+     * @return true if strings are equal or both null, other false
+     */
+    public static boolean equals(final @Nullable String str1, final @Nullable String str2) {
+        if (str1 == str2) {
+            return true;
+        }
+        if (str1 == null || str2 == null) {
+            return false;
+        }
+        return str1.equals(str2);
+    }
+
+    /**
+     *
+     * @param str
+     * @return
+     */
+    public static @Nullable Boolean toBooleanObject(@Nullable String str) {
+        if (str == null)
+            return null;
+        if (str.equalsIgnoreCase("true"))
+            return Boolean.TRUE;
+        if (str.equalsIgnoreCase("yes"))
+            return Boolean.TRUE;
+        if (str.equalsIgnoreCase("on"))
+            return Boolean.TRUE;
+        return Boolean.FALSE;
+    }
+
+    /**
+     *
+     * @param str
+     * @return
+     */
+    public static boolean isNumeric(@Nullable String str) {
+        if (str == null) {
+            return false;
+        }
+        try {
+            long l = Long.parseLong(str);
+        } catch (NumberFormatException nfe) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     *
+     * @param str
+     * @return
+     */
+    public static boolean isNumber(@Nullable String str) {
+        if (str == null) {
+            return false;
+        }
+        try {
+            double d = Double.parseDouble(str);
+        } catch (NumberFormatException nfe) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     *
+     * @param str
+     * @return
+     */
+    public static String capitalize(@Nullable String str) {
+        if (isEmpty(str)) {
+            return "";
+        }
+        return str.substring(0, 1).toUpperCase() + str.substring(1);
+    }
+
+    /**
+     *
+     * @param str
+     * @param padSize
+     * @param padChar
+     * @return
+     */
+    public static String leftPad(String str, int padSize, Character padChar) {
+        return padChar.toString().repeat(Math.max(padSize - str.length(), 0)) + str;
+    }
+
+    /**
+     *
+     * @param str
+     * @param padSize
+     * @param padChar
+     * @return
+     */
+    public static String rightPad(String str, int padSize, Character padChar) {
+        return str + padChar.toString().repeat(Math.max(padSize - str.length(), 0));
+    }
+
+    public static String trimToEmpty(@Nullable String str) {
+        if (str == null) {
+            return "";
+        } else {
+            return str.trim();
+        }
+    }
+
+    /**
+     *
+     * @param str
+     * @param stripChars
+     * @return
+     */
+    public static String stripStart(final String str, final String stripChars) {
+        final int strLen = str.length();
+        if (strLen == 0) {
+            return str;
+        }
+        int start = 0;
+        if (stripChars.isEmpty()) {
+            return str;
+        } else {
+            while (start != strLen && stripChars.indexOf(str.charAt(start)) >= 0) {
+                start++;
+            }
+        }
+        return str.substring(start);
+    }
+
+    /**
+     *
+     * @param str
+     * @param stripChars
+     * @return
+     */
+    public static String stripEnd(final String str, final String stripChars) {
+        int end = str.length();
+        if (end == 0) {
+            return str;
+        }
+
+        if (stripChars == null) {
+            while (end != 0 && Character.isWhitespace(str.charAt(end - 1))) {
+                end--;
+            }
+        } else if (stripChars.isEmpty()) {
+            return str;
+        } else {
+            while (end != 0 && stripChars.indexOf(str.charAt(end - 1)) >= 0) {
+                end--;
+            }
+        }
+        return str.substring(0, end);
+    }
+
+    public static String join(final String delimiter, final @Nullable String @Nullable [] strArray) {
+        // public static String join(final String delimiter, final String[] strArray) {
+        if (strArray == null)
+            return "";
+        return Arrays.stream(strArray).map(s -> s == null ? "" : s).collect(Collectors.joining(delimiter));
     }
 
     /**
@@ -447,7 +616,7 @@ public class SonyUtil {
         Objects.requireNonNull(uid, "uid cannot be null");
 
         final String modelName = getModelName(uid);
-        if (modelName == null || StringUtils.isEmpty(modelName)) {
+        if (modelName == null || modelName.isEmpty()) {
             return 0;
         }
 
@@ -477,13 +646,13 @@ public class SonyUtil {
      */
     public static boolean isModelMatch(final @Nullable String thingTypeServiceName,
             final @Nullable String thingTypeModelName, final String serviceName, final String modelName) {
-        Validate.notEmpty(serviceName, "serviceName cannot be empty");
-        Validate.notEmpty(modelName, "modelName cannot be empty");
-        if (thingTypeServiceName == null || StringUtils.isEmpty(thingTypeServiceName)) {
+        SonyUtil.validateNotEmpty(serviceName, "serviceName cannot be empty");
+        SonyUtil.validateNotEmpty(modelName, "modelName cannot be empty");
+        if (thingTypeServiceName == null || thingTypeServiceName.isEmpty()) {
             return false;
         }
 
-        if (thingTypeModelName == null || StringUtils.isEmpty(thingTypeModelName)) {
+        if (thingTypeModelName == null || thingTypeModelName.isEmpty()) {
             return false;
         }
 
@@ -493,12 +662,12 @@ public class SonyUtil {
         final int versIdx = modelPattern.lastIndexOf(SonyBindingConstants.MODELNAME_VERSION_PREFIX.toLowerCase());
         if (versIdx > 0) {
             final String vers = modelPattern.substring(versIdx + 2);
-            if (StringUtils.isNumeric(vers)) {
+            if (SonyUtil.isNumeric(vers)) {
                 modelPattern = modelPattern.substring(0, versIdx);
             }
         }
 
-        return StringUtils.equals(thingTypeServiceName, serviceName) && modelName.toLowerCase().matches(modelPattern);
+        return thingTypeServiceName.equals(serviceName) && modelName.toLowerCase().matches(modelPattern);
     }
 
     /**
@@ -511,11 +680,11 @@ public class SonyUtil {
      */
     public static boolean isModelMatch(final ThingTypeUID uid, final String serviceName, final String modelName) {
         Objects.requireNonNull(uid, "uid cannot be null");
-        Validate.notEmpty(modelName, "modelName cannot be empty");
+        SonyUtil.validateNotEmpty(modelName, "modelName cannot be empty");
 
         final String uidServiceName = getServiceName(uid);
         final String uidModelName = getModelName(uid);
-        return uidModelName == null || StringUtils.isEmpty(uidModelName) ? false
+        return uidModelName == null || uidModelName.isEmpty() ? false
                 : isModelMatch(uidServiceName, uidModelName, serviceName, modelName);
     }
 
@@ -557,7 +726,7 @@ public class SonyUtil {
      */
     public static <T> boolean isPrimitive(final Class<T> clazz) {
         Objects.requireNonNull(clazz, "clazz cannot be null");
-        return clazz.isPrimitive() || ClassUtils.wrapperToPrimitive(clazz) != null || clazz == String.class;
+        return clazz.isPrimitive() || primitiveWrapperMap.get(clazz) != null || clazz == String.class;
     }
 
     /**
@@ -568,6 +737,17 @@ public class SonyUtil {
      */
     public static boolean isEmpty(final @Nullable String str) {
         return (str == null || str.isEmpty());
+    }
+
+    /**
+     * Returns original string if not empty, otherwise default string
+     *
+     * @param str the original string which is checked for emptiness
+     * @param defStr the default string
+     * @return str if not null or empty, otherwise the default or empty string
+     */
+    public static String defaultIfEmpty(final @Nullable String str, final @Nullable String defStr) {
+        return str != null && !str.isEmpty() ? str : (defStr != null ? defStr : "");
     }
 
     /**
@@ -594,5 +774,33 @@ public class SonyUtil {
     public static void validateNotEmpty(final String str, final String message) {
         if (SonyUtil.isEmpty(str))
             throw new IllegalArgumentException(message);
+    }
+
+    /**
+     * Returns the substring before the first occurrence of a delimiter. The
+     * delimiter is not part of the result.
+     *
+     * @param str String to get a substring from.
+     * @param del String to search for.
+     * @return Substring before the first occurrence of the delimiter.
+     */
+    public static String substringBefore(String str, String del) {
+        int pos = str.indexOf(del);
+
+        return pos >= 0 ? str.substring(0, pos) : del;
+    }
+
+    /**
+     * Returns the substring after the first occurrence of a delimiter. The
+     * delimiter is not part of the result.
+     * 
+     * @param str String to get a substring from.
+     * @param del String to search for.
+     * @return Substring after the last occurrence of the delimiter.
+     */
+    public static String substringAfter(String str, String del) {
+        int pos = str.indexOf(del);
+
+        return pos >= 0 ? str.substring(pos + del.length()) : "";
     }
 }

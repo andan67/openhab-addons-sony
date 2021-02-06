@@ -12,9 +12,9 @@
  */
 package org.openhab.binding.sony.internal.scalarweb.models.api;
 
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.sony.internal.SonyUtil;
 
 /**
  * This class represents the screen and is used for serialization/deserialization only
@@ -38,7 +38,7 @@ public class Screen {
      * @param screen the screen identifier
      */
     public Screen(final String screen) {
-        Validate.notEmpty(screen, "screen cannot be empty");
+        SonyUtil.validateNotEmpty(screen, "screen cannot be empty");
         this.screen = screen;
     }
 

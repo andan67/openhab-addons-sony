@@ -20,9 +20,9 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.sony.internal.SonyUtil;
 import org.openhab.binding.sony.internal.scalarweb.VersionUtilities;
 import org.openhab.binding.sony.internal.scalarweb.gson.SupportedApiInfoDeserializer;
 
@@ -50,7 +50,7 @@ public class SupportedApiInfo {
      * @param versions a non-null, possibly empty list of versions
      */
     public SupportedApiInfo(final String name, final List<SupportedApiVersionInfo> versions) {
-        Validate.notEmpty(name, "name cannot be empty");
+        SonyUtil.validateNotEmpty(name, "name cannot be empty");
         Objects.requireNonNull(versions, "versions cannot be null");
 
         this.name = name;

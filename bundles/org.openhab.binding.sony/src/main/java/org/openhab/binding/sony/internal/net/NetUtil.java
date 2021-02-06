@@ -28,7 +28,6 @@ import java.net.URL;
 import java.util.Base64;
 import java.util.Objects;
 
-import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.http.HttpHeader;
@@ -71,8 +70,9 @@ public class NetUtil {
      */
     public static Header createAuthHeader(final String accessCode) {
         SonyUtil.validateNotEmpty(accessCode, "accessCode cannot be empty");
-        final String authCode = Base64.getEncoder()
-                .encodeToString((":" + StringUtils.leftPad(accessCode, 4, "0")).getBytes());
+        // left padding with "0" to size 4
+        final String accessCodePadded = SonyUtil.leftPad(accessCode, 4, '0');
+        final String authCode = Base64.getEncoder().encodeToString((":" + accessCodePadded).getBytes());
         return new Header("Authorization", "Basic " + authCode);
     }
 
@@ -216,7 +216,9 @@ public class NetUtil {
         if (wakeOnLanBytes != null && wakeOnLanBytes.length >= 12) {
             final StringBuffer macAddress = new StringBuffer(16);
             for (int i = 6; i < 12; i++) {
-                macAddress.append(StringUtils.leftPad(Integer.toHexString(wakeOnLanBytes[i]), 2, '0'));
+                // left padding with "0" to size 2
+                macAddress.append(SonyUtil.leftPad(Integer.toHexString(wakeOnLanBytes[i]), 2, '0'));
+                macAddress.append(Integer.toHexString(wakeOnLanBytes[i]));
                 macAddress.append(":");
             }
             macAddress.deleteCharAt(macAddress.length() - 1);

@@ -20,7 +20,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.sony.internal.SonyUtil;
@@ -86,8 +85,8 @@ class SonyMatcher {
         Objects.requireNonNull(right, "right cannot be null");
         Objects.requireNonNull(meta, "meta cannot be null");
 
-        return StringUtils.equalsIgnoreCase(left.getService(), right.getService())
-                && StringUtils.equalsIgnoreCase(left.getModelName(), right.getModelName())
+        return left.getService() != null && left.getService().equalsIgnoreCase(right.getService())
+                && left.getModelName() != null && left.getModelName().equalsIgnoreCase(right.getModelName())
                 && SonyUtil.equalsIgnoreCase(left.getChannelGroups(), right.getChannelGroups())
                 && matches(left.getChannels(), right.getChannels(), THINGCHANNELCOMPARATOR,
                         new MatchCallback<SonyThingChannelDefinition>() {
@@ -119,16 +118,16 @@ class SonyMatcher {
         Objects.requireNonNull(meta, "meta cannot be null");
 
         final String leftChannelId = left.getChannelId();
-        if (leftChannelId == null || StringUtils.isEmpty(leftChannelId)) {
+        if (leftChannelId == null || leftChannelId.isEmpty()) {
             return false;
         }
         final String rightChannelId = right.getChannelId();
-        if (rightChannelId == null || StringUtils.isEmpty(rightChannelId)) {
+        if (rightChannelId == null || rightChannelId.isEmpty()) {
             return false;
         }
 
-        return StringUtils.equalsIgnoreCase(meta.getChannelId(leftChannelId), meta.getChannelId(rightChannelId))
-                && StringUtils.equalsIgnoreCase(left.getChannelType(), right.getChannelType())
+        return meta.getChannelId(leftChannelId).equalsIgnoreCase(meta.getChannelId(rightChannelId))
+                && left.getChannelType() != null && left.getChannelType().equalsIgnoreCase(right.getChannelType())
                 && SonyUtil.equalsIgnoreCase(convertNull(left.getProperties()), convertNull(right.getProperties()));
     }
 
@@ -143,9 +142,9 @@ class SonyMatcher {
         Objects.requireNonNull(left, "left cannot be null");
         Objects.requireNonNull(right, "right cannot be null");
 
-        return StringUtils.equalsIgnoreCase(left.getServiceName(), right.getServiceName())
-                && StringUtils.equalsIgnoreCase(left.getVersion(), right.getVersion())
-                && StringUtils.equalsIgnoreCase(left.getTransport(), right.getTransport())
+        return left.getServiceName() != null && left.getServiceName().equalsIgnoreCase(right.getServiceName())
+                && left.getVersion() != null && left.getVersion().equalsIgnoreCase(right.getVersion())
+                && left.getTransport() != null && left.getTransport().equalsIgnoreCase(right.getTransport())
                 && matches(
                         left.getMethods().stream().filter(e -> e.getVariation() != ScalarWebMethod.UNKNOWN_VARIATION)
                                 .collect(Collectors.toList()),
@@ -173,7 +172,7 @@ class SonyMatcher {
         Objects.requireNonNull(left, "left cannot be null");
         Objects.requireNonNull(right, "right cannot be null");
 
-        return StringUtils.equalsIgnoreCase(left.getModelName(), right.getModelName())
+        return left.getModelName() != null && left.getModelName().equalsIgnoreCase(right.getModelName())
                 && matches(left.getServices(), right.getServices(), SERVICECAPABILITYCOMPARATOR, SERVICECALLBACK, true);
     }
 
@@ -188,8 +187,8 @@ class SonyMatcher {
         Objects.requireNonNull(left, "left cannot be null");
         Objects.requireNonNull(right, "right cannot be null");
 
-        return StringUtils.equalsIgnoreCase(left.getMethodName(), right.getMethodName())
-                && StringUtils.equalsIgnoreCase(left.getVersion(), right.getVersion())
+        return left.getMethodName().equalsIgnoreCase(right.getMethodName())
+                && left.getVersion().equalsIgnoreCase(right.getVersion())
                 && SonyUtil.equalsIgnoreCase(new HashSet<>(left.getParms()), new HashSet<>(right.getParms()))
                 && SonyUtil.equalsIgnoreCase(new HashSet<>(left.getRetVals()), new HashSet<>(right.getRetVals()));
     }
@@ -274,8 +273,7 @@ class SonyMatcher {
         return map.entrySet().stream().map(e -> {
             final String key = e.getKey();
             final String value = e.getValue();
-            return StringUtils.isEmpty(key) || StringUtils.isEmpty(value) ? null
-                    : new AbstractMap.SimpleEntry<>(key, value);
+            return SonyUtil.isEmpty(key) || SonyUtil.isEmpty(value) ? null : new AbstractMap.SimpleEntry<>(key, value);
         }).filter(e -> e != null).collect(Collectors.toMap(k -> k.getKey(), v -> v.getValue()));
     }
 

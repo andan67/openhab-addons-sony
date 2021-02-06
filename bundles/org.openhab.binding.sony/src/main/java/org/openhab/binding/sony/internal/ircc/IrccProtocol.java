@@ -32,8 +32,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import javax.ws.rs.client.ClientBuilder;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.http.HttpStatus;
@@ -192,7 +190,7 @@ class IrccProtocol<T extends ThingCallback<String>> implements AutoCloseable {
         });
 
         if (CheckResult.OK_HEADER.equals(checkResult)) {
-            if (accessCode == null || StringUtils.isEmpty(accessCode)) {
+            if (accessCode == null || accessCode.isEmpty()) {
                 // This shouldn't happen - if our check result is OK_HEADER, then
                 // we had a valid (non-null, non-empty) accessCode. Unfortunately
                 // nullable checking thinks this can be null now.
@@ -205,12 +203,12 @@ class IrccProtocol<T extends ThingCallback<String>> implements AutoCloseable {
         } else if (CheckResult.OK_COOKIE.equals(checkResult)) {
             SonyAuth.setupCookie(transport);
         } else if (AccessResult.NEEDSPAIRING.equals(checkResult)) {
-            if (StringUtils.isEmpty(accessCode)) {
+            if (accessCode == null || accessCode.isEmpty()) {
                 return new LoginUnsuccessfulResponse(ThingStatusDetail.CONFIGURATION_ERROR,
                         "Access code cannot be blank");
             } else {
                 final AccessResult result = sonyAuth.requestAccess(transport,
-                        StringUtils.equalsIgnoreCase(IrccConstants.ACCESSCODE_RQST, accessCode) ? null : accessCode);
+                        IrccConstants.ACCESSCODE_RQST.equalsIgnoreCase(accessCode) ? null : accessCode);
                 if (AccessResult.OK.equals(result)) {
                     SonyAuth.setupCookie(transport);
                 } else {
@@ -263,7 +261,7 @@ class IrccProtocol<T extends ThingCallback<String>> implements AutoCloseable {
             logger.debug("No MAP transformation service - skipping writing a map file");
         } else {
             final String cmdMap = config.getCommandsMapFile();
-            if (StringUtils.isEmpty(cmdMap)) {
+            if (cmdMap == null || cmdMap.isEmpty()) {
                 logger.debug("No command map defined - ignoring");
                 return;
             }
@@ -303,7 +301,7 @@ class IrccProtocol<T extends ThingCallback<String>> implements AutoCloseable {
      */
     public void refreshStatus() {
         final String getStatusUrl = irccClient.getUrlForAction(IrccClient.AN_GETSTATUS);
-        if (getStatusUrl == null || StringUtils.isEmpty(getStatusUrl)) {
+        if (getStatusUrl == null || getStatusUrl.isEmpty()) {
             logger.debug("{} is not implemented", IrccClient.AN_GETSTATUS);
             return;
         }
@@ -450,7 +448,7 @@ class IrccProtocol<T extends ThingCallback<String>> implements AutoCloseable {
      */
     private void refreshVersion() {
         final String version = irccClient.getUnrDeviceInformation().getVersion();
-        if (version == null || StringUtils.isEmpty(version)) {
+        if (version == null || version.isEmpty()) {
             callback.setProperty(IrccConstants.PROP_VERSION, IrccUnrDeviceInfo.NOTSPECIFIED);
         } else {
             callback.setProperty(IrccConstants.PROP_VERSION, version);
@@ -469,7 +467,7 @@ class IrccProtocol<T extends ThingCallback<String>> implements AutoCloseable {
      */
     public void refreshText() {
         final String getTextUrl = irccClient.getUrlForAction(IrccClient.AN_GETTEXT);
-        if (getTextUrl == null || StringUtils.isEmpty(getTextUrl)) {
+        if (getTextUrl == null || getTextUrl.isEmpty()) {
             logger.debug("{} is not implemented", IrccClient.AN_GETTEXT);
             return;
         }
@@ -498,7 +496,7 @@ class IrccProtocol<T extends ThingCallback<String>> implements AutoCloseable {
      */
     public void refreshContentUrl() {
         final String getContentUrl = irccClient.getUrlForAction(IrccClient.AN_GETCONTENTURL);
-        if (getContentUrl == null || StringUtils.isEmpty(getContentUrl)) {
+        if (getContentUrl == null || getContentUrl.isEmpty()) {
             logger.debug("{} is not implemented", IrccClient.AN_GETCONTENTURL);
             return;
         }
@@ -541,7 +539,7 @@ class IrccProtocol<T extends ThingCallback<String>> implements AutoCloseable {
      */
     public void refreshContentInformation() {
         final String getContentUrl = irccClient.getUrlForAction(IrccClient.AN_GETCONTENTINFORMATION);
-        if (getContentUrl == null || StringUtils.isEmpty(getContentUrl)) {
+        if (getContentUrl == null || getContentUrl.isEmpty()) {
             logger.debug("{} is not implemented", IrccClient.AN_GETCONTENTINFORMATION);
             return;
         }
@@ -615,7 +613,7 @@ class IrccProtocol<T extends ThingCallback<String>> implements AutoCloseable {
             callback.stateChanged(SonyUtil.createChannelId(IrccConstants.GRP_CONTENT, IrccConstants.CHANNEL_RATING),
                     SonyUtil.newStringType(rating));
 
-            if (daterelease == null || StringUtils.isEmpty(daterelease)) {
+            if (daterelease == null || daterelease.isEmpty()) {
                 callback.stateChanged(
                         SonyUtil.createChannelId(IrccConstants.GRP_CONTENT, IrccConstants.CHANNEL_DATERELEASE),
                         UnDefType.NULL);
@@ -640,7 +638,7 @@ class IrccProtocol<T extends ThingCallback<String>> implements AutoCloseable {
                     SonyUtil.createChannelId(IrccConstants.GRP_CONTENT, IrccConstants.CHANNEL_SCREENWRITER),
                     SonyUtil.newStringType(screen));
 
-            if (StringUtils.isEmpty(iconData)) {
+            if (iconData == null || iconData.isEmpty()) {
                 callback.stateChanged(
                         SonyUtil.createChannelId(IrccConstants.GRP_CONTENT, IrccConstants.CHANNEL_ICONDATA),
                         UnDefType.NULL);
@@ -702,7 +700,7 @@ class IrccProtocol<T extends ThingCallback<String>> implements AutoCloseable {
             try {
                 if (cmdMap != null && !cmdMap.isBlank()) {
                     cmdToSend = localTransformService.transform(cmdMap, cmd);
-                    if (!StringUtils.equalsIgnoreCase(cmdToSend, cmd)) {
+                    if (cmdToSend != null && !cmdToSend.equalsIgnoreCase(cmd)) {
                         logger.debug("Transformed {} with map file '{}' to {}", cmd, cmdMap, cmdToSend);
                     }
                 }
@@ -728,11 +726,11 @@ class IrccProtocol<T extends ThingCallback<String>> implements AutoCloseable {
             cmdToSend = cmdToSend.substring(idx + 1);
         }
 
-        if (cmdToSend == null || StringUtils.isEmpty(cmdToSend)) {
+        if (cmdToSend == null || cmdToSend.isEmpty()) {
             logger.debug("Command was empty - ignoring");
-        } else if (StringUtils.equalsIgnoreCase(IrccRemoteCommand.IRCC, protocol)) {
+        } else if (IrccRemoteCommand.IRCC.equalsIgnoreCase(protocol)) {
             sendIrccCommand(cmdToSend);
-        } else if (StringUtils.equalsIgnoreCase(IrccRemoteCommand.URL, protocol)) {
+        } else if (IrccRemoteCommand.URL.equalsIgnoreCase(protocol)) {
             final HttpResponse resp = transport.executeGet(cmdToSend);
             if (resp.getHttpCode() == HttpStatus.OK_200) {
                 logger.trace("Send of command {} was successful", cmdToSend);
@@ -752,7 +750,7 @@ class IrccProtocol<T extends ThingCallback<String>> implements AutoCloseable {
      * @param cmdToSend the non-null, non-empty IRCC command to send
      */
     private void sendIrccCommand(final String cmdToSend) {
-        Validate.notEmpty(cmdToSend, "cmdToSend cannot be empty");
+        SonyUtil.validateNotEmpty(cmdToSend, "cmdToSend cannot be empty");
 
         final HttpResponse resp = irccClient.executeSoap(transport, cmdToSend);
         if (resp.getHttpCode() == HttpStatus.OK_200) {
@@ -772,10 +770,10 @@ class IrccProtocol<T extends ThingCallback<String>> implements AutoCloseable {
      * @param contentUrl the non-null, non-empty content url
      */
     public void sendContentUrl(final String contentUrl) {
-        Validate.notEmpty(contentUrl, "contentUrl cannot be empty");
+        SonyUtil.validateNotEmpty(contentUrl, "contentUrl cannot be empty");
 
         final String sendContentUrl = irccClient.getUrlForAction(IrccClient.AN_SENDCONTENTURL);
-        if (sendContentUrl == null || StringUtils.isEmpty(sendContentUrl)) {
+        if (sendContentUrl == null || sendContentUrl.isEmpty()) {
             logger.debug("{} action was not implmented", IrccClient.AN_SENDCONTENTURL);
             return;
         }
@@ -797,9 +795,9 @@ class IrccProtocol<T extends ThingCallback<String>> implements AutoCloseable {
      * @param text the non-null, non-empty text
      */
     public void sendText(final String text) {
-        Validate.notEmpty(text, "text cannot be empty");
+        SonyUtil.validateNotEmpty(text, "text cannot be empty");
         final String sendTextUrl = irccClient.getUrlForAction(IrccClient.AN_SENDTEXT);
-        if (StringUtils.isEmpty(sendTextUrl)) {
+        if (sendTextUrl == null || sendTextUrl.isEmpty()) {
             logger.debug("{} action was not implmented", IrccClient.AN_SENDTEXT);
             return;
         }

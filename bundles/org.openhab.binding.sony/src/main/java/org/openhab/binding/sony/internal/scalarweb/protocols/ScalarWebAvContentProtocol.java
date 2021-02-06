@@ -14,18 +14,8 @@ package org.openhab.binding.sony.internal.scalarweb.protocols;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicReference;
@@ -34,10 +24,6 @@ import java.util.stream.Collectors;
 
 import javax.ws.rs.client.ClientBuilder;
 
-import org.apache.commons.lang.BooleanUtils;
-import org.apache.commons.lang.ObjectUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.sony.internal.SonyUtil;
@@ -812,10 +798,10 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
     private void addInputStatusDescriptor(final List<ScalarWebChannelDescriptor> descriptors, final String id,
             final String uri, final String title, final String apiVersion) {
         Objects.requireNonNull(descriptors, "descriptors cannot be null");
-        Validate.notEmpty(id, "id cannot be empty");
-        Validate.notEmpty(uri, "uri cannot be empty");
-        Validate.notEmpty(title, "title cannot be empty");
-        Validate.notEmpty(apiVersion, "apiVersion cannot be empty");
+        SonyUtil.validateNotEmpty(id, "id cannot be empty");
+        SonyUtil.validateNotEmpty(uri, "uri cannot be empty");
+        SonyUtil.validateNotEmpty(title, "title cannot be empty");
+        SonyUtil.validateNotEmpty(apiVersion, "apiVersion cannot be empty");
 
         descriptors.add(createDescriptor(createChannel(IN_URI, id, uri), "String", "scalarwebavcontrolinpstatusuri",
                 "Input " + title + " URI", null));
@@ -832,7 +818,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
         descriptors.add(createDescriptor(createChannel(IN_ICON, id, uri), "String", "scalarwebavcontrolinpstatusicon",
                 "Input " + title + " Icon Type", null));
 
-        if (StringUtils.equalsIgnoreCase(apiVersion, ScalarWebMethod.V1_1)) {
+        if (ScalarWebMethod.V1_1.equalsIgnoreCase(apiVersion)) {
             descriptors.add(createDescriptor(createChannel(IN_STATUS, id, uri), "String",
                     "scalarwebavcontrolinpstatusstatus", "Input " + title + " Status", null));
         }
@@ -853,7 +839,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
                 for (final CurrentExternalInputsStatus_1_0 status : result
                         .asArray(CurrentExternalInputsStatus_1_0.class)) {
                     final String uri = status.getUri();
-                    if (uri == null || StringUtils.isEmpty(uri)) {
+                    if (uri == null || uri.isEmpty()) {
                         logger.debug("External Input status had no URI (which is required): {}", status);
                         continue;
                     }
@@ -865,7 +851,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
                 for (final CurrentExternalInputsStatus_1_1 status : result
                         .asArray(CurrentExternalInputsStatus_1_1.class)) {
                     final String uri = status.getUri();
-                    if (uri == null || StringUtils.isEmpty(uri)) {
+                    if (uri == null || uri.isEmpty()) {
                         logger.debug("External Input status had no URI (which is required): {}", status);
                         continue;
                     }
@@ -927,7 +913,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
         for (final Entry<String, String> entry : outputs.entrySet()) {
             final String translatedOutput = getTranslatedOutput(entry.getKey());
             final String prefix = "Playing"
-                    + (StringUtils.isEmpty(translatedOutput) ? " " : (" (" + entry.getValue() + ") "));
+                    + (SonyUtil.isEmpty(translatedOutput) ? " " : (" (" + entry.getValue() + ") "));
 
             final String uri = entry.getKey();
             final String id = getIdForOutput(uri); // use the same id as the related terminal
@@ -1090,7 +1076,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
                         "scalarwebavcontroltermstatussource", "Terminal " + title + " Source", null));
 
                 // if not our dummy 'main', create an active switch
-                if (!StringUtils.equalsIgnoreCase(title, MAINTITLE)) {
+                if (!MAINTITLE.equalsIgnoreCase(title)) {
                     descriptors.add(createDescriptor(createChannel(TERM_ACTIVE, id, uri), "Switch",
                             "scalarwebavcontroltermstatusactive", "Terminal " + title + " Active", null));
                 }
@@ -1123,8 +1109,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
         Objects.requireNonNull(descriptors, "descriptors cannot be null");
 
         for (final Scheme scheme : getSchemes()) {
-            if (StringUtils.equalsIgnoreCase(Scheme.TV, scheme.getScheme())
-                    || StringUtils.equalsIgnoreCase(Scheme.RADIO, scheme.getScheme())) {
+            if (Scheme.TV.equalsIgnoreCase(scheme.getScheme()) || Scheme.RADIO.equalsIgnoreCase(scheme.getScheme())) {
                 for (final Source src : getSources(scheme)) {
                     addPresetChannelDescriptor(descriptors, src);
                 }
@@ -1143,13 +1128,13 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
         Objects.requireNonNull(src, "src cannot be null");
 
         final String source = src.getSource();
-        if (source == null || StringUtils.isEmpty(source)) {
+        if (source == null || source.isEmpty()) {
             logger.debug("Source did not have a source assigned: {}", src);
             return;
         }
 
         final String sourcePart = src.getSourcePart();
-        if (sourcePart == null || StringUtils.isEmpty(sourcePart)) {
+        if (sourcePart == null || sourcePart.isEmpty()) {
             logger.debug("Source had a malformed source (no source part or no scheme): {}", src);
             return;
         }
@@ -1167,7 +1152,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
     protected void eventReceived(final ScalarWebEvent event) throws IOException {
         Objects.requireNonNull(event, "event cannot be null");
         final @Nullable String mtd = event.getMethod();
-        if (mtd == null || StringUtils.isEmpty(mtd)) {
+        if (mtd == null || mtd.isEmpty()) {
             logger.debug("Unhandled event received (no method): {}", event);
         } else {
             switch (mtd) {
@@ -1206,13 +1191,13 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
      * @return a channel identifier representing the output
      */
     private String getIdForOutput(final String output) {
-        Validate.notEmpty(output, "output cannot be empty");
+        SonyUtil.validateNotEmpty(output, "output cannot be empty");
 
         for (final Channel chl : getContext().getThing().getChannels()) {
             final ScalarWebChannel swc = new ScalarWebChannel(chl);
-            if (StringUtils.equalsIgnoreCase(swc.getCategory(), TERM_URI)) {
+            if (TERM_URI.equalsIgnoreCase(swc.getCategory())) {
                 final String uri = swc.getPathPart(0);
-                if (StringUtils.equals(uri, output)) {
+                if (SonyUtil.equals(uri, output)) {
                     return swc.getId();
                 }
             }
@@ -1228,11 +1213,12 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
      * @return the source identifier (or uid if none found)
      */
     private String getSourceFromUri(final String uid) {
-        Validate.notEmpty(uid, "uid cannot be empty");
+        SonyUtil.validateNotEmpty(uid, "uid cannot be empty");
         // Following finds the source from the uri (radio:fm&content=x to radio:fm)
-        final String src = getSources().stream().filter(s -> StringUtils.startsWith(uid, s.getSource())).findFirst()
-                .map(s -> s.getSource()).orElse(null);
-        return StringUtils.defaultIfEmpty(src, uid);
+        final String src = getSources().stream()
+                .filter(s -> s.getSource() != null && uid.startsWith(Objects.requireNonNull(s.getSource()))).findFirst()
+                .map(s -> s.getSource()).orElse("");
+        return SonyUtil.defaultIfEmpty(src, uid);
     }
 
     /**
@@ -1318,7 +1304,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
         try {
             for (final Scheme scheme : execute(ScalarWebMethod.GETSCHEMELIST).asArray(Scheme.class)) {
                 final String schemeName = scheme.getScheme();
-                if (schemeName != null && StringUtils.isNotEmpty(schemeName)) {
+                if (schemeName != null && !schemeName.isEmpty()) {
                     schemes.add(scheme);
                 }
             }
@@ -1380,7 +1366,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
         Objects.requireNonNull(scheme, "scheme cannot be null");
 
         final String schemeName = scheme.getScheme();
-        if (schemeName == null || StringUtils.isEmpty(schemeName)) {
+        if (schemeName == null || schemeName.isEmpty()) {
             return Collections.emptySet();
         }
 
@@ -1403,7 +1389,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
                     } else {
                         for (final Source src : result.asArray(Source.class)) {
                             final String sourceName = src.getSource();
-                            if (sourceName != null && StringUtils.isNotEmpty(sourceName)) {
+                            if (sourceName != null && sourceName.isEmpty()) {
                                 srcs.add(src);
                             }
                         }
@@ -1428,7 +1414,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
                 for (final CurrentExternalInputsStatus_1_0 inp : getInputStatus()
                         .asArray(CurrentExternalInputsStatus_1_0.class)) {
                     final String uri = inp.getUri();
-                    if (uri == null || StringUtils.isEmpty(uri)) {
+                    if (uri == null || uri.isEmpty()) {
                         continue;
                     }
 
@@ -1442,13 +1428,13 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
 
         stateSources.values().stream().flatMap(e -> e.stream()).forEach(src -> {
             final String uri = src.getSource();
-            if (uri != null && StringUtils.isNotEmpty(uri)) {
+            if (uri != null && !uri.isEmpty()) {
                 final String[] outputs = src.getOutputs();
 
                 // Add the source if not duplicating an input/terminal
                 // (need to use starts with because hdmi source has a port number in it and
                 // the source is just hdmi [no ports])
-                if (!sources.stream().anyMatch(s -> StringUtils.startsWithIgnoreCase(s.getUri(), uri))) {
+                if (!sources.stream().anyMatch(s -> s.getUri().toLowerCase().startsWith(uri.toLowerCase()))) {
                     sources.add(new InputSource(uri, src.getTitle(),
                             outputs == null ? new ArrayList<>() : Arrays.asList(outputs)));
                 }
@@ -1458,11 +1444,11 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
         for (final CurrentExternalTerminalsStatus_1_0 term : getTerminalStatuses()) {
             if (term.isOutput()) {
                 final String uri = term.getUri();
-                if (uri != null && StringUtils.isNotEmpty(uri)) {
+                if (uri != null && !uri.isEmpty()) {
                     final List<StateOption> options = sources.stream()
                             .filter(s -> s.getOutputs().isEmpty() || s.getOutputs().contains(uri))
                             .map(s -> new StateOption(s.getUri(), s.getTitle()))
-                            .sorted((a, b) -> ObjectUtils.compare(a.getLabel(), b.getLabel()))
+                            .sorted(Comparator.comparing(a -> SonyUtil.defaultIfEmpty(a.getLabel(), "")))
                             .collect(Collectors.toList());
 
                     final String id = getIdForOutput(uri);
@@ -1627,9 +1613,9 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
         stateChanged(CN_DURATIONSEC, SonyUtil.newQuantityType(clr.getDurationSec(), Units.SECOND));
         stateChanged(CN_FILESIZEBYTE, SonyUtil.newQuantityType(clr.getFileSizeByte(), Units.BYTE));
         stateChanged(CN_ISALREADYPLAYED,
-                SonyUtil.newStringType(Boolean.toString(BooleanUtils.toBoolean(clr.isAlreadyPlayed()))));
+                SonyUtil.newStringType(Boolean.toString(clr.isAlreadyPlayed() != null && clr.isAlreadyPlayed())));
         stateChanged(CN_ISPROTECTED,
-                SonyUtil.newStringType(Boolean.toString(BooleanUtils.toBoolean(clr.isProtected()))));
+                SonyUtil.newStringType(Boolean.toString(clr.isProtected() != null && clr.isProtected())));
         stateChanged(CN_ORIGINALDISPNUM, SonyUtil.newStringType(clr.getOriginalDispNum()));
 
         stateChanged(CN_PROGRAMMEDIATYPE, SonyUtil.newStringType(clr.getProgramMediaType()));
@@ -1649,9 +1635,9 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
     private void notifyContentListResult(final ContentListResult_1_2 clr) {
         Objects.requireNonNull(clr, "clr cannot be null");
 
-        stateChanged(CN_AUDIOCHANNEL, SonyUtil.newStringType(StringUtils.join(clr.getAudioChannel(), ',')));
-        stateChanged(CN_AUDIOCODEC, SonyUtil.newStringType(StringUtils.join(clr.getAudioCodec(), ',')));
-        stateChanged(CN_AUDIOFREQUENCY, SonyUtil.newStringType(StringUtils.join(clr.getAudioFrequency(), ',')));
+        stateChanged(CN_AUDIOCHANNEL, SonyUtil.newStringType(SonyUtil.join(",", clr.getAudioChannel())));
+        stateChanged(CN_AUDIOCODEC, SonyUtil.newStringType(SonyUtil.join(",", clr.getAudioCodec())));
+        stateChanged(CN_AUDIOFREQUENCY, SonyUtil.newStringType(SonyUtil.join(",", clr.getAudioFrequency())));
 
         stateChanged(CN_CHANNELNAME, SonyUtil.newStringType(clr.getChannelName()));
 
@@ -1668,14 +1654,14 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
         stateChanged(CN_DURATIONSEC, SonyUtil.newQuantityType(clr.getDurationSec(), Units.SECOND));
         stateChanged(CN_FILESIZEBYTE, SonyUtil.newQuantityType(clr.getFileSizeByte(), Units.BYTE));
         stateChanged(CN_ISALREADYPLAYED,
-                SonyUtil.newStringType(Boolean.toString(BooleanUtils.toBoolean(clr.isAlreadyPlayed()))));
+                SonyUtil.newStringType(Boolean.toString(clr.isAlreadyPlayed() != null && clr.isAlreadyPlayed())));
         stateChanged(CN_ISPROTECTED,
-                SonyUtil.newStringType(Boolean.toString(BooleanUtils.toBoolean(clr.isProtected()))));
+                SonyUtil.newStringType(Boolean.toString(clr.isProtected() != null && clr.isProtected())));
         stateChanged(CN_ORIGINALDISPNUM, SonyUtil.newStringType(clr.getOriginalDispNum()));
 
-        stateChanged(CN_PARENTALCOUNTRY, SonyUtil.newStringType(StringUtils.join(clr.getParentalCountry(), ',')));
-        stateChanged(CN_PARENTALRATING, SonyUtil.newStringType(StringUtils.join(clr.getParentalRating(), ',')));
-        stateChanged(CN_PARENTALSYSTEM, SonyUtil.newStringType(StringUtils.join(clr.getParentalSystem(), ',')));
+        stateChanged(CN_PARENTALCOUNTRY, SonyUtil.newStringType(SonyUtil.join(",", clr.getParentalCountry())));
+        stateChanged(CN_PARENTALRATING, SonyUtil.newStringType(SonyUtil.join(",", clr.getParentalRating())));
+        stateChanged(CN_PARENTALSYSTEM, SonyUtil.newStringType(SonyUtil.join(",", clr.getParentalSystem())));
 
         stateChanged(CN_PRODUCTID, SonyUtil.newStringType(clr.getProductID()));
         stateChanged(CN_PROGRAMMEDIATYPE, SonyUtil.newStringType(clr.getProgramMediaType()));
@@ -1685,8 +1671,8 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
         stateChanged(CN_STARTDATETIME, SonyUtil.newStringType(clr.getStartDateTime()));
         stateChanged(CN_STORAGEURI, SonyUtil.newStringType(clr.getStorageUri()));
 
-        stateChanged(CN_SUBTITLELANGUAGE, SonyUtil.newStringType(StringUtils.join(clr.getSubtitleLanguage(), ',')));
-        stateChanged(CN_SUBTITLETITLE, SonyUtil.newStringType(StringUtils.join(clr.getSubtitleTitle(), ',')));
+        stateChanged(CN_SUBTITLELANGUAGE, SonyUtil.newStringType(SonyUtil.join(",", clr.getSubtitleLanguage())));
+        stateChanged(CN_SUBTITLETITLE, SonyUtil.newStringType(SonyUtil.join(",", clr.getSubtitleTitle())));
 
         stateChanged(CN_TITLE, SonyUtil.newStringType(clr.getTitle()));
         stateChanged(CN_TRIPLETSTR, SonyUtil.newStringType(clr.getTripletStr()));
@@ -1939,7 +1925,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
         for (final ScalarWebChannel chnl : getChannelTracker()
                 .getLinkedChannelsForCategory(TERM_URI, TERM_TITLE, TERM_CONNECTION, TERM_LABEL, TERM_ICON, TERM_ACTIVE)
                 .stream().toArray(ScalarWebChannel[]::new)) {
-            if (StringUtils.equalsIgnoreCase(termUri, chnl.getPathPart(0))) {
+            if (termUri != null && termUri.equalsIgnoreCase(chnl.getPathPart(0))) {
                 notifyCurrentTerminalStatus(chnl, term);
             }
         }
@@ -1957,7 +1943,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
                     ScalarWebMethod.GETCURRENTEXTERNALTERMINALSSTATUS)
                             .asArray(CurrentExternalTerminalsStatus_1_0.class)) {
                 final String termUri = term.getUri();
-                if (StringUtils.equalsIgnoreCase(termUri, channel.getPathPart(0))) {
+                if (termUri != null && termUri.equalsIgnoreCase(channel.getPathPart(0))) {
                     notifyCurrentTerminalStatus(channel, term);
                 }
             }
@@ -1984,7 +1970,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
         stateChanged(TERM_ACTIVE, id, SonyUtil.newStringType(cets.getActive()));
 
         final String iconUrl = cets.getIconUrl();
-        if (iconUrl == null || StringUtils.isEmpty(iconUrl)) {
+        if (iconUrl == null || iconUrl.isEmpty()) {
             stateChanged(TERM_ICON, id, UnDefType.UNDEF);
         } else {
             try (SonyHttpTransport transport = SonyTransportFactory
@@ -2040,7 +2026,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
         stateChanged(PR_RATINGTYPEAGE, SonyUtil.newDecimalType(prs.getRatingTypeAge()));
         stateChanged(PR_RATINGTYPESONY, SonyUtil.newStringType(prs.getRatingTypeSony()));
         stateChanged(PR_RATINGCOUNTRY, SonyUtil.newStringType(prs.getRatingCountry()));
-        stateChanged(PR_RATINGCUSTOMTYPETV, SonyUtil.newStringType(StringUtils.join(prs.getRatingCustomTypeTV())));
+        stateChanged(PR_RATINGCUSTOMTYPETV, SonyUtil.newStringType(SonyUtil.join("", prs.getRatingCustomTypeTV())));
         stateChanged(PR_RATINGCUSTOMTYPEMPAA, SonyUtil.newStringType(prs.getRatingCustomTypeMpaa()));
         stateChanged(PR_RATINGCUSTOMTYPECAENGLISH, SonyUtil.newStringType(prs.getRatingCustomTypeCaEnglish()));
         stateChanged(PR_RATINGCUSTOMTYPECAFRENCH, SonyUtil.newStringType(prs.getRatingCustomTypeCaFrench()));
@@ -2055,7 +2041,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
      */
     private void notifyPlayingContentInfo(final PlayingContentInfoResult_1_0 pci, final String id) {
         Objects.requireNonNull(pci, "pic cannot be null");
-        Validate.notEmpty(id, "id cannot be null");
+        SonyUtil.validateNotEmpty(id, "id cannot be null");
         stateChanged(PL_BIVLASSETID, id, SonyUtil.newStringType(pci.getBivlAssetId()));
         stateChanged(PL_BIVLPROVIDER, id, SonyUtil.newStringType(pci.getBivlProvider()));
         stateChanged(PL_BIVLSERVICEID, id, SonyUtil.newStringType(pci.getBivlServiceId()));
@@ -2072,24 +2058,23 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
         stateChanged(PL_TRIPLETSTR, id, SonyUtil.newStringType(pci.getTripletStr()));
 
         final String pciSourceUri = pci.getSource();
-        if (pciSourceUri != null && StringUtils.isNotEmpty(pciSourceUri)) {
+        if (pciSourceUri != null && !pciSourceUri.isEmpty()) {
             final String pciScheme = Source.getSchemePart(pciSourceUri);
             final String pciSource = Source.getSourcePart(pciSourceUri);
 
             // only do the following for TV or RADIO schemes
-            if (pciScheme != null && (StringUtils.equalsIgnoreCase(pciScheme, Scheme.TV)
-                    || StringUtils.equalsIgnoreCase(pciScheme, Scheme.RADIO))) {
+            if (pciScheme != null
+                    && (Scheme.TV.equalsIgnoreCase(pciScheme) || Scheme.RADIO.equalsIgnoreCase(pciScheme))) {
                 for (final Source src : getSources()) {
                     final String srcScheme = src.getSchemePart();
                     final String srcSource = src.getSourcePart();
 
                     // if we have the same scheme...
                     if (pciSource != null && srcScheme != null && srcSource != null
-                            && StringUtils.equalsIgnoreCase(pciScheme, srcScheme)) {
+                            && pciScheme.equalsIgnoreCase(srcScheme)) {
                         // set the value if the same source, otherwise move undef to it
                         stateChanged(PS_CHANNEL, srcSource,
-                                StringUtils.equalsIgnoreCase(srcSource, pciSource)
-                                        ? SonyUtil.newStringType(pci.getDispNum())
+                                srcSource.equalsIgnoreCase(pciSource) ? SonyUtil.newStringType(pci.getDispNum())
                                         : UnDefType.UNDEF);
                     }
                 }
@@ -2097,7 +2082,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
         }
 
         final String sourceUri = pci.getUri();
-        if (sourceUri != null && StringUtils.isNotEmpty(sourceUri)) {
+        if (sourceUri != null && !sourceUri.isEmpty()) {
             // statePlaying.put(output, new PlayingState(sourceUri, preset));
             statePlaying.compute(id, (k, v) -> {
                 if (v == null) {
@@ -2130,7 +2115,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
      */
     private void notifyPlayingContentInfo(final PlayingContentInfoResult_1_2 pci, final String id) {
         Objects.requireNonNull(pci, "pic cannot be null");
-        Validate.notEmpty(id, "id cannot be null");
+        SonyUtil.validateNotEmpty(id, "id cannot be null");
         notifyPlayingContentInfo((PlayingContentInfoResult_1_0) pci, id);
 
         stateChanged(PL_ALBUMNAME, id, SonyUtil.newStringType(pci.getAlbumName()));
@@ -2194,26 +2179,26 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
         Objects.requireNonNull(channel, "channel cannot be null");
 
         final String ctgy = channel.getCategory();
-        if (StringUtils.equalsIgnoreCase(ctgy, SCHEMES)) {
+        if (SCHEMES.equalsIgnoreCase(ctgy)) {
             refreshSchemes();
-        } else if (StringUtils.equalsIgnoreCase(ctgy, SOURCES)) {
+        } else if (SOURCES.equalsIgnoreCase(ctgy)) {
             refreshSources();
-        } else if (StringUtils.startsWith(ctgy, PARENTRATING)) {
+        } else if (ctgy.startsWith(PARENTRATING)) {
             refreshParentalRating();
             refreshParentalRating();
-        } else if (StringUtils.startsWith(ctgy, PLAYING)) {
+        } else if (ctgy.startsWith(PLAYING)) {
             refreshPlayingContentInfo();
-        } else if (StringUtils.startsWith(ctgy, INPUT)) {
+        } else if (ctgy.startsWith(INPUT)) {
             refreshCurrentExternalInputStatus(Collections.singleton(channel));
-        } else if (StringUtils.startsWith(ctgy, TERM)) {
+        } else if (ctgy.startsWith(TERM)) {
             notifyCurrentTerminalStatus(channel);
-        } else if (StringUtils.startsWith(ctgy, CONTENT)) {
+        } else if (ctgy.startsWith(CONTENT)) {
             refreshContent();
-        } else if (StringUtils.equalsIgnoreCase(ctgy, BLUETOOTHSETTINGS)) {
+        } else if (BLUETOOTHSETTINGS.equalsIgnoreCase(ctgy)) {
             refreshGeneralSettings(Collections.singleton(channel), ScalarWebMethod.GETBLUETOOTHSETTINGS);
-        } else if (StringUtils.equalsIgnoreCase(ctgy, PLAYBACKSETTINGS)) {
+        } else if (PLAYBACKSETTINGS.equalsIgnoreCase(ctgy)) {
             refreshGeneralSettings(Collections.singleton(channel), ScalarWebMethod.GETPLAYBACKMODESETTINGS);
-        } else if (StringUtils.equalsIgnoreCase(ctgy, PS_CHANNEL)) {
+        } else if (PS_CHANNEL.equalsIgnoreCase(ctgy)) {
             refreshPresetChannelStateDescription(Collections.singletonList(channel));
         } else {
             logger.debug("Unknown refresh channel: {}", channel);
@@ -2226,7 +2211,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
     private void refreshContent() {
         final ContentState state = stateContent.get();
 
-        if (StringUtils.isEmpty(state.getParentUri())) {
+        if (SonyUtil.isEmpty(state.getParentUri())) {
             notifyContentListResult();
         } else {
             Count ct;
@@ -2330,7 +2315,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
                             .asArray(CurrentExternalInputsStatus_1_0.class)) {
                         final String inpUri = inp.getUri();
                         for (final ScalarWebChannel chnl : channels) {
-                            if (StringUtils.equalsIgnoreCase(inpUri, chnl.getPathPart(0))) {
+                            if (inpUri != null && inpUri.equalsIgnoreCase(chnl.getPathPart(0))) {
                                 notifyInputStatus(chnl, inp);
                             }
                         }
@@ -2340,7 +2325,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
                             .asArray(CurrentExternalInputsStatus_1_1.class)) {
                         final String inpUri = inp.getUri();
                         for (final ScalarWebChannel chnl : channels) {
-                            if (StringUtils.equalsIgnoreCase(inpUri, chnl.getPathPart(0))) {
+                            if (inpUri != null && inpUri.equalsIgnoreCase(chnl.getPathPart(0))) {
                                 notifyInputStatus(chnl, inp);
                             }
                         }
@@ -2412,13 +2397,13 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
         final List<String> sources = new ArrayList<>();
         for (final Source src : getSources(true)) {
             final String source = src.getSource();
-            if (source != null && StringUtils.isNotEmpty(source)) {
+            if (source != null && !source.isEmpty()) {
                 sources.add(source);
             }
         }
 
         if (!sources.isEmpty()) {
-            stateChanged(SOURCES, SonyUtil.newStringType(StringUtils.join(sources, ',')));
+            stateChanged(SOURCES, SonyUtil.newStringType(String.join(",", sources)));
         }
     }
 
@@ -2430,24 +2415,23 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
         refreshSchemes();
         refreshSources();
 
-        if (tracker.isCategoryLinked(ctgy -> StringUtils.startsWith(ctgy, PARENTRATING))) {
+        if (tracker.isCategoryLinked(ctgy -> ctgy.startsWith(PARENTRATING))) {
             refreshParentalRating();
         }
 
         if (initial || !notificationHelper.isEnabled(ScalarWebEvent.NOTIFYPLAYINGCONTENTINFO)) {
-            if (tracker.isCategoryLinked(ctgy -> StringUtils.startsWith(ctgy, PLAYING))) {
+            if (tracker.isCategoryLinked(ctgy -> ctgy.startsWith(PLAYING))) {
                 refreshPlayingContentInfo();
             }
         }
 
-        refreshCurrentExternalInputStatus(
-                tracker.getLinkedChannelsForCategory(ctgy -> StringUtils.startsWith(ctgy, INPUT)));
+        refreshCurrentExternalInputStatus(tracker.getLinkedChannelsForCategory(ctgy -> ctgy.startsWith(INPUT)));
 
         if (initial || !notificationHelper.isEnabled(ScalarWebEvent.NOTIFYEXTERNALTERMINALSTATUS)) {
             refreshCurrentExternalTerminalsStatus();
         }
 
-        if (tracker.isCategoryLinked(ctgy -> StringUtils.startsWith(ctgy, CONTENT))) {
+        if (tracker.isCategoryLinked(ctgy -> ctgy.startsWith(CONTENT))) {
             refreshContent();
         }
 
@@ -2472,13 +2456,13 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
         Objects.requireNonNull(channel, "channel cannot be null");
         Objects.requireNonNull(command, "command cannot be null");
 
-        if (StringUtils.equalsIgnoreCase(channel.getCategory(), BLUETOOTHSETTINGS)) {
+        if (BLUETOOTHSETTINGS.equalsIgnoreCase(channel.getCategory())) {
             setGeneralSetting(ScalarWebMethod.SETBLUETOOTHSETTINGS, channel, command);
-        } else if (StringUtils.equalsIgnoreCase(channel.getCategory(), PLAYBACKSETTINGS)) {
+        } else if (PLAYBACKSETTINGS.equalsIgnoreCase(channel.getCategory())) {
             setGeneralSetting(ScalarWebMethod.SETPLAYBACKMODESETTINGS, channel, command);
-        } else if (StringUtils.equalsIgnoreCase(channel.getCategory(), PL_CMD)) {
+        } else if (PL_CMD.equalsIgnoreCase(channel.getCategory())) {
             final String uri = channel.getPathPart(0);
-            if (uri == null || StringUtils.isEmpty(uri)) {
+            if (uri == null || uri.isEmpty()) {
                 logger.debug("{} command - channel has no uri: {}", PL_CMD, channel);
                 return;
             }
@@ -2487,9 +2471,9 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
             } else {
                 logger.debug("{} command not an StringType: {}", PL_CMD, command);
             }
-        } else if (StringUtils.equalsIgnoreCase(channel.getCategory(), PS_CHANNEL)) {
+        } else if (PS_CHANNEL.equalsIgnoreCase(channel.getCategory())) {
             final String srcId = channel.getPathPart(0);
-            if (srcId == null || StringUtils.isEmpty(srcId)) {
+            if (srcId == null || srcId.isEmpty()) {
                 logger.debug("{} command - channel has no srcId: {}", PS_CHANNEL, channel);
                 return;
             }
@@ -2498,7 +2482,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
             } else {
                 logger.debug("{} command not an StringType: {}", PS_CHANNEL, command);
             }
-        } else if (StringUtils.equalsIgnoreCase(channel.getCategory(), PL_PRESET)) {
+        } else if (PL_PRESET.equalsIgnoreCase(channel.getCategory())) {
             final String output = channel.getId();
             if (command instanceof DecimalType) {
                 final int preset = ((DecimalType) command).intValue();
@@ -2512,9 +2496,9 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
             } else {
                 logger.debug("{} command not an DecimalType: {}", PL_PRESET, command);
             }
-        } else if (StringUtils.startsWith(channel.getCategory(), TERM)) {
+        } else if (channel.getCategory().startsWith(TERM)) {
             final String uri = channel.getPathPart(0);
-            if (uri == null || StringUtils.isEmpty(uri)) {
+            if (uri == null || uri.isEmpty()) {
                 logger.debug("{} command - channel has no uri: {}", TERM, channel);
                 return;
             }
@@ -2536,7 +2520,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
                     break;
                 }
             }
-        } else if (StringUtils.startsWith(channel.getCategory(), CONTENT)) {
+        } else if (channel.getCategory().startsWith(CONTENT)) {
             switch (channel.getCategory()) {
                 case CN_PARENTURI: {
                     if (command instanceof StringType) {
@@ -2560,7 +2544,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
                 case CN_CMD: {
                     if (command instanceof StringType) {
                         final String cmd = command.toString();
-                        if (StringUtils.equalsIgnoreCase(cmd, "select")) {
+                        if ("select".equalsIgnoreCase(cmd)) {
                             final ContentState state = stateContent.get();
                             setPlayContent(state.getUri(), null);
                         } else {
@@ -2642,7 +2626,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
      * @return a non-null, possibly empty translated output
      */
     private static String getTranslatedOutput(@Nullable String output) {
-        return output == null || StringUtils.equalsIgnoreCase(output, MAINOUTPUT) ? "" : output;
+        return output == null || MAINOUTPUT.equalsIgnoreCase(output) ? "" : output;
     }
 
     /**
@@ -2666,9 +2650,9 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
      * @param command a non-null non-empty command to execute
      */
     private void setPlayingCommand(final String output, final String id, final String command) {
-        Validate.notEmpty(output, "output cannot be empty");
-        Validate.notEmpty(id, "id cannot be empty");
-        Validate.notEmpty(command, "id cannot be empty");
+        SonyUtil.validateNotEmpty(output, "output cannot be empty");
+        SonyUtil.validateNotEmpty(id, "id cannot be empty");
+        SonyUtil.validateNotEmpty(command, "id cannot be empty");
 
         final PlayingState state = statePlaying.get(id);
         final String playingUri = state == null ? "" : state.getUri();
@@ -2783,12 +2767,12 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
      * @param source a non-null, non-empty source
      */
     private void setTerminalSource(final String output, final String source) {
-        Validate.notEmpty(output, "output cannot be empty");
-        Validate.notEmpty(source, "source cannot be empty");
+        SonyUtil.validateNotEmpty(output, "output cannot be empty");
+        SonyUtil.validateNotEmpty(source, "source cannot be empty");
 
         final Optional<Source> src = getSources().stream().filter(s -> s.isMatch(source)).findFirst();
         final String srcUri = src.isPresent() ? src.get().getSource() : null;
-        setPlayContent(StringUtils.defaultIfEmpty(srcUri, source), output);
+        setPlayContent(SonyUtil.defaultIfEmpty(srcUri, source), output);
 
         getContext().getScheduler().execute(() -> {
             stateContent.set(new ContentState(source, "", 0));
@@ -2803,14 +2787,14 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
      * @param on true if playing, false otherwise
      */
     private void setTerminalStatus(final String uri, final boolean on) {
-        Validate.notEmpty(uri, "uri cannot be empty");
+        SonyUtil.validateNotEmpty(uri, "uri cannot be empty");
 
         handleExecute(ScalarWebMethod.SETACTIVETERMINAL,
                 new ActiveTerminal(uri, on ? ActiveTerminal.ACTIVE : ActiveTerminal.INACTIVE));
 
         // Turn off any other channel status
         for (final ScalarWebChannel chnl : getChannelTracker().getLinkedChannelsForCategory(TERM_ACTIVE)) {
-            if (!StringUtils.equalsIgnoreCase(chnl.getPathPart(0), uri)) {
+            if (!uri.equalsIgnoreCase(chnl.getPathPart(0))) {
                 stateChanged(TERM_ACTIVE, chnl.getId(), OnOffType.OFF);
             }
         }
@@ -2837,11 +2821,11 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
      * @param dispName a non-null, non-empty display name
      */
     private void setPlayPresetChannel(final String srcId, final String dispName) {
-        Validate.notEmpty(srcId, "srcId cannot be empty");
-        Validate.notEmpty(dispName, "dispName cannot be empty");
+        SonyUtil.validateNotEmpty(srcId, "srcId cannot be empty");
+        SonyUtil.validateNotEmpty(dispName, "dispName cannot be empty");
 
         processContentList(srcId, res -> {
-            if (StringUtils.equalsIgnoreCase(dispName, res.getDispNum())) {
+            if (dispName.equalsIgnoreCase(res.getDispNum())) {
                 final String uri = res.getUri();
                 if (uri == null) {
                     logger.debug(
@@ -2866,7 +2850,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
 
         for (final ScalarWebChannel chl : channels) {
             final String srcId = chl.getPathPart(0);
-            if (srcId == null || StringUtils.isEmpty(srcId)) {
+            if (srcId == null || srcId.isEmpty()) {
                 logger.debug("{} command - channel has no srcId: {}", PS_CHANNEL, chl);
                 continue;
             }
@@ -2884,11 +2868,11 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
                             final String dispNum = e.getDispNum();
                             Optional<StateOption> si = Optional.empty();
                             if (dispNum != null && !dispNum.isEmpty()) {
-                                si = Optional.of(new StateOption(dispNum, StringUtils.defaultIfEmpty(title, dispNum)));
+                                si = Optional.of(new StateOption(dispNum, SonyUtil.defaultIfEmpty(title, dispNum)));
                             }
                             return si;
                         }).filter(Optional::isPresent).map(Optional::get)
-                                .sorted((a, b) -> ObjectUtils.compare(a.getLabel(), b.getLabel()))
+                                .sorted(Comparator.comparing(a -> SonyUtil.defaultIfEmpty(a.getLabel(), "")))
                                 .collect(Collectors.toList()));
 
                 final StateDescription sd = bld.build().toStateDescription();
@@ -2907,7 +2891,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
      * @param callback a non-null callback to use
      */
     private void processContentList(final String uriOrSource, final ContentListCallback callback) {
-        Validate.notEmpty(uriOrSource, "uriOrSource cannot be empty");
+        SonyUtil.validateNotEmpty(uriOrSource, "uriOrSource cannot be empty");
         Objects.requireNonNull(callback, "callback cannot be null");
 
         Count ct;
@@ -3038,7 +3022,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
      * @return a non-null channel identifier
      */
     private String createChannelId(final String uri, final boolean isInput) {
-        Validate.notEmpty(uri, "uri cannot be empty");
+        SonyUtil.validateNotEmpty(uri, "uri cannot be empty");
 
         // Return the uri if just a word (not really a uri!)
         final int colIdx = uri.indexOf(":");
@@ -3049,9 +3033,9 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
         String scheme = uri.substring(0, colIdx);
         if (isInput) {
             scheme = "";
-        } else if (StringUtils.equalsIgnoreCase("extinput", scheme)) {
+        } else if ("extinput".equalsIgnoreCase(scheme)) {
             scheme = "in-";
-        } else if (StringUtils.equalsIgnoreCase("extoutput", scheme)) {
+        } else if ("extoutput".equalsIgnoreCase(scheme)) {
             scheme = "out-";
         } else {
             scheme = scheme + "-";
@@ -3067,7 +3051,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
         final String query = uri.substring(portNameIdx + 1);
 
         // Handle when there is no query path
-        if (StringUtils.isEmpty(query)) {
+        if (SonyUtil.isEmpty(query)) {
             return SonyUtil.createValidChannelUId(finalScheme + portName);
         }
 
@@ -3080,15 +3064,15 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
 
         String channelId = finalScheme + portName;
 
-        if (StringUtils.isNotEmpty(zoneNbr)) {
+        if (!SonyUtil.isEmpty(zoneNbr)) {
             channelId += zoneNbr;
-        } else if (StringUtils.isNotEmpty(portNbr)) {
+        } else if (!SonyUtil.isEmpty(portNbr)) {
             channelId += portNbr;
         }
 
         // Should only be for CEC - but let's let it ride on all
         final String logAddr = queryParms.get("logicalAddr");
-        if (StringUtils.isNotEmpty(logAddr)) {
+        if (!SonyUtil.isEmpty(logAddr)) {
             channelId += ("-" + logAddr);
         }
 
@@ -3244,9 +3228,9 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
          * @param outputs a possibly null, possibly empty list of outputs
          */
         public InputSource(final String uri, final @Nullable String title, final @Nullable List<String> outputs) {
-            Validate.notEmpty(uri, "uri cannot be empty");
+            SonyUtil.validateNotEmpty(uri, "uri cannot be empty");
             this.uri = uri;
-            this.title = StringUtils.defaultIfEmpty(title, uri);
+            this.title = SonyUtil.defaultIfEmpty(title, uri);
             this.outputs = outputs == null ? new ArrayList<>() : outputs;
         }
 

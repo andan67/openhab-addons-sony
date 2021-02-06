@@ -15,9 +15,9 @@ package org.openhab.binding.sony.internal.dial.models;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.sony.internal.SonyUtil;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamImplicit;
@@ -77,7 +77,7 @@ public class DialService {
      * @return A DialService or null if the XML is not valid
      */
     public static @Nullable DialService get(String xml) {
-        Validate.notEmpty(xml, "xml cannot be empty");
+        SonyUtil.validateNotEmpty(xml, "xml cannot be empty");
         return DialXmlReader.SERVICE.fromXML(xml);
     }
 

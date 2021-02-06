@@ -18,7 +18,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.binding.sony.internal.ThingCallback;
 import org.openhab.binding.sony.internal.scalarweb.ScalarWebChannel;
@@ -51,7 +50,7 @@ class ScalarWebIlluminationProtocol<T extends ThingCallback<String>> extends Abs
      *
      * @param factory the non-null factory to use
      * @param context the non-null context to use
-     * @param service the non-null service to use
+     * @param audioService the non-null service to use
      * @param callback the non-null callback to use
      */
     ScalarWebIlluminationProtocol(final ScalarWebProtocolFactory<T> factory, final ScalarWebContext context,
@@ -90,7 +89,7 @@ class ScalarWebIlluminationProtocol<T extends ThingCallback<String>> extends Abs
         Objects.requireNonNull(channel, "channel cannot be null");
 
         final String ctgy = channel.getCategory();
-        if (StringUtils.equalsIgnoreCase(ctgy, ILLUMINATIONSETTINGS)) {
+        if (ILLUMINATIONSETTINGS.equalsIgnoreCase(ctgy)) {
             refreshGeneralSettings(Collections.singleton(channel), ScalarWebMethod.GETILLUMNATIONSETTING);
         }
     }

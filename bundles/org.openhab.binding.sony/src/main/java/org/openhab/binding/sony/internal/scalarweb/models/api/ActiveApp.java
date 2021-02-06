@@ -12,9 +12,9 @@
  */
 package org.openhab.binding.sony.internal.scalarweb.models.api;
 
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.sony.internal.SonyUtil;
 
 /**
  * This class represents the activate application and is used for serialization only
@@ -37,7 +37,7 @@ public class ActiveApp {
      * @param data the possibly null, possibly empty data
      */
     public ActiveApp(final String uri, final @Nullable String data) {
-        Validate.notEmpty(uri, "uri cannot be empty");
+        SonyUtil.validateNotEmpty(uri, "uri cannot be empty");
         this.uri = uri;
         this.data = data;
     }

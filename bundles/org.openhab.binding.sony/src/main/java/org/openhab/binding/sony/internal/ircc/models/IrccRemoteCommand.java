@@ -14,11 +14,9 @@ package org.openhab.binding.sony.internal.ircc.models;
 
 import java.util.Objects;
 
-import org.apache.commons.lang.NotImplementedException;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.sony.internal.SonyUtil;
 
 import com.thoughtworks.xstream.converters.Converter;
 import com.thoughtworks.xstream.converters.MarshallingContext;
@@ -64,9 +62,9 @@ public class IrccRemoteCommand {
      * @param cmd the non-null, non-empty remote command value
      */
     IrccRemoteCommand(final String name, final String type, final String cmd) {
-        Validate.notEmpty(name, "name cannot be empty");
-        Validate.notEmpty(type, "type cannot be empty");
-        Validate.notEmpty(cmd, "cmd cannot be empty");
+        SonyUtil.validateNotEmpty(name, "name cannot be empty");
+        SonyUtil.validateNotEmpty(type, "type cannot be empty");
+        SonyUtil.validateNotEmpty(cmd, "cmd cannot be empty");
 
         this.name = name;
         this.type = type;
@@ -108,7 +106,7 @@ public class IrccRemoteCommand {
 
     /**
      * The converter used to unmarshal the {@link IrccRemoteCommandConverter}. Please note this should only be used to
-     * unmarshal XML (marshaling will throw a {@link NotImplementedException})
+     * unmarshal XML (marshaling will throw a {@link UnsupportedOperationException})
      *
      * @author Tim Roberts - Initial contribution
      */
@@ -121,7 +119,7 @@ public class IrccRemoteCommand {
         @Override
         public void marshal(final @Nullable Object obj, final @Nullable HierarchicalStreamWriter writer,
                 final @Nullable MarshallingContext context) {
-            throw new NotImplementedException();
+            throw new UnsupportedOperationException();
         }
 
         @Override
@@ -132,17 +130,17 @@ public class IrccRemoteCommand {
             Objects.requireNonNull(context, "context cannot be null");
 
             final String name = reader.getAttribute("name");
-            if (StringUtils.isEmpty(name)) {
+            if (name.isEmpty()) {
                 return null;
             }
 
             final String type = reader.getAttribute("type");
-            if (StringUtils.isEmpty(type)) {
+            if (type.isEmpty()) {
                 return null;
             }
 
             final String value = reader.getAttribute("value");
-            if (StringUtils.isEmpty(value)) {
+            if (value.isEmpty()) {
                 return null;
             }
 

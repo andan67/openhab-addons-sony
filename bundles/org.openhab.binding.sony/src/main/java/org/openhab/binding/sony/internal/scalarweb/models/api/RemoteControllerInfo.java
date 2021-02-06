@@ -17,9 +17,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.sony.internal.SonyUtil;
 import org.openhab.binding.sony.internal.scalarweb.gson.GsonUtilities;
 import org.openhab.binding.sony.internal.scalarweb.models.ScalarWebResult;
 
@@ -90,7 +90,7 @@ public class RemoteControllerInfo {
         if (myBundled == null) {
             throw new JsonParseException("'bundled' was not found or not an boolean");
         }
-        if (StringUtils.isEmpty(myType)) {
+        if (SonyUtil.isEmpty(myType)) {
             throw new JsonParseException("'type' was not found or not an boolean");
         }
 

@@ -12,7 +12,6 @@
  */
 package org.openhab.binding.sony.internal.scalarweb.models.api;
 
-import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 
@@ -75,7 +74,7 @@ public class ApplicationStatusList {
      * @return true, if is on - false otherwise
      */
     public boolean isOn() {
-        return StringUtils.equalsIgnoreCase(ON, status);
+        return ON.equalsIgnoreCase(status);
     }
 
     @Override

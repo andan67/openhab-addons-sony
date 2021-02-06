@@ -12,7 +12,6 @@
  */
 package org.openhab.binding.sony.internal.scalarweb.models.api;
 
-import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 
@@ -50,7 +49,7 @@ public class PowerStatusResult_1_0 {
     }
 
     public boolean isActive() {
-        return StringUtils.equalsIgnoreCase(ACTIVE, status);
+        return ACTIVE.equalsIgnoreCase(status);
     }
 
     @Override

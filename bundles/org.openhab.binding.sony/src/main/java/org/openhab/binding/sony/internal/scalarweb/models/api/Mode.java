@@ -12,9 +12,9 @@
  */
 package org.openhab.binding.sony.internal.scalarweb.models.api;
 
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.sony.internal.SonyUtil;
 
 /**
  * This class represents the request to set/get the current mode and is used for serialization/deserialization only
@@ -39,7 +39,7 @@ public class Mode {
      * @param mode the mode
      */
     public Mode(final String mode) {
-        Validate.notEmpty(mode, "mode cannot be empty");
+        SonyUtil.validateNotEmpty(mode, "mode cannot be empty");
         this.mode = mode;
     }
 

@@ -14,7 +14,6 @@ package org.openhab.binding.sony.internal;
 
 import java.util.Objects;
 
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.openhab.core.thing.ThingStatusDetail;
 
@@ -39,7 +38,7 @@ public class LoginUnsuccessfulResponse {
      */
     public LoginUnsuccessfulResponse(final ThingStatusDetail thingStatusDetail, final String message) {
         Objects.requireNonNull(thingStatusDetail, "thingStatusDetail cannot be null");
-        Validate.notEmpty(message, "message cannot be empty");
+        SonyUtil.validateNotEmpty(message, "message cannot be empty");
 
         this.thingStatusDetail = thingStatusDetail;
         this.message = message;

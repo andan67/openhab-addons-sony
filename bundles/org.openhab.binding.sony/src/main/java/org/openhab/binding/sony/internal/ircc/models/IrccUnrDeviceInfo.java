@@ -12,7 +12,6 @@
  */
 package org.openhab.binding.sony.internal.ircc.models;
 
-import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 
@@ -69,6 +68,6 @@ public class IrccUnrDeviceInfo {
      * @return the version
      */
     public @Nullable String getVersion() {
-        return StringUtils.isEmpty(version) ? NOTSPECIFIED : version;
+        return version != null && version.isEmpty() ? NOTSPECIFIED : version;
     }
 }

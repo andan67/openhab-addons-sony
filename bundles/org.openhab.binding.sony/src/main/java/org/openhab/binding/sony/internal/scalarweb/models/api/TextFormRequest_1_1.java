@@ -12,9 +12,9 @@
  */
 package org.openhab.binding.sony.internal.scalarweb.models.api;
 
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.sony.internal.SonyUtil;
 
 /**
  * This class represents the text form request and is used for serialization only. Note that this class is currently
@@ -44,7 +44,7 @@ public class TextFormRequest_1_1 {
      * @param text the possibly null, possibly empty text
      */
     public TextFormRequest_1_1(final String encKey, final @Nullable String text) {
-        Validate.notEmpty(encKey, "encKey cannot be empty");
+        SonyUtil.validateNotEmpty(encKey, "encKey cannot be empty");
         this.encKey = encKey;
         this.text = text;
     }

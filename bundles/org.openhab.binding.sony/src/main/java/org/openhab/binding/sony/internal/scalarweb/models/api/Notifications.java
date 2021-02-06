@@ -17,10 +17,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.sony.internal.SonyUtil;
 
 /**
  * This class represents all the notifications and whether they are enabled or disabled
@@ -84,11 +83,10 @@ public class Notifications {
      * @return true if enabled, false otherwise
      */
     public boolean isEnabled(final String name) {
-        Validate.notEmpty(name, "name cannot be empty");
+        SonyUtil.validateNotEmpty(name, "name cannot be empty");
 
         final List<Notification> localEnabled = enabled;
-        return localEnabled != null
-                && localEnabled.stream().anyMatch(e -> StringUtils.equalsIgnoreCase(name, e.getName()));
+        return localEnabled != null && localEnabled.stream().anyMatch(e -> name.equalsIgnoreCase(e.getName()));
     }
 
     @Override

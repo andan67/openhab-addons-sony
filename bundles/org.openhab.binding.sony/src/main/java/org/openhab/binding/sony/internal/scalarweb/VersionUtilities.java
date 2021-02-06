@@ -12,10 +12,9 @@
  */
 package org.openhab.binding.sony.internal.scalarweb;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.sony.internal.SonyUtil;
 
 /**
  * This utility class provides utility functions for method versions (which are all strings). Versions are typically
@@ -32,7 +31,7 @@ public class VersionUtilities {
      * @return a double representing the version or 1.0 if the version cannot be parsed
      */
     public static double parse(final String version) {
-        Validate.notEmpty(version, "version cannot be empty");
+        SonyUtil.validateNotEmpty(version, "version cannot be empty");
         try {
             return Double.parseDouble(version);
         } catch (final NumberFormatException e) {
@@ -48,11 +47,11 @@ public class VersionUtilities {
      * @return true if the version equals any version in the list or false otherwise
      */
     public static boolean equals(final @Nullable String version, final String... otherVersion) {
-        if (version == null || StringUtils.isEmpty(version)) {
+        if (version == null || version.isEmpty()) {
             return false;
         }
         for (final String v : otherVersion) {
-            if (StringUtils.equalsIgnoreCase(version, v)) {
+            if (version.equalsIgnoreCase(v)) {
                 return true;
             }
         }

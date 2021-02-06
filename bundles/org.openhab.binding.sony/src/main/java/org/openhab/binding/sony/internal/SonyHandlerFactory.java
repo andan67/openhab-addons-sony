@@ -1,13 +1,13 @@
 /**
  * Copyright (c) 2010-2020 Contributors to the openHAB project
- * <p>
+ *
  * See the NOTICE file(s) distributed with this work for additional
  * information.
- * <p>
+ *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License 2.0 which is available at
  * http://www.eclipse.org/legal/epl-2.0
- * <p>
+ *
  * SPDX-License-Identifier: EPL-2.0
  */
 package org.openhab.binding.sony.internal;
@@ -17,7 +17,6 @@ import java.util.Objects;
 
 import javax.ws.rs.client.ClientBuilder;
 
-import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.websocket.client.WebSocketClient;
@@ -98,7 +97,6 @@ public class SonyHandlerFactory extends BaseThingHandlerFactory {
         Objects.requireNonNull(sonyDefinitionProvider, "sonyDefinitionProvider cannot be null");
         Objects.requireNonNull(sonyDynamicStateProvider, "sonyDynamicStateProvider cannot be null");
         Objects.requireNonNull(osgiProperties, "osgiProperties cannot be null");
-        logger.info(" SonyHandlerFactory");
         this.webSocketClient = webSocketFactory.getCommonWebSocketClient();
         this.sonyDefinitionProvider = sonyDefinitionProvider;
         this.sonyDynamicStateProvider = sonyDynamicStateProvider;
@@ -108,9 +106,8 @@ public class SonyHandlerFactory extends BaseThingHandlerFactory {
 
     @Override
     public boolean supportsThingType(final ThingTypeUID thingTypeUID) {
-        logger.info("supportsThingType");
         Objects.requireNonNull(thingTypeUID, "thingTypeUID cannot be null");
-        return StringUtils.equalsIgnoreCase(SonyBindingConstants.BINDING_ID, thingTypeUID.getBindingId());
+        return SonyBindingConstants.BINDING_ID.equalsIgnoreCase(thingTypeUID.getBindingId());
     }
 
     @Override
@@ -118,7 +115,6 @@ public class SonyHandlerFactory extends BaseThingHandlerFactory {
         Objects.requireNonNull(thing, "thing cannot be null");
 
         final ThingTypeUID thingTypeUID = thing.getThingTypeUID();
-        logger.info("thingTypeUID.getId(): " + thingTypeUID.getId());
         if (thingTypeUID.equals(SimpleIpConstants.THING_TYPE_SIMPLEIP)) {
             final TransformationService transformationService = TransformationHelper
                     .getTransformationService(getBundleContext(), "MAP");
@@ -130,13 +126,11 @@ public class SonyHandlerFactory extends BaseThingHandlerFactory {
         } else if (thingTypeUID.equals(DialConstants.THING_TYPE_DIAL)) {
             return new DialHandler(thing, clientBuilder);
         } else if (thingTypeUID.getId().startsWith(SonyBindingConstants.SCALAR_THING_TYPE_PREFIX)) {
-            logger.info("thingTypeUID.getId(): " + thingTypeUID.getId());
             final TransformationService transformationService = TransformationHelper
                     .getTransformationService(getBundleContext(), "MAP");
 
             ThingHandler th = new ScalarWebHandler(thing, transformationService, webSocketClient,
                     sonyDefinitionProvider, sonyDynamicStateProvider, osgiProperties, clientBuilder);
-            logger.info("th: " + th);
             return th;
             // return new ScalarWebHandler(thing, transformationService, webSocketClient, sonyDefinitionProvider,
             // sonyDynamicStateProvider, osgiProperties, clientBuilder);

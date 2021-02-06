@@ -15,8 +15,8 @@ package org.openhab.binding.sony.internal.scalarweb.models;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.openhab.binding.sony.internal.SonyUtil;
 
 /**
  * This class represents a web scalar method request
@@ -61,8 +61,8 @@ public class ScalarWebRequest {
      * @param params the non-null, possibly empty list of parameters
      */
     public ScalarWebRequest(final String method, final String version, final Object... params) {
-        Validate.notEmpty(method, "method cannot be empty");
-        Validate.notEmpty(version, "version cannot be empty");
+        SonyUtil.validateNotEmpty(method, "method cannot be empty");
+        SonyUtil.validateNotEmpty(version, "version cannot be empty");
         Objects.requireNonNull(params, "params cannot be null");
 
         this.id = REQUESTID.incrementAndGet();

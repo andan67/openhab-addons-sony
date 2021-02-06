@@ -12,8 +12,8 @@
  */
 package org.openhab.binding.sony.internal.scalarweb.models.api;
 
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.openhab.binding.sony.internal.SonyUtil;
 
 /**
  * This class represents the request to set a language and is used for serialization only
@@ -32,7 +32,7 @@ public class Language {
      * @param language the non-null non-empty language
      */
     public Language(final String language) {
-        Validate.notEmpty(language, "language cannot be empty");
+        SonyUtil.validateNotEmpty(language, "language cannot be empty");
         this.language = language;
     }
 

@@ -17,7 +17,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.sony.internal.scalarweb.models.api.SupportedApiInfo;
 import org.openhab.binding.sony.internal.scalarweb.models.api.SupportedApiVersionInfo;
@@ -51,7 +50,7 @@ public class SupportedApiInfoDeserializer implements JsonDeserializer<SupportedA
             }
 
             final String name = jo.get("name").getAsString();
-            if (name == null || StringUtils.isEmpty(name)) {
+            if (name == null || name.isEmpty()) {
                 throw new JsonParseException("name element was empty and is required");
             }
 

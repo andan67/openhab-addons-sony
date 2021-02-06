@@ -14,10 +14,9 @@ package org.openhab.binding.sony.internal.ircc.models;
 
 import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.sony.internal.SonyUtil;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamAsAttribute;
@@ -86,12 +85,12 @@ public class IrccStatus {
      * @return the possibly null value for the field
      */
     public @Nullable String getItemValue(final String name) {
-        Validate.notEmpty(name, "name cannot be empty");
+        SonyUtil.validateNotEmpty(name, "name cannot be empty");
 
         final List<@Nullable IrccStatusItem> localItems = items;
         if (localItems != null) {
             for (final IrccStatusItem item : localItems) {
-                if (item != null && StringUtils.equalsIgnoreCase(name, item.getField())) {
+                if (item != null && name.equalsIgnoreCase(item.getField())) {
                     return item.getValue();
                 }
             }

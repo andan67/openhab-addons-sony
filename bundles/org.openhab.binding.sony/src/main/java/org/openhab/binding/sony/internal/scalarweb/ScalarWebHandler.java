@@ -26,7 +26,6 @@ import java.util.stream.Collectors;
 import javax.ws.rs.client.ClientBuilder;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.websocket.client.WebSocketClient;
@@ -183,13 +182,13 @@ public class ScalarWebHandler extends AbstractThingHandler<ScalarWebConfig> {
             public void setProperty(final String propertyName, final @Nullable String propertyValue) {
                 // change meaning of null propertyvalue
                 // setProperty says remove - here we are ignoring
-                if (propertyValue != null && StringUtils.isNotEmpty(propertyValue)) {
+                if (propertyValue != null && !propertyValue.isEmpty()) {
                     getThing().setProperty(propertyName, propertyValue);
                 }
 
                 // Update the discovered model name if found
-                if (StringUtils.equals(propertyName, ScalarWebConstants.PROP_MODEL) && propertyValue != null
-                        && StringUtils.isNotEmpty(propertyValue)) {
+                if (propertyName.equals(ScalarWebConstants.PROP_MODEL) && propertyValue != null
+                        && !propertyValue.isEmpty()) {
                     final ScalarWebConfig swConfig = getSonyConfig();
                     swConfig.setDiscoveredModelName(propertyValue);
 
@@ -259,7 +258,7 @@ public class ScalarWebHandler extends AbstractThingHandler<ScalarWebConfig> {
         final ScalarWebConfig config = getSonyConfig();
 
         final String scalarWebUrl = config.getDeviceAddress();
-        if (scalarWebUrl == null || StringUtils.isEmpty(scalarWebUrl)) {
+        if (scalarWebUrl == null || scalarWebUrl.isEmpty()) {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR,
                     "ScalarWeb URL is missing from configuration");
             return;
@@ -298,7 +297,7 @@ public class ScalarWebHandler extends AbstractThingHandler<ScalarWebConfig> {
 
                 // Add a listener for model updates
                 final String modelName = getModelName();
-                if (modelName != null && StringUtils.isNotEmpty(modelName)) {
+                if (modelName != null && !modelName.isEmpty()) {
                     sonyDefinitionProvider.removeListener(definitionListener);
                     sonyDefinitionProvider.addListener(modelName, getThing().getThingTypeUID(), definitionListener);
                 }
@@ -377,14 +376,12 @@ public class ScalarWebHandler extends AbstractThingHandler<ScalarWebConfig> {
      */
     private @Nullable String getModelName() {
         final String modelName = getSonyConfig().getModelName();
-        if (modelName != null && StringUtils.isNotEmpty(modelName) && SonyUtil.isValidModelName(modelName)) {
+        if (modelName != null && !modelName.isEmpty() && SonyUtil.isValidModelName(modelName)) {
             return modelName;
         }
 
         final String thingLabel = thing.getLabel();
-        return thingLabel != null && StringUtils.isNotEmpty(thingLabel) && SonyUtil.isValidModelName(thingLabel)
-                ? thingLabel
-                : null;
+        return thingLabel != null && !thingLabel.isEmpty() && SonyUtil.isValidModelName(thingLabel) ? thingLabel : null;
     }
 
     /**
@@ -396,7 +393,7 @@ public class ScalarWebHandler extends AbstractThingHandler<ScalarWebConfig> {
         Objects.requireNonNull(client, "client cannot be null");
 
         final String modelName = getModelName();
-        if (modelName == null || StringUtils.isEmpty(modelName)) {
+        if (modelName == null || modelName.isEmpty()) {
             logger.debug("Could not write device capabilities file - model name was missing from properties");
         } else {
             final URL baseUrl = client.getDevice().getBaseUrl();
@@ -420,14 +417,14 @@ public class ScalarWebHandler extends AbstractThingHandler<ScalarWebConfig> {
      */
     private void writeThingDefinition() {
         final String modelName = getModelName();
-        if (modelName == null || StringUtils.isEmpty(modelName)) {
+        if (modelName == null || modelName.isEmpty()) {
             logger.debug("Could not write thing type file - model name was missing from properties");
         } else {
             // Only write things that are state channels, have a valid channel type and are not
             // from the app control service (which is too dynamic - what apps are installed)
             final Predicate<Channel> chlFilter = chl -> chl.getKind() == ChannelKind.STATE
                     && chl.getChannelTypeUID() != null
-                    && !StringUtils.equalsIgnoreCase(chl.getUID().getGroupId(), ScalarWebService.APPCONTROL);
+                    && !ScalarWebService.APPCONTROL.equalsIgnoreCase(chl.getUID().getGroupId());
 
             logger.debug("Writing thing definition: {}", modelName);
             sonyDefinitionProvider.writeThing(SonyBindingConstants.SCALAR_THING_TYPE_PREFIX, ScalarWebConstants.CFG_URI,
@@ -493,9 +490,8 @@ public class ScalarWebHandler extends AbstractThingHandler<ScalarWebConfig> {
             // if we are resetting back to the generic version
             // or if we matched our model (going from generic to specific or updating to a new version of specific)
             // then change our thing type
-            if (ScalarWebConstants.THING_TYPE_SCALAR.equals(uid)
-                    || (modelName != null && StringUtils.isNotEmpty(modelName)
-                            && SonyUtil.isModelMatch(uid, SonyBindingConstants.SCALAR_THING_TYPE_PREFIX, modelName))) {
+            if (ScalarWebConstants.THING_TYPE_SCALAR.equals(uid) || (modelName != null && !modelName.isEmpty()
+                    && SonyUtil.isModelMatch(uid, SonyBindingConstants.SCALAR_THING_TYPE_PREFIX, modelName))) {
                 changeThingType(uid, getConfig());
             }
         }

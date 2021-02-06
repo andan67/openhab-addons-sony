@@ -16,9 +16,9 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.regex.Pattern;
 
-import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.sony.internal.SonyUtil;
 
 /**
  * This class represents the source identifier and is used for deserialization only
@@ -147,7 +147,7 @@ public class Source {
      */
     public boolean isMatch(final String name) {
         Objects.requireNonNull(name, "name cannot be null");
-        return StringUtils.equalsIgnoreCase(name, title) || StringUtils.equalsIgnoreCase(name, source);
+        return name.equalsIgnoreCase(title) || name.equalsIgnoreCase(source);
     }
 
     /**
@@ -157,7 +157,7 @@ public class Source {
      * @return the scheme part or null if not found
      */
     public static @Nullable String getSchemePart(final @Nullable String uri) {
-        if (uri == null || StringUtils.isEmpty(uri)) {
+        if (uri == null || uri.isEmpty()) {
             return null;
         }
 
@@ -172,7 +172,7 @@ public class Source {
      * @return the source part or null if not found
      */
     public static @Nullable String getSourcePart(final @Nullable String uri) {
-        if (uri == null || StringUtils.isEmpty(uri)) {
+        if (uri == null || uri.isEmpty()) {
             return null;
         }
 
@@ -197,7 +197,7 @@ public class Source {
         if (getClass() != obj.getClass()) {
             return false;
         }
-        return StringUtils.equals(source, ((Source) obj).source);
+        return SonyUtil.equals(source, ((Source) obj).source);
     }
 
     @Override

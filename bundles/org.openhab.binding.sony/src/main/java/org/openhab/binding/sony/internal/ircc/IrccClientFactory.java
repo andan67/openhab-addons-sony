@@ -22,10 +22,9 @@ import java.util.Objects;
 
 import javax.ws.rs.client.ClientBuilder;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jetty.http.HttpStatus;
+import org.openhab.binding.sony.internal.SonyUtil;
 import org.openhab.binding.sony.internal.ircc.models.IrccActionList;
 import org.openhab.binding.sony.internal.ircc.models.IrccClient;
 import org.openhab.binding.sony.internal.ircc.models.IrccCodeList;
@@ -73,7 +72,7 @@ public class IrccClientFactory {
      */
     public static IrccClient get(final String irccUrl, final ClientBuilder clientBuilder)
             throws IOException, URISyntaxException {
-        Validate.notEmpty(irccUrl, "irccUrl cannot be empty");
+        SonyUtil.validateNotEmpty(irccUrl, "irccUrl cannot be empty");
         return get(new URL(irccUrl), clientBuilder);
     }
 
@@ -90,7 +89,7 @@ public class IrccClientFactory {
 
         final Logger logger = LoggerFactory.getLogger(IrccClientFactory.class);
 
-        if (StringUtils.isEmpty(irccUrl.getPath())) {
+        if (irccUrl.getPath().isEmpty()) {
             return getDefaultClient(irccUrl, logger, clientBuilder);
         } else {
             try {
@@ -156,7 +155,7 @@ public class IrccClientFactory {
                 }
             }
 
-            if (irccScpdResponse != null && StringUtils.isNotEmpty(irccScpdResponse)) {
+            if (irccScpdResponse != null && !irccScpdResponse.isEmpty()) {
                 logger.debug("Default IRCC client using SCPD: {}", irccScpdResponse);
                 final UpnpScpd scpd = UpnpXmlReader.SCPD.fromXML(irccScpdResponse);
                 if (scpd != null) {
@@ -219,7 +218,7 @@ public class IrccClientFactory {
             for (final UpnpService service : irccDevice.getServices()) {
                 final String serviceId = service.getServiceId();
 
-                if (serviceId == null || StringUtils.isEmpty(serviceId)) {
+                if (serviceId == null || serviceId.isEmpty()) {
                     logger.debug("Querying IRCC client {} and found a service with no service id - ignoring: {}",
                             irccUrl, service);
                     continue;
@@ -264,7 +263,7 @@ public class IrccClientFactory {
             IrccSystemInformation sysInfo;
 
             // If empty - likely version 1.0 or 1.1
-            if (actionsUrl == null || StringUtils.isEmpty(actionsUrl)) {
+            if (actionsUrl == null || actionsUrl.isEmpty()) {
                 logger.debug("Querying IRCC client {} and found no actionsUrl - generating default", irccUrl);
                 actionsList = new IrccActionList();
                 sysInfo = new IrccSystemInformation();
@@ -287,7 +286,7 @@ public class IrccClientFactory {
                 }
 
                 final String sysUrl = actionsList.getUrlForAction(IrccClient.AN_GETSYSTEMINFORMATION);
-                if (sysUrl == null || StringUtils.isEmpty(sysUrl)) {
+                if (sysUrl == null || sysUrl.isEmpty()) {
                     logger.debug("Querying IRCC client {} but found no system information actions URL: {} - defaulting",
                             irccUrl, actionsList);
                     sysInfo = new IrccSystemInformation();
@@ -317,7 +316,7 @@ public class IrccClientFactory {
 
             final IrccCodeList codeList = irccDevice.getCodeList();
             final String remoteCommandsUrl = actionsList.getUrlForAction(IrccClient.AN_GETREMOTECOMMANDLIST);
-            if (remoteCommandsUrl == null || StringUtils.isEmpty(remoteCommandsUrl)) {
+            if (remoteCommandsUrl == null || remoteCommandsUrl.isEmpty()) {
                 logger.debug("Querying IRCC client {} and found no remote commands - using default code list", irccUrl);
                 remoteCommands = new IrccRemoteCommands().withCodeList(codeList);
             } else {

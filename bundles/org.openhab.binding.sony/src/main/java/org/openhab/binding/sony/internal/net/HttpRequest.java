@@ -29,10 +29,9 @@ import javax.ws.rs.client.Invocation.Builder;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jetty.http.HttpStatus;
-import org.glassfish.jersey.filter.LoggingFilter;
+import org.openhab.binding.sony.internal.SonyUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,7 +69,7 @@ public class HttpRequest implements AutoCloseable {
         // client = ClientBuilder.newClient().property(CONNECT_TIMEOUT, 15000).property(READ_TIMEOUT, 15000);
         client = clientBuilder.connectTimeout(15, TimeUnit.SECONDS).readTimeout(15, TimeUnit.SECONDS).build();
         if (logger.isDebugEnabled()) {
-            client.register(new LoggingFilter(new Slf4LoggingAdapter(logger), true));
+            // client.register(new LoggingFilter(new Slf4LoggingAdapter(logger), true));
         }
     }
 
@@ -92,7 +91,7 @@ public class HttpRequest implements AutoCloseable {
      * @return the non-null http response
      */
     public HttpResponse sendGetCommand(final String url, final Header... rqstHeaders) {
-        Validate.notEmpty(url, "url cannot be empty");
+        SonyUtil.validateNotEmpty(url, "url cannot be empty");
         try {
             final Builder rqst = addHeaders(client.target(url).request(), rqstHeaders);
             final Response content = rqst.get();
@@ -117,7 +116,7 @@ public class HttpRequest implements AutoCloseable {
      * @return the non-null http response
      */
     public HttpResponse sendPostXmlCommand(final String url, final String body, final Header... rqstHeaders) {
-        Validate.notEmpty(url, "url cannot be empty");
+        SonyUtil.validateNotEmpty(url, "url cannot be empty");
         Objects.requireNonNull(body, "body cannot be null");
 
         return sendPostCommand(url, body, MediaType.TEXT_XML + ";charset=utf-8", rqstHeaders);
@@ -132,7 +131,7 @@ public class HttpRequest implements AutoCloseable {
      * @return the non-null http response
      */
     public HttpResponse sendPostJsonCommand(final String url, final String body, final Header... rqstHeaders) {
-        Validate.notEmpty(url, "url cannot be empty");
+        SonyUtil.validateNotEmpty(url, "url cannot be empty");
         Objects.requireNonNull(body, "body cannot be null");
 
         return sendPostCommand(url, body, MediaType.APPLICATION_JSON, rqstHeaders);
@@ -149,9 +148,9 @@ public class HttpRequest implements AutoCloseable {
      */
     private HttpResponse sendPostCommand(final String url, final String body, final String mediaType,
             final Header... rqstHeaders) {
-        Validate.notEmpty(url, "url cannot be empty");
+        SonyUtil.validateNotEmpty(url, "url cannot be empty");
         Objects.requireNonNull(body, "body cannot be null");
-        Validate.notEmpty(mediaType, "mediaType cannot be empty");
+        SonyUtil.validateNotEmpty(mediaType, "mediaType cannot be empty");
 
         try {
             final Builder rqst = addHeaders(client.target(url).request(mediaType), rqstHeaders);
@@ -176,7 +175,7 @@ public class HttpRequest implements AutoCloseable {
      * @return the non-null http response
      */
     public HttpResponse sendDeleteCommand(final String url, final Header... rqstHeaders) {
-        Validate.notEmpty(url, "url cannot be empty");
+        SonyUtil.validateNotEmpty(url, "url cannot be empty");
         try {
             final Builder rqst = addHeaders(client.target(url).request(), rqstHeaders);
             final Response content = rqst.delete();
@@ -230,8 +229,8 @@ public class HttpRequest implements AutoCloseable {
      * @param value the non-null, non-empty value
      */
     public void addHeader(final String name, final String value) {
-        Validate.notEmpty(name, "name cannot be empty");
-        Validate.notEmpty(value, "value cannot be empty");
+        SonyUtil.validateNotEmpty(name, "name cannot be empty");
+        SonyUtil.validateNotEmpty(value, "value cannot be empty");
 
         headers.put(name, value);
     }

@@ -12,9 +12,9 @@
  */
 package org.openhab.binding.sony.internal.scalarweb.service;
 
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.sony.internal.SonyUtil;
 
 /**
  * The class represents the results of the requested command and will be serialized back to the webpage
@@ -38,7 +38,7 @@ public class CommandResponse {
      * @param results a non-null, non-empty results string
      */
     public CommandResponse(String results) {
-        Validate.notEmpty(results, "results cannot be empty");
+        SonyUtil.validateNotEmpty(results, "results cannot be empty");
         this.success = true;
         this.message = null;
         this.results = results;
@@ -51,7 +51,7 @@ public class CommandResponse {
      * @param message a non-null, non-empty message
      */
     public CommandResponse(boolean success, String message) {
-        Validate.notEmpty(message, "message cannot be empty");
+        SonyUtil.validateNotEmpty(message, "message cannot be empty");
         this.success = success;
         this.message = message;
         this.results = null;

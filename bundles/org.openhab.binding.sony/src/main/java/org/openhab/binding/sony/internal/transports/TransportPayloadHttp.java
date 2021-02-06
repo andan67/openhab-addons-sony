@@ -12,9 +12,9 @@
  */
 package org.openhab.binding.sony.internal.transports;
 
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.sony.internal.SonyUtil;
 
 /**
  * This class represents an HTTP payload. An HTTP payload includes both the URL address to send something to and
@@ -46,7 +46,7 @@ public class TransportPayloadHttp implements TransportPayload {
      * @param body a possibly null, possibly empty body
      */
     public TransportPayloadHttp(final String url, final @Nullable String body) {
-        Validate.notEmpty(url, "url cannot be empty");
+        SonyUtil.validateNotEmpty(url, "url cannot be empty");
         this.url = url;
         this.body = body == null ? "" : body; // convert null to empty
     }

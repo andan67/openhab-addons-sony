@@ -12,9 +12,9 @@
  */
 package org.openhab.binding.sony.internal.scalarweb.models.api;
 
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.sony.internal.SonyUtil;
 
 /**
  * This class represents the request to set the picture-in-picture (PIP) location and is used for
@@ -39,7 +39,7 @@ public class Position {
      * @param position the non-null, non-empty position
      */
     public Position(final String position) {
-        Validate.notEmpty(position, "position cannot be empty");
+        SonyUtil.validateNotEmpty(position, "position cannot be empty");
         this.position = position;
     }
 

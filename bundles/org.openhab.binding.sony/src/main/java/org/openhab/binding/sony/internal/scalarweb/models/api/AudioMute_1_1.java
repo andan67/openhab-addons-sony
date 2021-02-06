@@ -14,8 +14,8 @@ package org.openhab.binding.sony.internal.scalarweb.models.api;
 
 import java.util.Objects;
 
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.openhab.binding.sony.internal.SonyUtil;
 
 /**
  * This class represents whether the audio is muted or not and is used for serialzation
@@ -43,7 +43,7 @@ public class AudioMute_1_1 {
      * Instantiates a new audio mute.
      *
      * @param output the non-null, non-empty output
-     * @param mute the status
+     * @param muted the status
      */
     public AudioMute_1_1(final String output, final boolean muted) {
         this(output, muted ? MUTEON : MUTEOFF);
@@ -57,7 +57,7 @@ public class AudioMute_1_1 {
      */
     public AudioMute_1_1(final String output, final String mute) {
         Objects.requireNonNull(output, "output cannot be empty");
-        Validate.notEmpty(mute, "mute cannot be empty");
+        SonyUtil.validateNotEmpty(mute, "mute cannot be empty");
 
         this.output = output;
         this.mute = mute;

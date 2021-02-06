@@ -14,10 +14,9 @@ package org.openhab.binding.sony.internal.ircc.models;
 
 import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.sony.internal.SonyUtil;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import com.thoughtworks.xstream.annotations.XStreamImplicit;
@@ -104,7 +103,7 @@ public class IrccContentInformation {
      * @return a {@link IrccContentInformation} or null if not valid
      */
     public static @Nullable IrccContentInformation get(final String xml) {
-        Validate.notEmpty(xml, "xml cannot be null");
+        SonyUtil.validateNotEmpty(xml, "xml cannot be null");
         return IrccXmlReader.CONTENTINFO.fromXML(xml);
     }
 
@@ -116,7 +115,7 @@ public class IrccContentInformation {
      * @return the value (possibly comma delimited) for the name or null if none found.
      */
     public @Nullable String getInfoItemValue(final String name) {
-        Validate.notEmpty(name, "name cannot be empty");
+        SonyUtil.validateNotEmpty(name, "name cannot be empty");
         final List<@Nullable IrccInfoItem> ii = infoItems;
         if (ii == null) {
             return null;
@@ -124,7 +123,7 @@ public class IrccContentInformation {
 
         final StringBuilder b = new StringBuilder();
         for (final IrccInfoItem i : ii) {
-            if (i != null && StringUtils.equalsIgnoreCase(name, i.getName())) {
+            if (i != null && name.equalsIgnoreCase(i.getName())) {
                 b.append(i.getValue());
                 b.append(", ");
             }

@@ -29,12 +29,10 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.http.HttpStatus;
+import org.openhab.binding.sony.internal.SonyUtil;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -90,7 +88,7 @@ public class HttpResponse {
 
         if (response.hasEntity()) {
             final InputStream is = response.readEntity(InputStream.class);
-            contents = IOUtils.toByteArray(is);
+            contents = is.readAllBytes();
         } else {
             contents = null;
         }
@@ -131,7 +129,7 @@ public class HttpResponse {
      * @return the response header or null if none
      */
     public @Nullable String getResponseHeader(final String headerName) {
-        Validate.notEmpty(headerName, "headerName cannot be empty");
+        SonyUtil.validateNotEmpty(headerName, "headerName cannot be empty");
         return headers.get(headerName);
     }
 
@@ -186,7 +184,7 @@ public class HttpResponse {
         final DocumentBuilder builder = factory.newDocumentBuilder();
 
         final String content = getContent();
-        if (StringUtils.isEmpty(content)) {
+        if (content.isEmpty()) {
             return builder.newDocument();
         }
 
@@ -198,11 +196,10 @@ public class HttpResponse {
      * A poor mans attempt to parse out the error code/error description from a SOAP response (don't need the full SOAP
      * stack)
      *
-     * @param xml a possibly null, possibly empty XML to parse
      * @return a SOAPError if found, null otherwise
      */
     public @Nullable SOAPError getSOAPError() {
-        if (StringUtils.isEmpty(httpReason)) {
+        if (httpReason != null && httpReason.isEmpty()) {
             return null;
         }
 
@@ -211,7 +208,7 @@ public class HttpResponse {
             final String code = m.group(1);
             final String desc = m.group(2);
 
-            if (StringUtils.isNotEmpty(code) && StringUtils.isNotEmpty(desc)) {
+            if (!code.isEmpty() && !desc.isEmpty()) {
                 return new SOAPError(code, desc);
             }
         }
@@ -220,7 +217,7 @@ public class HttpResponse {
             final String code = m2.group(1);
             final String desc = m2.group(2);
 
-            if (StringUtils.isNotEmpty(code) && StringUtils.isNotEmpty(desc)) {
+            if (!code.isEmpty() && !desc.isEmpty()) {
                 return new SOAPError(code, desc);
             }
         }
@@ -234,7 +231,7 @@ public class HttpResponse {
      * @return a possibly null URI associated with the relation
      */
     public @Nullable URI getLink(final String rel) {
-        Validate.notEmpty(rel, "rel cannot be empty");
+        SonyUtil.validateNotEmpty(rel, "rel cannot be empty");
         return links == null ? null : links.get(rel);
     }
 
@@ -269,8 +266,8 @@ public class HttpResponse {
          * @param soapDescription the non-null, non-empty SOAP error description
          */
         private SOAPError(final String soapCode, final String soapDescription) {
-            Validate.notEmpty(soapCode, "soapCode cannot be empty");
-            Validate.notEmpty(soapDescription, "soapDescription cannot be empty");
+            SonyUtil.validateNotEmpty(soapCode, "soapCode cannot be empty");
+            SonyUtil.validateNotEmpty(soapDescription, "soapDescription cannot be empty");
             this.soapCode = soapCode;
             this.soapDescription = soapDescription;
         }

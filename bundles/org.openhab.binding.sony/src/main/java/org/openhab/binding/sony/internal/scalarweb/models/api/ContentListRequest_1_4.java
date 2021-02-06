@@ -12,9 +12,9 @@
  */
 package org.openhab.binding.sony.internal.scalarweb.models.api;
 
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.sony.internal.SonyUtil;
 
 /**
  * This class represents a content list request and is used for serialization only
@@ -49,7 +49,7 @@ public class ContentListRequest_1_4 {
      * @param cnt the total count (>= 0)
      */
     public ContentListRequest_1_4(final String uri, final int stIdx, final int cnt) {
-        Validate.notEmpty(uri, "uri cannot be empty");
+        SonyUtil.validateNotEmpty(uri, "uri cannot be empty");
         if (stIdx < -1) {
             throw new IllegalArgumentException("stIdx cannot be < 0: " + stIdx);
         }

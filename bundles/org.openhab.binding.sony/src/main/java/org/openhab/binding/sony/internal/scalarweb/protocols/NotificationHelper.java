@@ -17,9 +17,8 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.openhab.binding.sony.internal.SonyUtil;
 import org.openhab.binding.sony.internal.scalarweb.models.api.Notifications;
 
 /**
@@ -42,7 +41,7 @@ public class NotificationHelper {
 
         final Set<String> names = new HashSet<>();
         notifications.getEnabled().stream().map(e -> e.getName()).forEach(e -> {
-            if (e != null && StringUtils.isNotEmpty(e)) {
+            if (e != null && !e.isEmpty()) {
                 names.add(e);
             }
         });
@@ -57,7 +56,7 @@ public class NotificationHelper {
      * @return true if enabled, false otherwise
      */
     public boolean isEnabled(final String name) {
-        Validate.notEmpty(name, "name cannot be empty");
+        SonyUtil.validateNotEmpty(name, "name cannot be empty");
 
         return notificationNames.contains(name);
     }

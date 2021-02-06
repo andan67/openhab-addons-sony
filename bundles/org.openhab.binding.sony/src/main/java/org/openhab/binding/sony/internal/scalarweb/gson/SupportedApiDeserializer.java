@@ -19,7 +19,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.sony.internal.scalarweb.models.ScalarWebResult;
 import org.openhab.binding.sony.internal.scalarweb.models.api.SupportedApi;
@@ -59,7 +58,7 @@ public class SupportedApiDeserializer implements JsonDeserializer<SupportedApi> 
             }
 
             final String service = jo.get("service").getAsString();
-            if (service == null || StringUtils.isEmpty(service)) {
+            if (service == null || service.isEmpty()) {
                 throw new JsonParseException("service element was empty and is required");
             }
 
@@ -72,7 +71,7 @@ public class SupportedApiDeserializer implements JsonDeserializer<SupportedApi> 
             for (final JsonElement elm : protElm.getAsJsonArray()) {
                 final String proto = elm.getAsString();
                 // ignore empty/null elements
-                if (proto != null && StringUtils.isNotEmpty(proto)) {
+                if (proto != null && !proto.isEmpty()) {
                     protocols.add(proto);
                 }
             }

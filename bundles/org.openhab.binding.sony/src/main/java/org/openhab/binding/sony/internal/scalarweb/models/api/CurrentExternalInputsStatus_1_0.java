@@ -12,10 +12,9 @@
  */
 package org.openhab.binding.sony.internal.scalarweb.models.api;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.sony.internal.SonyUtil;
 
 /**
  * This class represents a current external input status
@@ -71,10 +70,10 @@ public class CurrentExternalInputsStatus_1_0 {
      * @return a non-null, non-empty title
      */
     public String getTitle(final String defaultValue) {
-        Validate.notEmpty(defaultValue, "defaultValue cannot be empty");
+        SonyUtil.validateNotEmpty(defaultValue, "defaultValue cannot be empty");
 
-        final String titleOrLabel = StringUtils.defaultIfEmpty(title, label);
-        return StringUtils.defaultIfEmpty(titleOrLabel, defaultValue);
+        final String titleOrLabel = SonyUtil.defaultIfEmpty(title, label == null ? "" : label);
+        return SonyUtil.defaultIfEmpty(titleOrLabel, defaultValue);
     }
 
     /**

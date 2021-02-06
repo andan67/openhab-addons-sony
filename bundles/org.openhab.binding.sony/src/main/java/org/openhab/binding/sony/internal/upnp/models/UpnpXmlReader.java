@@ -14,9 +14,9 @@ package org.openhab.binding.sony.internal.upnp.models;
 
 import java.util.Objects;
 
-import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.sony.internal.SonyUtil;
 
 import com.thoughtworks.xstream.XStream;
 import com.thoughtworks.xstream.io.xml.StaxDriver;
@@ -60,7 +60,7 @@ public class UpnpXmlReader<T> {
      */
     @SuppressWarnings("unchecked")
     public @Nullable T fromXML(final String xml) {
-        if (StringUtils.isNotEmpty(xml)) {
+        if (!SonyUtil.isEmpty(xml)) {
             return (T) this.xstream.fromXML(xml);
         }
 

@@ -32,7 +32,6 @@ import java.util.Set;
 import javax.ws.rs.client.ClientBuilder;
 import javax.xml.parsers.ParserConfigurationException;
 
-import org.apache.commons.lang.StringUtils;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.http.HttpStatus;
@@ -107,6 +106,7 @@ public class ScalarWebLoginProtocol<T extends ThingCallback<String>> {
      * @param config a non-null {@link SimpleIpConfig} (may be connected or disconnected)
      * @param callback a non-null {@link RioHandlerCallback} to callback
      * @param transformService a potentially null transformation service
+     * @param clientBuilder a client builder
      * @throws IOException
      */
     public ScalarWebLoginProtocol(final ScalarWebClient client, final ScalarWebConfig config, final T callback,
@@ -128,8 +128,7 @@ public class ScalarWebLoginProtocol<T extends ThingCallback<String>> {
             final String irccUrl = config.getIrccUrl();
             try {
                 SonyUtil.sendWakeOnLan(logger, config.getDeviceIpAddress(), config.getDeviceMacAddress());
-                return irccUrl == null || StringUtils.isEmpty(irccUrl) ? null
-                        : IrccClientFactory.get(irccUrl, clientBuilder);
+                return irccUrl == null || irccUrl.isEmpty() ? null : IrccClientFactory.get(irccUrl, clientBuilder);
             } catch (IOException | URISyntaxException e) {
                 logger.debug("Cannot create IRCC Client: {}", e.getMessage());
                 return null;
@@ -219,7 +218,7 @@ public class ScalarWebLoginProtocol<T extends ThingCallback<String>> {
         });
 
         if (CheckResult.OK_HEADER.equals(checkResult)) {
-            if (accessCode == null || StringUtils.isEmpty(accessCode)) {
+            if (accessCode == null || accessCode.isEmpty()) {
                 // This shouldn't happen - if our check result is OK_HEADER, then
                 // we had a valid (non-null, non-empty) accessCode. Unfortunately
                 // nullable checking thinks this can be null now.
@@ -233,14 +232,13 @@ public class ScalarWebLoginProtocol<T extends ThingCallback<String>> {
         } else if (AccessResult.DISPLAYOFF.equals(checkResult)) {
             return checkResult;
         } else if (AccessResult.NEEDSPAIRING.equals(checkResult)) {
-            if (StringUtils.isEmpty(accessCode)) {
+            if (SonyUtil.isEmpty(accessCode)) {
                 return new AccessResult(AccessResult.OTHER, "Access code cannot be blank");
             } else {
                 try (SonyHttpTransport httpTransport = SonyTransportFactory.createHttpTransport(baseUrl,
                         ScalarWebService.ACCESSCONTROL, clientBuilder)) {
                     final AccessResult res = sonyAuth.requestAccess(httpTransport,
-                            StringUtils.equalsIgnoreCase(ScalarWebConstants.ACCESSCODE_RQST, accessCode) ? null
-                                    : accessCode);
+                            ScalarWebConstants.ACCESSCODE_RQST.equalsIgnoreCase(accessCode) ? null : accessCode);
                     if (AccessResult.OK.equals(res)) {
                         SonyAuth.setupCookie(transports);
                     } else {
@@ -360,7 +358,7 @@ public class ScalarWebLoginProtocol<T extends ThingCallback<String>> {
             logger.debug("No MAP transformation service - skipping writing a map file");
         } else {
             final String cmdMap = config.getCommandsMapFile();
-            if (StringUtils.isEmpty(cmdMap)) {
+            if (SonyUtil.isEmpty(cmdMap)) {
                 logger.debug("No command map defined - ignoring");
                 return;
             }
@@ -395,7 +393,7 @@ public class ScalarWebLoginProtocol<T extends ThingCallback<String>> {
 
                 // add any ircc extended commands
                 final String irccUrl = config.getIrccUrl();
-                if (irccUrl != null && StringUtils.isNotEmpty(irccUrl)) {
+                if (irccUrl != null && !irccUrl.isEmpty()) {
                     try {
                         final IrccClient irccClient = IrccClientFactory.get(irccUrl, clientBuilder);
                         final IrccRemoteCommands remoteCmds = irccClient.getRemoteCommands();

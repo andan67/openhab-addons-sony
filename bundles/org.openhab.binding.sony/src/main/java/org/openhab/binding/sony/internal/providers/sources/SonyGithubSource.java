@@ -21,6 +21,7 @@ import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -34,10 +35,6 @@ import java.util.stream.Collectors;
 
 import javax.ws.rs.client.ClientBuilder;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.BooleanUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.http.HttpHeader;
@@ -255,7 +252,7 @@ public class SonyGithubSource extends AbstractSonySource {
         Objects.requireNonNull(thingTypeDefinition, "thingTypeDefinition cannot be null");
 
         final String ttModelName = thingTypeDefinition.getModelName();
-        if (ttModelName == null || StringUtils.isEmpty(ttModelName)) {
+        if (ttModelName == null || ttModelName.isEmpty()) {
             logger.debug("Cannot write thing definition because it has no model name: {}", thingTypeDefinition);
             return;
         }
@@ -278,7 +275,7 @@ public class SonyGithubSource extends AbstractSonySource {
             return;
         }
 
-        if (!StringUtils.equalsIgnoreCase(modelName, ttModelName)) {
+        if (!modelName.equalsIgnoreCase(ttModelName)) {
             logger.debug("Converting model name {} to {}", ttModelName, modelName);
         }
 
@@ -286,11 +283,11 @@ public class SonyGithubSource extends AbstractSonySource {
             final boolean found = findModelName(modelName, apiDefThingTypes, SonyThingDefinition.class,
                     old -> SonyMatcher.matches(thingTypeDefinition, old, metaInfo));
 
-            if (!found && BooleanUtils.isFalse(findIssue(apiOpenHABIssues, b -> {
+            if (!found && Boolean.FALSE.equals((findIssue(apiOpenHABIssues, b -> {
                 final SonyThingDefinition issueDef = gson.fromJson(b.replaceAll(GITHUB_CODEFENCE, ""),
                         SonyThingDefinition.class);
                 return SonyMatcher.matches(thingTypeDefinition, Objects.requireNonNull(issueDef), metaInfo);
-            }, labelThingType))) {
+            }, labelThingType)))) {
                 postIssue(apiOpenHABIssues, String.format(issueThingType, modelName), thingTypeDefinition,
                         labelThingType);
             }
@@ -304,7 +301,7 @@ public class SonyGithubSource extends AbstractSonySource {
         Objects.requireNonNull(deviceCapability, "deviceCapability cannot be null");
 
         final String ttModelName = deviceCapability.getModelName();
-        if (ttModelName == null || StringUtils.isEmpty(ttModelName)) {
+        if (ttModelName == null || ttModelName.isEmpty()) {
             logger.debug("Cannot write device capabilities because it has no model name: {}", deviceCapability);
             return;
         }
@@ -329,7 +326,7 @@ public class SonyGithubSource extends AbstractSonySource {
             return;
         }
 
-        if (!StringUtils.equalsIgnoreCase(modelName, ttModelName)) {
+        if (!modelName.equalsIgnoreCase(ttModelName)) {
             logger.debug("Converting model name {} to {}", ttModelName, modelName);
         }
 
@@ -343,7 +340,7 @@ public class SonyGithubSource extends AbstractSonySource {
             final boolean found = findModelName(modelName, apiDefCapabilities, SonyDeviceCapability.class,
                     old -> SonyMatcher.matches(deviceCapability, old));
 
-            if (!found && BooleanUtils.isFalse(findIssue(apiOpenHABIssues, b -> {
+            if (!found && Boolean.FALSE.equals(findIssue(apiOpenHABIssues, b -> {
                 final SonyDeviceCapability issueCap = gson.fromJson(b.replaceAll(GITHUB_CODEFENCE, ""),
                         SonyDeviceCapability.class);
                 return SonyMatcher.matches(deviceCapability, Objects.requireNonNull(issueCap));
@@ -366,13 +363,15 @@ public class SonyGithubSource extends AbstractSonySource {
             for (final SonyServiceCapability deviceService : deviceCapability.getServices()) {
                 // Get all service version for the name
                 final List<SonyServiceCapability> masterServices = masterCapabilities.stream()
-                        .filter(s -> StringUtils.equalsIgnoreCase(deviceService.getServiceName(), s.getServiceName()))
+                        .filter(s -> s.getServiceName() != null
+                                && s.getServiceName().equalsIgnoreCase(deviceService.getServiceName()))
                         .collect(Collectors.toList());
 
                 // If we didn't find our service or we didn't match any version in the services - post an issue
                 if ((masterServices.isEmpty() || masterServices.stream()
-                        .noneMatch(srv -> StringUtils.equalsIgnoreCase(deviceService.getVersion(), srv.getVersion())))
-                        && BooleanUtils.isFalse(findIssue(apiDevIssues, b -> {
+                        .noneMatch(srv -> srv.getVersion() != null
+                                && srv.getVersion().equalsIgnoreCase(deviceService.getVersion())))
+                        && Boolean.FALSE.equals(findIssue(apiDevIssues, b -> {
                             final SonyServiceCapability issueSrv = gson.fromJson(b.replaceAll(GITHUB_CODEFENCE, ""),
                                     SonyServiceCapability.class);
                             return SonyMatcher.matches(deviceService, Objects.requireNonNull(issueSrv));
@@ -396,7 +395,7 @@ public class SonyGithubSource extends AbstractSonySource {
 
                 for (final ScalarWebMethod mth : deviceMethods) {
                     if ((mstrMethods.isEmpty() || mstrMethods.stream().noneMatch(m -> SonyMatcher.matches(mth, m)))
-                            && BooleanUtils.isFalse(findIssue(apiDevIssues, b -> {
+                            && Boolean.FALSE.equals(findIssue(apiDevIssues, b -> {
                                 final ScalarWebMethod issueMth = gson.fromJson(b.replaceAll(GITHUB_CODEFENCE, ""),
                                         ScalarWebMethod.class);
                                 return SonyMatcher.matches(mth, Objects.requireNonNull(issueMth));
@@ -427,7 +426,7 @@ public class SonyGithubSource extends AbstractSonySource {
      * @return a boolean indicating success or null if an error occurs
      */
     private @Nullable Boolean findIssue(final String baseUri, final IssueCallback callback, final String... labels) {
-        Validate.notEmpty(baseUri, "baseUri cannot be empty");
+        SonyUtil.validateNotEmpty(baseUri, "baseUri cannot be empty");
         Objects.requireNonNull(callback, "callback cannot be null");
         if (labels.length < 1) {
             throw new IllegalArgumentException("labels must have atleast one element");
@@ -511,7 +510,7 @@ public class SonyGithubSource extends AbstractSonySource {
             capabilitiesLock.lock();
 
             final HttpResponse resp = transport.executeGet(apiRestJson, GITHUB_RAWHEADER, new TransportOptionHeader(
-                    HttpHeader.IF_NONE_MATCH, StringUtils.defaultIfEmpty(capabilitiesEtag, "1")));
+                    HttpHeader.IF_NONE_MATCH, SonyUtil.defaultIfEmpty(capabilitiesEtag, "1")));
             if (resp.getHttpCode() == HttpStatus.OK_200) {
                 capabilitiesEtag = resp.getResponseHeader(HttpHeader.ETAG.asString());
                 final String content = resp.getContent();
@@ -548,7 +547,7 @@ public class SonyGithubSource extends AbstractSonySource {
             metaLock.lock();
 
             final HttpResponse resp = transport.executeGet(apiMetaJson, GITHUB_RAWHEADER,
-                    new TransportOptionHeader(HttpHeader.IF_NONE_MATCH, StringUtils.defaultIfEmpty(metaEtag, "1")));
+                    new TransportOptionHeader(HttpHeader.IF_NONE_MATCH, SonyUtil.defaultIfEmpty(metaEtag, "1")));
 
             if (resp.getHttpCode() == HttpStatus.OK_200) {
                 metaEtag = resp.getResponseHeader(HttpHeader.ETAG.asString());
@@ -586,7 +585,7 @@ public class SonyGithubSource extends AbstractSonySource {
             knownThingsLock.lock();
             final String localThingTypesEtag = thingTypesEtag;
             final HttpResponse resp = transport.executeGet(apiThingTypes, GITHUB_RAWHEADER, new TransportOptionHeader(
-                    HttpHeader.IF_NONE_MATCH, StringUtils.defaultIfEmpty(localThingTypesEtag, "1")));
+                    HttpHeader.IF_NONE_MATCH, SonyUtil.defaultIfEmpty(localThingTypesEtag, "1")));
 
             // treat 200 and 404 the same (404 can be if the directory was empty)
             if (resp.getHttpCode() == HttpStatus.OK_200 || resp.getHttpCode() == HttpStatus.NOT_FOUND_404) {
@@ -728,8 +727,8 @@ public class SonyGithubSource extends AbstractSonySource {
      */
     private <T> boolean findModelName(final String modelName, final String apiUrl, final Class<T> toMatch,
             final ObjCallback<T> callback) {
-        Validate.notEmpty(modelName, "modelName cannot be empty");
-        Validate.notEmpty(apiUrl, "apiUrl cannot be empty");
+        SonyUtil.validateNotEmpty(modelName, "modelName cannot be empty");
+        SonyUtil.validateNotEmpty(apiUrl, "apiUrl cannot be empty");
         Objects.requireNonNull(toMatch, "toMatch cannot be null");
         Objects.requireNonNull(callback, "callback cannot be null");
 
@@ -765,8 +764,8 @@ public class SonyGithubSource extends AbstractSonySource {
      * @param labels a list of labels to use
      */
     private void postIssue(final String apiIssues, final String title, final Object toPost, final String... labels) {
-        Validate.notEmpty(apiIssues, "apiIssues cannot be empty");
-        Validate.notEmpty(title, "title cannot be empty");
+        SonyUtil.validateNotEmpty(apiIssues, "apiIssues cannot be empty");
+        SonyUtil.validateNotEmpty(title, "title cannot be empty");
         Objects.requireNonNull(toPost, "toPost cannot be null");
 
         final String body = GITHUB_CODEFENCE + gson.toJson(toPost) + GITHUB_CODEFENCE;
@@ -776,7 +775,7 @@ public class SonyGithubSource extends AbstractSonySource {
 
         final JsonArray ja = new JsonArray();
         for (final String label : labels) {
-            if (StringUtils.isNotEmpty(label)) {
+            if (!label.isEmpty()) {
                 ja.add(label);
             }
         }
@@ -796,7 +795,7 @@ public class SonyGithubSource extends AbstractSonySource {
      * @return a non-null modified thing definitions
      */
     private ModifiedThingDefinitions getThingDefinition(final String name, final @Nullable Long lastModified) {
-        Validate.notEmpty(name, "name cannot be empty");
+        SonyUtil.validateNotEmpty(name, "name cannot be empty");
 
         final SimpleDateFormat webDateFormat = new SimpleDateFormat(WEBDATEPATTERN);
         final String ifModifiedSince = webDateFormat
@@ -818,7 +817,7 @@ public class SonyGithubSource extends AbstractSonySource {
             }
 
             final String fileContents = fileResponse.getContent();
-            if (fileContents != null && StringUtils.isNotEmpty(fileContents)) {
+            if (fileContents != null && !fileContents.isEmpty()) {
                 try {
                     final JsonElement def = gson.fromJson(fileContents, JsonElement.class);
                     if (def.isJsonArray()) {
@@ -859,7 +858,7 @@ public class SonyGithubSource extends AbstractSonySource {
      */
     private void writeThingDefinition(final String name, final long lastModifiedTime,
             final List<SonyThingDefinition> ttds) throws IOException {
-        Validate.notEmpty(name, "name cannot be empty");
+        SonyUtil.validateNotEmpty(name, "name cannot be empty");
         Objects.requireNonNull(ttds, "ttds cannot be null");
         if (ttds.isEmpty()) {
             throw new IllegalArgumentException("ttds cannot be empty");
@@ -874,7 +873,7 @@ public class SonyGithubSource extends AbstractSonySource {
 
         final String fileContents = gson.toJson(ttds);
         logger.debug("Writing new file ({}) found on github: {}", name, fileContents);
-        FileUtils.write(theFile, fileContents, false);
+        Files.writeString(thingTypePath.resolve(name), fileContents, StandardOpenOption.WRITE);
 
         logger.debug("Setting last modified on file ({}) to: {}", name, lastModifiedTime);
         theFile.setLastModified(lastModifiedTime);
@@ -904,7 +903,7 @@ public class SonyGithubSource extends AbstractSonySource {
             // ... it doesn't exist - get the definition and write it
             // If not found
             // ... add it to the waiting list
-            if (fileName != null && StringUtils.isNotEmpty(fileName)) {
+            if (fileName != null && !fileName.isEmpty()) {
                 final File theFile = thingTypePath.resolve(fileName).toFile();
                 if (!theFile.exists()) {
                     try {

@@ -17,9 +17,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
+import org.openhab.binding.sony.internal.SonyUtil;
 
 /**
  * This class represents the thing type channel definition that will be used to serialize/deserialize channel
@@ -60,8 +60,8 @@ public class SonyThingChannelDefinition {
      */
     public SonyThingChannelDefinition(final String channelId, final String channelType,
             final SonyThingStateDefinition state, final Map<String, String> properties) {
-        Validate.notEmpty(channelId, "channelId must not be empty");
-        Validate.notEmpty(channelType, "channelType must not be empty");
+        SonyUtil.validateNotEmpty(channelId, "channelId must not be empty");
+        SonyUtil.validateNotEmpty(channelType, "channelType must not be empty");
         Objects.requireNonNull(state, "state cannot be null");
         Objects.requireNonNull(properties, "properties cannot be null");
 

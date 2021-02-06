@@ -17,9 +17,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.openhab.binding.sony.internal.SonyUtil;
 import org.openhab.binding.sony.internal.scalarweb.gson.GsonUtilities;
 import org.openhab.binding.sony.internal.scalarweb.models.ScalarWebResult;
 
@@ -82,8 +81,8 @@ public class GeneralSettings_1_0 {
      * @return a non-null, possibly empty stream of general settings
      */
     public Stream<GeneralSetting> getSettings(final String target) {
-        Validate.notEmpty(target, "target cannot be empty");
-        return generalSettings.stream().filter(s -> StringUtils.equalsIgnoreCase(s.getTarget(), target));
+        SonyUtil.validateNotEmpty(target, "target cannot be empty");
+        return generalSettings.stream().filter(s -> s.getTarget() != null && s.getTarget().equalsIgnoreCase(target));
     }
 
     @Override

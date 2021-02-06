@@ -14,8 +14,8 @@ package org.openhab.binding.sony.internal.net;
 
 import java.util.Objects;
 
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.openhab.binding.sony.internal.SonyUtil;
 
 /**
  * The class provides a key/value option for a filter
@@ -37,7 +37,7 @@ public class FilterOption {
      * @param value a non-null value
      */
     public FilterOption(final String key, final Object value) {
-        Validate.notEmpty(key, "key cannot be empty");
+        SonyUtil.validateNotEmpty(key, "key cannot be empty");
         Objects.requireNonNull(value, "value cannot be null");
 
         this.key = key;

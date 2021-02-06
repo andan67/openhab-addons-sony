@@ -12,8 +12,8 @@
  */
 package org.openhab.binding.sony.internal.scalarweb.models.api;
 
-import org.apache.commons.lang.Validate;
 import org.eclipse.jdt.annotation.NonNullByDefault;
+import org.openhab.binding.sony.internal.SonyUtil;
 
 /**
  * This class represents the request to delete content and is used for serialization only
@@ -32,7 +32,7 @@ public class DeleteContent {
      * @param uri the non-null, non-empty uri
      */
     public DeleteContent(final String uri) {
-        Validate.notEmpty(uri, "Uri cannot be empty");
+        SonyUtil.validateNotEmpty(uri, "Uri cannot be empty");
         this.uri = uri;
     }
 
