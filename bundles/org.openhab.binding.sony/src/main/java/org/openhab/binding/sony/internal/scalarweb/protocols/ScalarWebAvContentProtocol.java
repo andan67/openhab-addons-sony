@@ -14,6 +14,10 @@ package org.openhab.binding.sony.internal.scalarweb.protocols;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
@@ -79,6 +83,7 @@ import org.openhab.binding.sony.internal.scalarweb.models.api.VideoInfo;
 import org.openhab.binding.sony.internal.scalarweb.models.api.Visibility;
 import org.openhab.binding.sony.internal.transports.SonyHttpTransport;
 import org.openhab.binding.sony.internal.transports.SonyTransportFactory;
+import org.openhab.core.OpenHAB;
 import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.library.types.RawType;
@@ -93,6 +98,8 @@ import org.openhab.core.types.StateOption;
 import org.openhab.core.types.UnDefType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static java.nio.file.Paths.get;
 
 /**
  * The implementation of the protocol handles the Av Content service
@@ -1215,6 +1222,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
     private String getSourceFromUri(final String uid) {
         SonyUtil.validateNotEmpty(uid, "uid cannot be empty");
         // Following finds the source from the uri (radio:fm&content=x to radio:fm)
+        // ToDo: Check
         final String src = getSources().stream()
                 .filter(s -> s.getSource() != null && uid.startsWith(Objects.requireNonNull(s.getSource()))).findFirst()
                 .map(s -> s.getSource()).orElse("");
@@ -1389,7 +1397,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
                     } else {
                         for (final Source src : result.asArray(Source.class)) {
                             final String sourceName = src.getSource();
-                            if (sourceName != null && sourceName.isEmpty()) {
+                            if (sourceName != null && !sourceName.isEmpty()) {
                                 srcs.add(src);
                             }
                         }
@@ -1434,6 +1442,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
                 // Add the source if not duplicating an input/terminal
                 // (need to use starts with because hdmi source has a port number in it and
                 // the source is just hdmi [no ports])
+                // ToDo: Check
                 if (!sources.stream().anyMatch(s -> s.getUri().toLowerCase().startsWith(uri.toLowerCase()))) {
                     sources.add(new InputSource(uri, src.getTitle(),
                             outputs == null ? new ArrayList<>() : Arrays.asList(outputs)));
@@ -2908,6 +2917,12 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
             ct = new Count(0);
         }
 
+        /*
+        // TODO
+        final Path path =  Paths.get(OpenHAB.getUserDataFolder(),"sony","preset",
+                "preset_" + URLEncoder.encode(uriOrSource, StandardCharsets.UTF_8) + ".csv");
+        */
+
         final int maxCount = ct.getCount();
         int count = 0;
         while (count < maxCount) {
@@ -2920,14 +2935,14 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
                     }
                     return new ContentListRequest_1_4(uriOrSource, stIdx, MAX_CT);
                 });
-
+                //TODO: Check for favorite file
                 final List<ContentListResult_1_0> resultList = res.asArray(ContentListResult_1_0.class);
                 for (final ContentListResult_1_0 clr : resultList) {
                     if (!callback.processContentListResult(clr)) {
                         return;
                     }
                 }
-                // request might return fewer items than MAX_CT, thus get actual number of fetched items from result
+                // request might return fewer items than MAX_CT, therefore get actual number of fetched items from result
                 // list
                 count += resultList.size();
             } catch (final IOException e) {
@@ -2938,30 +2953,6 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
             }
         }
         logger.debug("Received {} content items for source {}", count, uriOrSource);
-        /*
-         * final int max = (int) Math.ceil((double) i / MAX_CT);
-         * for (int idx = 0; idx < max; idx++) {
-         * final int localIdx = idx * MAX_CT;
-         * try {
-         * final ScalarWebResult res = execute(ScalarWebMethod.GETCONTENTLIST, version -> {
-         * if (VersionUtilities.equals(version, ScalarWebMethod.V1_0, ScalarWebMethod.V1_1,
-         * ScalarWebMethod.V1_2, ScalarWebMethod.V1_3)) {
-         * return new ContentListRequest_1_0(uriOrSource, localIdx, MAX_CT);
-         * }
-         * return new ContentListRequest_1_4(uriOrSource, localIdx, MAX_CT);
-         * });
-         * 
-         * for (final ContentListResult_1_0 clr : res.asArray(ContentListResult_1_0.class)) {
-         * if (!callback.processContentListResult(clr)) {
-         * return;
-         * }
-         * }
-         * } catch (final IOException e) {
-         * logger.debug("IOException getting {} for {} [idx: {}, max: {}]: {}", ScalarWebMethod.GETCONTENTLIST,
-         * uriOrSource, localIdx, MAX_CT, e.getMessage());
-         * }
-         * }
-         */
     }
 
     /**

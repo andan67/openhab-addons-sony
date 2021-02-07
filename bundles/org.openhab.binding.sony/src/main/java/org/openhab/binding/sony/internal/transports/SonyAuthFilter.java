@@ -107,7 +107,7 @@ public class SonyAuthFilter implements ClientRequestFilter, ClientResponseFilter
         Objects.requireNonNull(requestCtx, "requestCtx cannot be null");
 
         boolean authNeeded = true;
-        logger.debug("Apply filter");
+        // logger.debug("Apply filter");
 
         if (!authCookieStore.getAuthCookieForHost(host).getValue().isEmpty()) {
             logger.debug(authCookieStore.getAuthCookieForHost(host).toString());

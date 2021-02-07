@@ -23,7 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This class implements a store for cookies associated to single device specified by its host address
+ * This class implements a thread safe store for cookies associated to a device specified by its host address
  *
  * @author andan - Initial contribution
  */
@@ -52,7 +52,7 @@ public class SonyAuthCookieStore {
      */
     public NewCookie getAuthCookieForHost(String host) {
         final NewCookie cookie = hostAuthCookieMap.get(host);
-        logger.debug("getAuthCookieForHost: host: {} cookie: {} instance: {}", host, cookie, instance);
+        // logger.debug("getAuthCookieForHost: host: {} cookie: {} instance: {}", host, cookie, instance);
         if (cookie != null) {
             return cookie;
         } else {
@@ -67,7 +67,7 @@ public class SonyAuthCookieStore {
      * @param authCookie the non-null cookie
      */
     public void setAuthCookieForHost(String host, NewCookie authCookie) {
-        logger.debug("setAuthCookieForHost: host: {} authCookie: {} instance: {}", host, authCookie, instance);
+        // logger.debug("setAuthCookieForHost: host: {} authCookie: {} instance: {}", host, authCookie, instance);
         hostAuthCookieMap.put(host, authCookie);
     }
 }

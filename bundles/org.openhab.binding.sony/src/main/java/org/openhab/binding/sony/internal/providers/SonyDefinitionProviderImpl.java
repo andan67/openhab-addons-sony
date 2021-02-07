@@ -109,11 +109,11 @@ public class SonyDefinitionProviderImpl implements SonyDefinitionProvider, SonyD
 
         // local takes preference over github
         final List<SonySource> srcs = new ArrayList<>();
-        if (!properties.getOrDefault("local", "").isEmpty()) {
+        if (!Boolean.FALSE.equals(SonyUtil.toBooleanObject(properties.get("local")))) {
             srcs.add(new SonyFolderSource(scheduler, properties));
         }
         this.clientBuilder = clientBuilder;
-        if (!properties.getOrDefault("github", "").isEmpty()) {
+        if (!Boolean.FALSE.equals(SonyUtil.toBooleanObject(properties.get("github")))) {
             srcs.add(new SonyGithubSource(scheduler, properties, this.clientBuilder));
         }
         this.sources = Collections.unmodifiableList(srcs);
