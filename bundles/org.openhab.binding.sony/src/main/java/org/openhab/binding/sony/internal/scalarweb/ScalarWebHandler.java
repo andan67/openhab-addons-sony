@@ -295,6 +295,10 @@ public class ScalarWebHandler extends AbstractThingHandler<ScalarWebConfig> {
                 SonyUtil.close(protocolFactory.getAndSet(factory));
                 updateStatus(ThingStatus.ONLINE, ThingStatusDetail.NONE);
 
+                // add already linked channels to the tracker to enable state refresh
+                getThing().getChannels().stream().filter(c -> isLinked(c.getUID()))
+                        .forEach(c -> tracker.channelLinked(new ScalarWebChannel(c.getUID(), c)));
+
                 // Add a listener for model updates
                 final String modelName = getModelName();
                 if (modelName != null && !modelName.isEmpty()) {
@@ -305,7 +309,6 @@ public class ScalarWebHandler extends AbstractThingHandler<ScalarWebConfig> {
                 this.scheduler.submit(() -> {
                     // Refresh the state right away
                     refreshState(true);
-
                     // after state is refreshed - write the definition
                     // (which could include dynamic state from refresh)
                     writeThingDefinition();
