@@ -14,8 +14,7 @@ package org.openhab.binding.sony.internal.scalarweb.protocols;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
@@ -98,8 +97,6 @@ import org.openhab.core.types.StateOption;
 import org.openhab.core.types.UnDefType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import static java.nio.file.Paths.get;
 
 /**
  * The implementation of the protocol handles the Av Content service
@@ -193,6 +190,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
     // virtual presets channel constants
     private static final String PRESETS = "ps_";
     private static final String PS_CHANNEL = PRESETS + "channel";
+    private static final String PS_REFRESH = "--REFRESH--";
 
     // input channel constants
     private static final String INPUT = "in_";
@@ -2083,7 +2081,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
                             && pciScheme.equalsIgnoreCase(srcScheme)) {
                         // set the value if the same source, otherwise move undef to it
                         stateChanged(PS_CHANNEL, srcSource,
-                                srcSource.equalsIgnoreCase(pciSource) ? SonyUtil.newStringType(pci.getDispNum())
+                                srcSource.equalsIgnoreCase(pciSource) ? SonyUtil.newStringType(pci.getUri())
                                         : UnDefType.UNDEF);
                     }
                 }
@@ -2481,13 +2479,15 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
                 logger.debug("{} command not an StringType: {}", PL_CMD, command);
             }
         } else if (PS_CHANNEL.equalsIgnoreCase(channel.getCategory())) {
-            final String srcId = channel.getPathPart(0);
-            if (srcId == null || srcId.isEmpty()) {
-                logger.debug("{} command - channel has no srcId: {}", PS_CHANNEL, channel);
-                return;
-            }
+            /*
+             * final String srcId = channel.getPathPart(0);
+             * if (srcId == null || srcId.isEmpty()) {
+             * logger.debug("{} command - channel has no srcId: {}", PS_CHANNEL, channel);
+             * return;
+             * }
+             */
             if (command instanceof StringType) {
-                setPlayPresetChannel(srcId, command.toString());
+                setPlayPresetChannel(channel, command.toString());
             } else {
                 logger.debug("{} command not an StringType: {}", PS_CHANNEL, command);
             }
@@ -2826,27 +2826,19 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
     /**
      * Plays the preset channel specified by it's display name
      *
-     * @param srcId a non-null, non-empty source id
-     * @param dispName a non-null, non-empty display name
+     * @param channel a non-null, non-empty source id
+     * @param uri a non-null, non-empty uri
      */
-    private void setPlayPresetChannel(final String srcId, final String dispName) {
-        SonyUtil.validateNotEmpty(srcId, "srcId cannot be empty");
-        SonyUtil.validateNotEmpty(dispName, "dispName cannot be empty");
+    private void setPlayPresetChannel(final ScalarWebChannel channel, final String uri) {
+        Objects.requireNonNull(channel);
+        SonyUtil.validateNotEmpty(uri, "command cannot be empty");
 
-        processContentList(srcId, res -> {
-            if (dispName.equalsIgnoreCase(res.getDispNum())) {
-                final String uri = res.getUri();
-                if (uri == null) {
-                    logger.debug(
-                            "Cannot play preset channel {} because the ContentListResult didn't have a valid URI: {}",
-                            dispName, res);
-                } else {
-                    setPlayContent(uri, null);
-                }
-                return false;
-            }
-            return true;
-        });
+        if (PS_REFRESH.equals(uri)) {
+            // special command to refresh presets
+            refreshPresetChannelStateDescription(Collections.singletonList(channel));
+        } else {
+            setPlayContent(uri, null);
+        }
     }
 
     /**
@@ -2870,20 +2862,97 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
                 return true;
             });
 
-            if (!presets.isEmpty()) {
-                final StateDescriptionFragmentBuilder bld = StateDescriptionFragmentBuilder.create()
-                        .withOptions(presets.stream().map(e -> {
-                            final String title = e.getTitle();
-                            final String dispNum = e.getDispNum();
-                            Optional<StateOption> si = Optional.empty();
-                            if (dispNum != null && !dispNum.isEmpty()) {
-                                si = Optional.of(new StateOption(dispNum, SonyUtil.defaultIfEmpty(title, dispNum)));
-                            }
-                            return si;
-                        }).filter(Optional::isPresent).map(Optional::get)
-                                .sorted(Comparator.comparing(a -> SonyUtil.defaultIfEmpty(a.getLabel(), "")))
-                                .collect(Collectors.toList()));
+            final List<StateOption> stateOptions = new ArrayList<>();
 
+            final boolean isPresetConfigurable = Boolean.TRUE.equals(getContext().getConfig().isConfigurablePresets())
+                    && srcId.toLowerCase().startsWith("tv:");
+
+            if (!presets.isEmpty()) {
+                if (isPresetConfigurable) {
+
+                    HashMap<String, Integer> uriToRankMap = new HashMap<>();
+                    final Path path = Paths.get(OpenHAB.getUserDataFolder(), "sony", "presets",
+                            ScalarWebChannel.createChannelId(chl.getCategory(), chl.getId()) + ".csv");
+                    if (Files.exists(path)) {
+                        try {
+                            // regex to parse csv formatted lines (with limitations
+                            String regexCSV = ",(?=([^\"]*\"[^\"]*\")*[^\"]*$)";
+                            String regexQuotes = "^\"|\"$";
+                            final String content = Files.readString(path);
+                            Scanner scanner = new Scanner(content);
+                            // skip header row
+                            scanner.nextLine();
+                            while (scanner.hasNextLine()) {
+                                try {
+                                    final String line = scanner.nextLine();
+                                    final String[] values = line.split(regexCSV);
+                                    final String uri = values[3].trim().replaceAll(regexQuotes, "");
+                                    final Integer rank = Integer.parseInt(values[4].trim().replaceAll(regexQuotes, ""));
+                                    uriToRankMap.put(uri, rank);
+                                } catch (final Exception ex) {
+                                    // ignore
+                                }
+                            }
+                        } catch (final Exception ex) {
+                            logger.debug(
+                                    "Exception '{}' while trying to read or process content list for source {} from path {}",
+                                    ex.getMessage(), srcId, path);
+                        }
+                    }
+                    List<StateOption> stateOptionsToAdd = presets.stream().map(e -> {
+                        final String title = e.getTitle();
+                        final String dispNum = e.getDispNum();
+                        final String uri = e.getUri();
+                        Optional<StateOption> si = Optional.empty();
+                        if (uri != null && !uri.isEmpty()) {
+                            si = Optional.of(new StateOption(uri, SonyUtil.defaultIfEmpty(title, dispNum)));
+                        }
+                        return si;
+                    }).filter(Optional::isPresent).map(Optional::get)
+                            .filter(a -> (uriToRankMap.getOrDefault(a.getValue(), Integer.MAX_VALUE)) >= 0)
+                            .sorted(Comparator.<StateOption> comparingInt(a -> {
+                                Integer r = uriToRankMap.getOrDefault(a.getValue(), 0);
+                                return r == 0 ? Integer.MAX_VALUE : r;
+                            }).thenComparing(a -> SonyUtil.defaultIfEmpty(a.getLabel(), "")))
+                            .collect(Collectors.toList());
+
+                    stateOptions.addAll(stateOptionsToAdd);
+
+                    StringBuilder content = new StringBuilder();
+                    content.append("Source, DispNum, Title, Uri, Rank\n");
+                    for (final ContentListResult_1_0 clr : presets) {
+                        content.append(String.format("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n", srcId, clr.getDispNum(),
+                                clr.getTitle(), clr.getUri(), uriToRankMap.getOrDefault(clr.getUri(), 0)));
+                    }
+                    try {
+                        Files.createDirectories(path.getParent());
+                        Files.writeString(path, content.toString());
+                    } catch (final IOException e) {
+                        logger.debug("IOException trying to write content list for source {} to path {}", srcId, path);
+                    }
+
+                } else {
+                    List<StateOption> stateOptionsToAdd = presets.stream().map(e -> {
+                        final String title = e.getTitle();
+                        final String dispNum = e.getDispNum();
+                        final String uri = e.getUri();
+                        Optional<StateOption> si = Optional.empty();
+                        if (uri != null && !uri.isEmpty()) {
+                            si = Optional.of(new StateOption(uri, SonyUtil.defaultIfEmpty(title, dispNum)));
+                        }
+                        return si;
+                    }).filter(Optional::isPresent).map(Optional::get)
+                            .sorted(Comparator.comparing(a -> SonyUtil.defaultIfEmpty(a.getLabel(), "")))
+                            .collect(Collectors.toList());
+
+                    stateOptions.addAll(stateOptionsToAdd);
+
+                }
+
+                // add special refresh option at beginning
+                stateOptions.add(0, new StateOption(PS_REFRESH, PS_REFRESH));
+                final StateDescriptionFragmentBuilder bld = StateDescriptionFragmentBuilder.create()
+                        .withOptions(stateOptions);
                 final StateDescription sd = bld.build().toStateDescription();
                 if (sd != null) {
                     getContext().getStateProvider().addStateOverride(getContext().getThingUID(), chl.getChannelId(),
@@ -2917,12 +2986,6 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
             ct = new Count(0);
         }
 
-        /*
-        // TODO
-        final Path path =  Paths.get(OpenHAB.getUserDataFolder(),"sony","preset",
-                "preset_" + URLEncoder.encode(uriOrSource, StandardCharsets.UTF_8) + ".csv");
-        */
-
         final int maxCount = ct.getCount();
         int count = 0;
         while (count < maxCount) {
@@ -2935,14 +2998,14 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
                     }
                     return new ContentListRequest_1_4(uriOrSource, stIdx, MAX_CT);
                 });
-                //TODO: Check for favorite file
                 final List<ContentListResult_1_0> resultList = res.asArray(ContentListResult_1_0.class);
                 for (final ContentListResult_1_0 clr : resultList) {
                     if (!callback.processContentListResult(clr)) {
                         return;
                     }
                 }
-                // request might return fewer items than MAX_CT, therefore get actual number of fetched items from result
+                // request might return fewer items than MAX_CT, therefore get actual number of fetched items from
+                // result
                 // list
                 count += resultList.size();
             } catch (final IOException e) {

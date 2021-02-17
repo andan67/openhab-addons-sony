@@ -435,6 +435,7 @@ public abstract class AbstractScalarWebProtocol<T extends ThingCallback<String>>
         SonyUtil.validateNotEmpty(category, "category cannot be empty");
         SonyUtil.validateNotEmpty(id, "id cannot be empty");
         Objects.requireNonNull(state, "state cannot be empty");
+
         callback.stateChanged(
                 SonyUtil.createChannelId(service.getServiceName(), ScalarWebChannel.createChannelId(category, id)),
                 state);

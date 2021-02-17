@@ -41,6 +41,9 @@ public class ScalarWebConfig extends AbstractConfig {
     /** The model name */
     private @Nullable String modelName;
 
+    /** Flag for configurable presets */
+    private @Nullable Boolean configurablePresets;
+
     // ---- the following properties are not part of the config.xml (and are properties) ----
 
     /** The commands map file */
@@ -162,6 +165,22 @@ public class ScalarWebConfig extends AbstractConfig {
         this.discoveredModelName = discoveredModelName;
     }
 
+    /**
+     *
+     * @return
+     */
+    public @Nullable Boolean isConfigurablePresets() {
+        return configurablePresets;
+    }
+
+    /**
+     *
+     * @param configurablePresets
+     */
+    public void setConfigurablePresets(final @Nullable Boolean configurablePresets) {
+        this.configurablePresets = configurablePresets;
+    }
+
     @Override
     public Map<String, Object> asProperties() {
         final Map<String, Object> props = super.asProperties();
@@ -173,6 +192,7 @@ public class ScalarWebConfig extends AbstractConfig {
         conditionallyAddProperty(props, "commandsMapFile", commandsMapFile);
         conditionallyAddProperty(props, "irccUrl", irccUrl);
         conditionallyAddProperty(props, "modelName", modelName);
+        conditionallyAddProperty(props, "configurablePresets", configurablePresets);
 
         return props;
     }
