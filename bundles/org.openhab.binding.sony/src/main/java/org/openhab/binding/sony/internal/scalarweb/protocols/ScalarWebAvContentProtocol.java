@@ -2869,10 +2869,10 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
 
             if (!presets.isEmpty()) {
                 if (isPresetConfigurable) {
-
                     HashMap<String, Integer> uriToRankMap = new HashMap<>();
-                    final Path path = Paths.get(OpenHAB.getUserDataFolder(), "sony", "presets",
-                            ScalarWebChannel.createChannelId(chl.getCategory(), chl.getId()) + ".csv");
+                    final String thingId = getContext().getThing().getUID().getId();
+                    final Path path = Paths.get(OpenHAB.getUserDataFolder(), "config", "sony", "presets",
+                            ScalarWebChannel.createChannelId(chl.getCategory(), chl.getId()) + "_" + thingId + ".csv");
                     if (Files.exists(path)) {
                         try {
                             // regex to parse csv formatted lines (with limitations
