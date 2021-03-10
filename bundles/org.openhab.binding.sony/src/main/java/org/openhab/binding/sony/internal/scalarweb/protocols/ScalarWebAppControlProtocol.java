@@ -25,8 +25,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import javax.ws.rs.client.ClientBuilder;
-
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.sony.internal.SonyUtil;
@@ -97,9 +95,6 @@ class ScalarWebAppControlProtocol<T extends ThingCallback<String>> extends Abstr
     /** The active app. */
     private @Nullable WebAppStatus webAppStatus = null;
 
-    /** The clientBuilder used in HttpRequest */
-    private final ClientBuilder clientBuilder;
-
     /**
      * Instantiates a new scalar web app control protocol.
      *
@@ -107,12 +102,10 @@ class ScalarWebAppControlProtocol<T extends ThingCallback<String>> extends Abstr
      * @param context the non-null context to use
      * @param service the non-null service to use
      * @param callback the non-null callback to
-     * @param clientBuilder the non-null clientbuilder to use
      */
     ScalarWebAppControlProtocol(final ScalarWebProtocolFactory<T> factory, final ScalarWebContext context,
-            final ScalarWebService service, final T callback, final ClientBuilder clientBuilder) {
+            final ScalarWebService service, final T callback) {
         super(factory, context, service, callback);
-        this.clientBuilder = clientBuilder;
     }
 
     @Override
@@ -347,8 +340,8 @@ class ScalarWebAppControlProtocol<T extends ThingCallback<String>> extends Abstr
             if (iconUrl == null || iconUrl.isEmpty()) {
                 callback.stateChanged(channelId, UnDefType.UNDEF);
             } else {
-                try (SonyHttpTransport transport = SonyTransportFactory
-                        .createHttpTransport(getService().getTransport().getBaseUri().toString(), clientBuilder)) {
+                try (SonyHttpTransport transport = SonyTransportFactory.createHttpTransport(
+                        getService().getTransport().getBaseUri().toString(), getContext().getClientBuilder())) {
                     final RawType rawType = NetUtil.getRawType(transport, iconUrl);
                     callback.stateChanged(channelId, rawType == null ? UnDefType.UNDEF : rawType);
                 } catch (final URISyntaxException e) {

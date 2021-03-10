@@ -22,8 +22,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-import javax.ws.rs.client.ClientBuilder;
-
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.http.HttpStatus;
@@ -138,9 +136,6 @@ class ScalarWebSystemProtocol<T extends ThingCallback<String>> extends AbstractS
     /** The url for the IRCC service */
     private final @Nullable String irccUrl;
 
-    /** The clientBuilder used in HttpRequest */
-    private final ClientBuilder clientBuilder;
-
     /** The notifications that are enabled */
     private final NotificationHelper notificationHelper;
 
@@ -152,11 +147,9 @@ class ScalarWebSystemProtocol<T extends ThingCallback<String>> extends AbstractS
      * @param service the non-null service
      * @param callback the non-null callback
      * @param irccUrl the possibly null, possibly empty ircc url
-     * @param clientBuilder the non-null client builder
      */
     ScalarWebSystemProtocol(final ScalarWebProtocolFactory<T> factory, final ScalarWebContext context,
-            final ScalarWebService service, final T callback, final @Nullable String irccUrl,
-            final ClientBuilder clientBuilder) {
+            final ScalarWebService service, final T callback, final @Nullable String irccUrl) {
         super(factory, context, service, callback);
 
         this.irccUrl = irccUrl;
@@ -164,8 +157,6 @@ class ScalarWebSystemProtocol<T extends ThingCallback<String>> extends AbstractS
         notificationHelper = new NotificationHelper(
                 enableNotifications(ScalarWebEvent.NOTIFYPOWERSTATUS, ScalarWebEvent.NOTIFYSTORAGESTATUS,
                         ScalarWebEvent.NOTIFYSETTINGSUPDATE, ScalarWebEvent.NOTIFYSWUPDATEINFO));
-
-        this.clientBuilder = clientBuilder;
     }
 
     @Override
@@ -873,7 +864,7 @@ class ScalarWebSystemProtocol<T extends ThingCallback<String>> extends AbstractS
             logger.debug("IRCC URL was not specified in configuration");
         } else {
             try {
-                final IrccClient irccClient = IrccClientFactory.get(localIrccUrl, clientBuilder);
+                final IrccClient irccClient = IrccClientFactory.get(localIrccUrl, getContext().getClientBuilder());
                 final ScalarWebContext context = getContext();
                 String localCmd = cmd;
 
@@ -908,8 +899,8 @@ class ScalarWebSystemProtocol<T extends ThingCallback<String>> extends AbstractS
 
                 // Always use an http transport to execute soap
                 HttpResponse httpResponse;
-                try (final SonyHttpTransport httpTransport = SonyTransportFactory
-                        .createHttpTransport(irccClient.getBaseUrl().toExternalForm(), clientBuilder)) {
+                try (final SonyHttpTransport httpTransport = SonyTransportFactory.createHttpTransport(
+                        irccClient.getBaseUrl().toExternalForm(), getContext().getClientBuilder())) {
                     // copy all the options from the parent one (authentication options)
                     getService().getTransport().getOptions().stream().forEach(o -> httpTransport.setOption(o));
                     httpResponse = irccClient.executeSoap(httpTransport, localCmd);

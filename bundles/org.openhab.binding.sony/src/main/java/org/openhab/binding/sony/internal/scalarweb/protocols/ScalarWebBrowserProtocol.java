@@ -19,8 +19,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
-import javax.ws.rs.client.ClientBuilder;
-
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.sony.internal.SonyUtil;
@@ -65,11 +63,6 @@ class ScalarWebBrowserProtocol<T extends ThingCallback<String>> extends Abstract
     private static final String TEXTFAVICON = "textfavicon";
 
     /**
-     * The clientBuilder used in HttpRequest
-     */
-    private ClientBuilder clientBuilder;
-
-    /**
      * Instantiates a new scalar web browser protocol.
      *
      * @param factory the non-null factory
@@ -78,9 +71,8 @@ class ScalarWebBrowserProtocol<T extends ThingCallback<String>> extends Abstract
      * @param callback the non-null callback
      */
     ScalarWebBrowserProtocol(final ScalarWebProtocolFactory<T> factory, final ScalarWebContext context,
-            final ScalarWebService service, final T callback, final ClientBuilder clientBuilder) {
+            final ScalarWebService service, final T callback) {
         super(factory, context, service, callback);
-        this.clientBuilder = clientBuilder;
     }
 
     @Override
@@ -163,8 +155,8 @@ class ScalarWebBrowserProtocol<T extends ThingCallback<String>> extends Abstract
             if (iconUrl == null || iconUrl.isEmpty()) {
                 callback.stateChanged(TEXTFAVICON, UnDefType.UNDEF);
             } else {
-                try (SonyHttpTransport transport = SonyTransportFactory
-                        .createHttpTransport(getService().getTransport().getBaseUri().toString(), clientBuilder)) {
+                try (SonyHttpTransport transport = SonyTransportFactory.createHttpTransport(
+                        getService().getTransport().getBaseUri().toString(), getContext().getClientBuilder())) {
                     final RawType rawType = NetUtil.getRawType(transport, iconUrl);
                     callback.stateChanged(TEXTFAVICON, rawType == null ? UnDefType.UNDEF : rawType);
                 } catch (final URISyntaxException e) {

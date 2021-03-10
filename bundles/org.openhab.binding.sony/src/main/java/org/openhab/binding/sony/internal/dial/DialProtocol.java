@@ -69,7 +69,7 @@ class DialProtocol<T extends ThingCallback<String>> implements AutoCloseable {
     /** The {@link ThingCallback} that we can callback to set state and status */
     private final T callback;
 
-    /** The {@link SonyTransport} used to make http requests */
+    /** The {@link SonyHttpTransport} used to make http requests */
     private final SonyHttpTransport transport;
 
     /** The {@link DialClient} representing the DIAL application */

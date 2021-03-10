@@ -26,8 +26,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 
-import javax.ws.rs.client.ClientBuilder;
-
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.sony.internal.SonyUtil;
@@ -67,9 +65,6 @@ public class ScalarWebDeviceManager implements ScalarWebClient {
     /** The URL of the device */
     private URL baseUrl;
 
-    /** The clientBuilder used in HttpRequest */
-    private final ClientBuilder clientBuilder;
-
     /** The services offered by the device */
     private final Map<String, ScalarWebService> services;
 
@@ -83,9 +78,9 @@ public class ScalarWebDeviceManager implements ScalarWebClient {
      * @throws MalformedURLException if there is a malformed URL (in the device XML)
      * @throws URISyntaxException if a URI syntax exception occurs
      */
-    public ScalarWebDeviceManager(final URL baseUrl, final ScalarWebContext context, final ClientBuilder clientBuilder)
+    public ScalarWebDeviceManager(final URL baseUrl, final ScalarWebContext context)
             throws IOException, DOMException, MalformedURLException, URISyntaxException {
-        this(baseUrl, "1.0", new HashSet<>(), context, clientBuilder);
+        this(baseUrl, "1.0", new HashSet<>(), context);
     }
 
     /**
@@ -101,7 +96,7 @@ public class ScalarWebDeviceManager implements ScalarWebClient {
      * @throws URISyntaxException if an URI exception occurs
      */
     private ScalarWebDeviceManager(final URL baseUrl, final String version, final Set<ServiceProtocol> serviceProtocols,
-            final ScalarWebContext context, final ClientBuilder clientBuilder)
+            final ScalarWebContext context)
             throws IOException, DOMException, MalformedURLException, URISyntaxException {
         Objects.requireNonNull(baseUrl, "baseUrl cannot be null");
         SonyUtil.validateNotEmpty(version, "version cannot be empty");
@@ -110,16 +105,15 @@ public class ScalarWebDeviceManager implements ScalarWebClient {
 
         this.version = version;
         this.baseUrl = baseUrl;
-        this.clientBuilder = clientBuilder;
         final Gson gson = GsonUtilities.getApiGson();
 
         final SonyTransportFactory transportFactory = new SonyTransportFactory(baseUrl, gson,
-                context.getWebSocketClient(), context.getScheduler(), clientBuilder);
+                context.getWebSocketClient(), context.getScheduler(), context.getClientBuilder());
 
         final Set<ServiceProtocol> myServiceProtocols = new HashSet<>(serviceProtocols);
 
         try (final SonyHttpTransport httpTransport = SonyTransportFactory.createHttpTransport(baseUrl,
-                ScalarWebService.GUIDE, clientBuilder)) {
+                ScalarWebService.GUIDE, context.getClientBuilder())) {
             // Manually create the guide as it's used to get service protocols and supported methods
             // Must use alternative supported api since SupportedApi requires a guide!
             final SupportedApi guideApi = SupportedApi.getSupportApiAlternate(ScalarWebService.GUIDE, httpTransport,
@@ -149,7 +143,7 @@ public class ScalarWebDeviceManager implements ScalarWebClient {
                 // getSupportedApi doesn't exist on the guide service and we fallback to using
                 // an http getversions/getmethodtypes alternative for the service
                 try (final SonyHttpTransport srvHttpTransport = SonyTransportFactory.createHttpTransport(baseUrl,
-                        serviceProtocol.getServiceName(), clientBuilder)) {
+                        serviceProtocol.getServiceName(), context.getClientBuilder())) {
                     final SupportedApi srvApi = SupportedApi.getSupportedApi(guide, serviceProtocol.getServiceName(),
                             srvHttpTransport, logger);
                     final ScalarWebService sws = new ScalarWebService(transportFactory, serviceProtocol, version,
@@ -172,8 +166,7 @@ public class ScalarWebDeviceManager implements ScalarWebClient {
      * @throws MalformedURLException if there is a malformed URL (in the device XML)
      * @throws URISyntaxException if a URI syntax exception occurs
      */
-    public static ScalarWebDeviceManager create(final Node deviceInfo, final ScalarWebContext context,
-            final ClientBuilder clientBuilder)
+    public static ScalarWebDeviceManager create(final Node deviceInfo, final ScalarWebContext context)
             throws IOException, DOMException, MalformedURLException, URISyntaxException {
         Objects.requireNonNull(deviceInfo, "service cannot be null");
         Objects.requireNonNull(context, "context cannot be null");
@@ -207,7 +200,7 @@ public class ScalarWebDeviceManager implements ScalarWebClient {
             throw new IOException("X_ScalarWebAPI_BaseURL was not found");
         }
 
-        return new ScalarWebDeviceManager(baseUrl, version, serviceProtocols, context, clientBuilder);
+        return new ScalarWebDeviceManager(baseUrl, version, serviceProtocols, context);
     }
 
     /**

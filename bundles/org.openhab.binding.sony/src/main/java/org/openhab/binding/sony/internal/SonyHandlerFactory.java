@@ -129,8 +129,8 @@ public class SonyHandlerFactory extends BaseThingHandlerFactory {
             final TransformationService transformationService = TransformationHelper
                     .getTransformationService(getBundleContext(), "MAP");
 
-            ThingHandler th = new ScalarWebHandler(thing, transformationService, webSocketClient,
-                    sonyDefinitionProvider, sonyDynamicStateProvider, osgiProperties, clientBuilder);
+            ThingHandler th = new ScalarWebHandler(thing, transformationService, webSocketClient, clientBuilder,
+                    sonyDefinitionProvider, sonyDynamicStateProvider, osgiProperties);
             return th;
             // return new ScalarWebHandler(thing, transformationService, webSocketClient, sonyDefinitionProvider,
             // sonyDynamicStateProvider, osgiProperties, clientBuilder);

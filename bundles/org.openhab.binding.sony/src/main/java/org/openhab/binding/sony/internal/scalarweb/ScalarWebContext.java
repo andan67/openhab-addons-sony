@@ -17,6 +17,8 @@ import java.util.Objects;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Supplier;
 
+import javax.ws.rs.client.ClientBuilder;
+
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jetty.websocket.client.WebSocketClient;
@@ -48,6 +50,9 @@ public class ScalarWebContext {
     /** The websocket client to use (if specified) */
     private final @Nullable WebSocketClient webSocketClient;
 
+    /** The http client builder to use (if specified) */
+    private final ClientBuilder clientBuilder;
+
     /** The transformation service to use (if specified) */
     private final @Nullable TransformationService transformService;
 
@@ -66,16 +71,19 @@ public class ScalarWebContext {
      * @param scheduler the non-null scheduler
      * @param stateProvider the non-null dynamic state provider
      * @param webSocketClient the possibly null websocket client
+     * @param clientBuilder the possibly null http client builder
      * @param transformService the possibly null transformation service
      * @param osgiProperties the non-null OSGI properties
      */
     public ScalarWebContext(final Supplier<Thing> thingSupplier, final ScalarWebConfig config,
             final ScalarWebChannelTracker tracker, final ScheduledExecutorService scheduler,
             final SonyDynamicStateProvider stateProvider, final @Nullable WebSocketClient webSocketClient,
-            final @Nullable TransformationService transformService, final Map<String, String> osgiProperties) {
+            final ClientBuilder clientBuilder, final @Nullable TransformationService transformService,
+            final Map<String, String> osgiProperties) {
         Objects.requireNonNull(thingSupplier, "thingSupplier cannot be null");
-        Objects.requireNonNull(thingSupplier, "config cannot be null");
+        Objects.requireNonNull(config, "config cannot be null");
         Objects.requireNonNull(tracker, "tracker cannot be null");
+        Objects.requireNonNull(clientBuilder, "clientBuilder cannot be null");
         Objects.requireNonNull(scheduler, "scheduler cannot be null");
         Objects.requireNonNull(stateProvider, "stateProvider cannot be null");
         Objects.requireNonNull(osgiProperties, "osgiProperties cannot be null");
@@ -86,6 +94,7 @@ public class ScalarWebContext {
         this.scheduler = scheduler;
         this.stateProvider = stateProvider;
         this.webSocketClient = webSocketClient;
+        this.clientBuilder = clientBuilder;
         this.transformService = transformService;
         this.osgiProperties = osgiProperties;
     }
@@ -151,6 +160,15 @@ public class ScalarWebContext {
      */
     public @Nullable WebSocketClient getWebSocketClient() {
         return webSocketClient;
+    }
+
+    /**
+     * Returns the http client builder to use
+     *
+     * @return the http client builder
+     */
+    public ClientBuilder getClientBuilder() {
+        return clientBuilder;
     }
 
     /**

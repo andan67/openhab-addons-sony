@@ -25,8 +25,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.Matcher;
 import java.util.stream.Collectors;
 
-import javax.ws.rs.client.ClientBuilder;
-
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.sony.internal.SonyUtil;
@@ -328,11 +326,6 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
     private final NotificationHelper notificationHelper;
 
     /**
-     * The clientBuilder used in HttpRequest
-     */
-    private final ClientBuilder clientBuilder;
-
-    /**
      * Function interface to process a content list result
      */
     @NonNullByDefault
@@ -354,9 +347,8 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
      * @param callback the non-null callback
      */
     ScalarWebAvContentProtocol(final ScalarWebProtocolFactory<T> factory, final ScalarWebContext context,
-            final ScalarWebService service, final T callback, final ClientBuilder clientBuilder) {
+            final ScalarWebService service, final T callback) {
         super(factory, context, service, callback);
-        this.clientBuilder = clientBuilder;
         notificationHelper = new NotificationHelper(enableNotifications(ScalarWebEvent.NOTIFYPLAYINGCONTENTINFO,
                 /** ScalarWebEvent.NOTIFYAVAILABLEPLAYBACKFUNCTION, */
                 ScalarWebEvent.NOTIFYEXTERNALTERMINALSTATUS));
@@ -1980,8 +1972,8 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
         if (iconUrl == null || iconUrl.isEmpty()) {
             stateChanged(TERM_ICON, id, UnDefType.UNDEF);
         } else {
-            try (SonyHttpTransport transport = SonyTransportFactory
-                    .createHttpTransport(getService().getTransport().getBaseUri().toString(), clientBuilder)) {
+            try (SonyHttpTransport transport = SonyTransportFactory.createHttpTransport(
+                    getService().getTransport().getBaseUri().toString(), getContext().getClientBuilder())) {
                 final RawType rawType = NetUtil.getRawType(transport, iconUrl);
                 stateChanged(TERM_ICON, id, rawType == null ? UnDefType.UNDEF : rawType);
             } catch (URISyntaxException e) {

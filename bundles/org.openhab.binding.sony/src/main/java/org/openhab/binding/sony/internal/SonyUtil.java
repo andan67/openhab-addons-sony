@@ -311,7 +311,7 @@ public class SonyUtil {
                 && !deviceMacAddress.isBlank()) {
             try {
                 NetUtil.sendWol(deviceIpAddress, deviceMacAddress);
-                //logger.debug("WOL packet sent to {}", deviceMacAddress);
+                // logger.debug("WOL packet sent to {}", deviceMacAddress);
                 logger.info("WOL packet sent to {}", deviceMacAddress);
             } catch (final IOException e) {
                 logger.debug("Exception occurred sending WOL packet to {}", deviceMacAddress, e);
