@@ -80,7 +80,7 @@ import org.slf4j.LoggerFactory;
  * @param <T> the generic type for the callback
  */
 @NonNullByDefault
-class ScalarWebSystemProtocol<T extends ThingCallback<String>> extends AbstractScalarWebProtocol<T> {
+public class ScalarWebSystemProtocol<T extends ThingCallback<String>> extends AbstractScalarWebProtocol<T> {
     /** The logger */
     private final Logger logger = LoggerFactory.getLogger(ScalarWebSystemProtocol.class);
 
@@ -88,7 +88,7 @@ class ScalarWebSystemProtocol<T extends ThingCallback<String>> extends AbstractS
     private static final String CURRENTTIME = "currenttime";
     private static final String LEDINDICATORSTATUS = "ledindicatorstatus";
     private static final String POWERSAVINGMODE = "powersavingmode";
-    private static final String POWERSTATUS = "powerstatus";
+    public static final String POWERSTATUS = "powerstatus";
     private static final String WOLMODE = "wolmode";
     private static final String LANGUAGE = "language";
     private static final String REBOOT = "reboot";

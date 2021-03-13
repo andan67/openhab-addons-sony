@@ -38,6 +38,7 @@ import com.thoughtworks.xstream.annotations.XStreamImplicit;
  * </pre>
  *
  * @author Tim Roberts - Initial contribution
+ * @author andan - Adaptions for OH3
  */
 @NonNullByDefault
 public class DialApp {

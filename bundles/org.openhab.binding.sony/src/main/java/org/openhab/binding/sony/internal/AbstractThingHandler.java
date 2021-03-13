@@ -22,14 +22,16 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
-import org.openhab.core.thing.ChannelUID;
-import org.openhab.core.thing.Thing;
-import org.openhab.core.thing.ThingStatus;
-import org.openhab.core.thing.ThingStatusDetail;
+import org.openhab.binding.sony.internal.scalarweb.ScalarWebChannel;
+import org.openhab.binding.sony.internal.scalarweb.models.ScalarWebService;
+import org.openhab.binding.sony.internal.scalarweb.protocols.ScalarWebSystemProtocol;
+import org.openhab.core.library.types.OnOffType;
+import org.openhab.core.thing.*;
 import org.openhab.core.thing.binding.BaseThingHandler;
 import org.openhab.core.types.Command;
 import org.openhab.core.types.RefreshType;
@@ -59,6 +61,11 @@ public abstract class AbstractThingHandler<C extends AbstractConfig> extends Bas
 
     /** The retry connection event - will only be created when we are disconnected. */
     private final AtomicReference<@Nullable Future<?>> retryConnection = new AtomicReference<>(null);
+
+    /** The retry counter */
+    private final AtomicInteger retryCount = new AtomicInteger(0);
+    private final int RETRY_DELAY = 30;
+    private final int MAX_RETRY_COUNT = 2;
 
     /** The queue used to cache commands until online */
     private final Queue<CachedCommand> commandQueue = new ConcurrentLinkedQueue<>();
@@ -134,8 +141,24 @@ public abstract class AbstractThingHandler<C extends AbstractConfig> extends Bas
         final boolean autoReconnect = isAutoReconnect();
         if (status == ThingStatus.OFFLINE && autoReconnect) {
             logger.debug("AutoReconnect on - scheduling reconnect and caching: {} {}", channelUID, command);
+            final Channel channel = getThing().getChannel(channelUID.getId());
+            if (channel != null) {
+                try {
+                    final ScalarWebChannel scalarChannel = new ScalarWebChannel(channelUID, channel);
+                    if (scalarChannel.getService().equals(ScalarWebService.SYSTEM)
+                            && scalarChannel.getCategory().equals(ScalarWebSystemProtocol.POWERSTATUS)) {
+                        if (command instanceof OnOffType) {
+                            if (command == OnOffType.ON) {
+                                SonyUtil.sendWakeOnLan(logger, getSonyConfig().getDeviceIpAddress(),
+                                        getSonyConfig().getDeviceMacAddress());
+                            }
+                        }
+                    }
+                } catch (Exception ex) {
+                }
+            }
             commandQueue.add(new CachedCommand(channelUID, command));
-            scheduleReconnect();
+            scheduleReconnect(RETRY_DELAY);
         } else if (status == ThingStatus.UNKNOWN && autoReconnect) {
             logger.debug("AutoReconnect on - waiting for reconnect and caching: {} {}", channelUID, command);
             commandQueue.add(new CachedCommand(channelUID, command));
@@ -207,6 +230,8 @@ public abstract class AbstractThingHandler<C extends AbstractConfig> extends Bas
             schedulePolling();
             scheduleCheckStatus();
             doCachedCommands();
+            // stop retrying connection
+            SonyUtil.cancel(retryConnection.getAndSet(null));
         } else if (status == ThingStatus.UNKNOWN) {
             // probably in the process of reconnecting - ignore
             logger.trace("Ignoring thing status of UNKNOWN");
@@ -215,7 +240,7 @@ public abstract class AbstractThingHandler<C extends AbstractConfig> extends Bas
             SonyUtil.cancel(checkStatus.getAndSet(null));
 
             // don't bother reconnecting - won't fix a configuration error
-            if (statusDetail != ThingStatusDetail.CONFIGURATION_ERROR) {
+            if (statusDetail != ThingStatusDetail.CONFIGURATION_ERROR && retryCount.get() == 0) {
                 scheduleReconnect();
             }
         }
@@ -249,10 +274,25 @@ public abstract class AbstractThingHandler<C extends AbstractConfig> extends Bas
     private void scheduleReconnect() {
         final C config = getSonyConfig();
         final Integer retryPolling = config.getRetryPolling();
+        scheduleReconnect(retryPolling);
+    }
 
+    /**
+     * Tries to reconnect to the sony device. The results of the connection should call
+     * {@link #updateStatus(ThingStatus, ThingStatusDetail, String)} and if set to OFFLINE, this method will be called
+     * to schedule another connection attempt
+     *
+     * There is one warning here - if the retryPolling is set lower than how long
+     * it takes to connect, you can get in an infinite loop of the connect getting cancelled for the next retry.
+     *
+     * @param retryPolling the possibly null retry polling interval in seconds
+     *
+     */
+    private void scheduleReconnect(@Nullable Integer retryPolling) {
         if (retryPolling != null && retryPolling > 0) {
             SonyUtil.cancel(retryConnection.getAndSet(this.scheduler.schedule(() -> {
                 if (!SonyUtil.isInterrupted() && !isRemoved()) {
+                    logger.debug("Do reconnect");
                     doConnect();
                 }
             }, retryPolling, TimeUnit.SECONDS)));
@@ -342,6 +382,7 @@ public abstract class AbstractThingHandler<C extends AbstractConfig> extends Bas
     @Override
     public void dispose() {
         super.dispose();
+        logger.debug("dispose()");
         SonyUtil.cancel(refreshState.getAndSet(null));
         SonyUtil.cancel(retryConnection.getAndSet(null));
         SonyUtil.cancel(checkStatus.getAndSet(null));

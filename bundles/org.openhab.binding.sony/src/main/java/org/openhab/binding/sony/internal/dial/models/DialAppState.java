@@ -19,7 +19,7 @@ import org.openhab.binding.sony.internal.SonyUtil;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 
 /**
- * This class represents the DIAL application state. The state will be retrieved from a call to {@link #get(URL)} and
+ * This class represents the DIAL application state. The state will be retrieved from a call to {@link #get(String)} and
  * the XML looks like the following
  *
  * <pre>
@@ -34,6 +34,7 @@ import com.thoughtworks.xstream.annotations.XStreamAlias;
  * </pre>
  *
  * @author Tim Roberts - Initial contribution
+ * @author andan - Adaptions for OH3
  */
 @XStreamAlias("service")
 @NonNullByDefault
