@@ -139,6 +139,11 @@ public class DialHandler extends AbstractThingHandler<DialConfig> {
     }
 
     @Override
+    protected boolean handlePotentialPowerOnCommand(final ChannelUID channelUID, final Command command) {
+        return false;
+    }
+
+    @Override
     protected void connect() {
         final DialConfig config = getSonyConfig();
 

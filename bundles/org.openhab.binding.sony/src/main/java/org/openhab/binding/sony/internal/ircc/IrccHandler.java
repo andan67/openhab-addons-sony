@@ -213,6 +213,25 @@ public class IrccHandler extends AbstractThingHandler<IrccConfig> {
     }
 
     @Override
+    protected boolean handlePotentialPowerOnCommand(final ChannelUID channelUID, final Command command) {
+        final String groupId = channelUID.getGroupId();
+        final String channelId = channelUID.getIdWithoutGroup();
+
+        if (groupId != null) {
+            if (IrccConstants.GRP_PRIMARY.equals(groupId) && IrccConstants.CHANNEL_POWER.equals(channelId)) {
+                if (command instanceof OnOffType) {
+                    if (command == OnOffType.ON) {
+                        SonyUtil.sendWakeOnLan(logger, getSonyConfig().getDeviceIpAddress(),
+                                getSonyConfig().getDeviceMacAddress());
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    @Override
     protected void refreshState(boolean initial) {
         final IrccProtocol<ThingCallback<String>> localProtocolHandler = protocolHandler.get();
         if (localProtocolHandler != null) {

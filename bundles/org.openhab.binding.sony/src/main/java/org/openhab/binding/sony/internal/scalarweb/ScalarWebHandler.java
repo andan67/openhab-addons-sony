@@ -44,7 +44,9 @@ import org.openhab.binding.sony.internal.scalarweb.models.ScalarWebService;
 import org.openhab.binding.sony.internal.scalarweb.protocols.ScalarWebLoginProtocol;
 import org.openhab.binding.sony.internal.scalarweb.protocols.ScalarWebProtocol;
 import org.openhab.binding.sony.internal.scalarweb.protocols.ScalarWebProtocolFactory;
+import org.openhab.binding.sony.internal.scalarweb.protocols.ScalarWebSystemProtocol;
 import org.openhab.core.config.core.Configuration;
+import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.thing.Channel;
 import org.openhab.core.thing.ChannelUID;
 import org.openhab.core.thing.Thing;
@@ -218,6 +220,25 @@ public class ScalarWebHandler extends AbstractThingHandler<ScalarWebConfig> {
         doHandleCommand(channelUID, command);
     }
 
+    @Override
+    protected boolean handlePotentialPowerOnCommand(final ChannelUID channelUID, final Command command) {
+        final Channel channel = getThing().getChannel(channelUID.getId());
+        if (channel != null) {
+            final ScalarWebChannel scalarChannel = new ScalarWebChannel(channelUID, channel);
+            if (scalarChannel.getService().equals(ScalarWebService.SYSTEM)
+                    && scalarChannel.getCategory().equals(ScalarWebSystemProtocol.POWERSTATUS)) {
+                if (command instanceof OnOffType) {
+                    if (command == OnOffType.ON) {
+                        SonyUtil.sendWakeOnLan(logger, getSonyConfig().getDeviceIpAddress(),
+                                getSonyConfig().getDeviceMacAddress());
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
     /**
      * Handles a command from the system. This will determine the protocol to send the command to
      *
@@ -238,20 +259,6 @@ public class ScalarWebHandler extends AbstractThingHandler<ScalarWebConfig> {
         final ScalarWebProtocolFactory<ThingCallback<String>> localProtocolFactory = protocolFactory.get();
         if (localProtocolFactory == null) {
             logger.debug("Trying to handle a channel command before a protocol factory has been created");
-
-            // handle power on command even if no protocol exists (e.g. if TV is in deep stand-by mode and thus no
-            // protocol connection can be established).
-            /*
-             * if (scalarChannel.getService().equals(ScalarWebService.SYSTEM)
-             * && scalarChannel.getCategory().equals(ScalarWebSystemProtocol.POWERSTATUS)) {
-             * if (command instanceof OnOffType) {
-             * if (command == OnOffType.ON) {
-             * SonyUtil.sendWakeOnLan(logger, getSonyConfig().getDeviceIpAddress(),
-             * getSonyConfig().getDeviceMacAddress());
-             * }
-             * }
-             * }
-             */
             return;
         }
 
@@ -308,7 +315,7 @@ public class ScalarWebHandler extends AbstractThingHandler<ScalarWebConfig> {
 
                 SonyUtil.checkInterrupt();
 
-                // SonyUtil.close(protocolFactory.getAndSet(factory));
+                SonyUtil.close(protocolFactory.getAndSet(factory));
                 updateStatus(ThingStatus.ONLINE, ThingStatusDetail.NONE);
 
                 // add already linked channels to the tracker to enable state refresh
