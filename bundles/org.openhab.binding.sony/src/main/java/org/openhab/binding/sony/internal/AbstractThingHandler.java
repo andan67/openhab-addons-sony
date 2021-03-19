@@ -22,6 +22,8 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.eclipse.jdt.annotation.NonNullByDefault;
@@ -57,11 +59,21 @@ public abstract class AbstractThingHandler<C extends AbstractConfig> extends Bas
     /** The retry connection event - will only be created when we are disconnected. */
     private final AtomicReference<@Nullable Future<?>> retryConnection = new AtomicReference<>(null);
 
-    /** The retry counter */
-    private final int RETRY_DELAY = 30;
+    /** The delay for trying to reconnect after command has been sent to offline thing */
+    private final int AUTO_RECONNECT_DELAY = 30;
+    private final int MAX_AUTO_RECONNECT = 5;
+    private final AtomicInteger autoRetryCount = new AtomicInteger(0);
+    private final AtomicBoolean isAutoRetryActive = new AtomicBoolean(false);
 
     /** The queue used to cache commands until online */
     private final Queue<CachedCommand> commandQueue = new ConcurrentLinkedQueue<>();
+
+    /** constants to handle power on/off commands */
+    protected enum PowerCommand {
+        ON,
+        OFF,
+        NON
+    };
 
     /**
      * Constructs the handler from the specified {@link Thing}
@@ -132,22 +144,30 @@ public abstract class AbstractThingHandler<C extends AbstractConfig> extends Bas
 
         final ThingStatus status = getThing().getStatus();
         final boolean autoReconnect = isAutoReconnect();
-        if (status == ThingStatus.OFFLINE && autoReconnect) {
-            logger.debug("AutoReconnect on - scheduling reconnect and caching: {} {}", channelUID, command);
-
-            // handle power on commands for various thing types directly by WOL
-            // and not by using the protocols through established connections
-            final boolean powerdOn = handlePotentialPowerOnCommand(channelUID, command);
-            if (powerdOn) {
-                logger.info("Sent WOL");
+        if (status == ThingStatus.OFFLINE) {
+            // handle power on commands if thing is offline by using WOL
+            final PowerCommand powerCommand = handlePotentialPowerOnCommand(channelUID, command);
+            if (powerCommand == PowerCommand.ON) {
+                logger.info("Received power on command when thing is offline - trying to turn on thing via WOL");
             }
-            commandQueue.add(new CachedCommand(channelUID, command));
-            scheduleReconnect(RETRY_DELAY);
+            if (isAutoReconnect()) {
+                logger.debug("AutoReconnect on - scheduling reconnect and caching: {} {}", channelUID, command);
+                // do not cache power off commands as this is likely unwanted in case thing is offline but might happen
+                // when using power toggle command to switch on device with power item being in an inconsistent 'ON'
+                // state
+                if (powerCommand != PowerCommand.OFF) {
+                    commandQueue.add(new CachedCommand(channelUID, command));
+                }
+                // do no schedule auto retry if already active
+                if (!isAutoRetryActive.get()) {
+                    logger.debug("Schedule auto reconnect");
+                    isAutoRetryActive.set(true);
+                    scheduleReconnect(AUTO_RECONNECT_DELAY);
+                }
+            }
         } else if (status == ThingStatus.UNKNOWN && autoReconnect) {
             logger.debug("AutoReconnect on - waiting for reconnect and caching: {} {}", channelUID, command);
             commandQueue.add(new CachedCommand(channelUID, command));
-        } else if (status == ThingStatus.OFFLINE) {
-            logger.debug("Thing OFFLINE - ignoring command: {} {}", channelUID, command);
         } else {
             doHandleCommand(channelUID, command);
         }
@@ -162,7 +182,7 @@ public abstract class AbstractThingHandler<C extends AbstractConfig> extends Bas
      *
      * @return true if command is power on, otherwise false
      */
-    protected abstract boolean handlePotentialPowerOnCommand(final ChannelUID channelUID, final Command command);
+    protected abstract PowerCommand handlePotentialPowerOnCommand(final ChannelUID channelUID, final Command command);
 
     /**
      * This will execute any cached commands
@@ -225,6 +245,8 @@ public abstract class AbstractThingHandler<C extends AbstractConfig> extends Bas
             schedulePolling();
             scheduleCheckStatus();
             doCachedCommands();
+            isAutoRetryActive.set(false);
+            autoRetryCount.set(0);
         } else if (status == ThingStatus.UNKNOWN) {
             // probably in the process of reconnecting - ignore
             logger.trace("Ignoring thing status of UNKNOWN");
@@ -234,7 +256,20 @@ public abstract class AbstractThingHandler<C extends AbstractConfig> extends Bas
 
             // don't bother reconnecting - won't fix a configuration error
             if (statusDetail != ThingStatusDetail.CONFIGURATION_ERROR) {
-                scheduleReconnect();
+                if (!isAutoRetryActive.get()) {
+                    scheduleReconnect();
+                } else {
+                    // Try until maximum number of auto retries are reached.
+                    // This might happen when the auto retry delay is too short for the device services to become online
+                    if (autoRetryCount.getAndIncrement() < MAX_AUTO_RECONNECT) {
+                        logger.debug("Schedule auto reconnect counter={}", autoRetryCount.get());
+                        scheduleReconnect(AUTO_RECONNECT_DELAY);
+                    } else {
+                        // stop auto retry
+                        isAutoRetryActive.set(false);
+                        autoRetryCount.set(0);
+                    }
+                }
             }
         }
     }
@@ -435,7 +470,8 @@ public abstract class AbstractThingHandler<C extends AbstractConfig> extends Bas
                     initial = true;
                 }
             } catch (final Exception ex) {
-                if (ex.getMessage().contains("Connection refused")) {
+                final @Nullable String message = ex.getMessage();
+                if (message != null && message.contains("Connection refused")) {
                     logger.debug("Connection refused - device is probably turned off");
                 } else {
                     logger.debug("Uncaught exception (refreshstate) : {}", ex.getMessage(), ex);

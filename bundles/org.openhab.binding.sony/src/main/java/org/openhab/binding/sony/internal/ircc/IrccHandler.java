@@ -213,7 +213,7 @@ public class IrccHandler extends AbstractThingHandler<IrccConfig> {
     }
 
     @Override
-    protected boolean handlePotentialPowerOnCommand(final ChannelUID channelUID, final Command command) {
+    protected PowerCommand handlePotentialPowerOnCommand(final ChannelUID channelUID, final Command command) {
         final String groupId = channelUID.getGroupId();
         final String channelId = channelUID.getIdWithoutGroup();
 
@@ -223,12 +223,14 @@ public class IrccHandler extends AbstractThingHandler<IrccConfig> {
                     if (command == OnOffType.ON) {
                         SonyUtil.sendWakeOnLan(logger, getSonyConfig().getDeviceIpAddress(),
                                 getSonyConfig().getDeviceMacAddress());
-                        return true;
+                        return PowerCommand.ON;
+                    } else {
+                        return PowerCommand.OFF;
                     }
                 }
             }
         }
-        return false;
+        return PowerCommand.OFF;
     }
 
     @Override
@@ -242,8 +244,8 @@ public class IrccHandler extends AbstractThingHandler<IrccConfig> {
     @Override
     protected void connect() {
         final IrccConfig config = getSonyConfig();
-
-        if (config.getDeviceAddress() == null || config.getDeviceAddress().isEmpty()) {
+        final @Nullable String deviceAddress = config.getDeviceAddress();
+        if (deviceAddress == null || deviceAddress.isEmpty()) {
             updateStatus(ThingStatus.OFFLINE, ThingStatusDetail.CONFIGURATION_ERROR,
                     "IRCC URL is missing from configuration");
             return;

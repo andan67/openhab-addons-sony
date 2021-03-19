@@ -245,18 +245,20 @@ public class SimpleIpHandler extends AbstractThingHandler<SimpleIpConfig> {
     }
 
     @Override
-    protected boolean handlePotentialPowerOnCommand(final ChannelUID channelUID, final Command command) {
+    protected PowerCommand handlePotentialPowerOnCommand(final ChannelUID channelUID, final Command command) {
         final String id = channelUID.getId();
         if (SimpleIpConstants.CHANNEL_POWER.equals(id)) {
             if (command instanceof OnOffType) {
                 if (command == OnOffType.ON) {
                     SonyUtil.sendWakeOnLan(logger, getSonyConfig().getDeviceIpAddress(),
                             getSonyConfig().getDeviceMacAddress());
-                    return true;
+                    return PowerCommand.ON;
+                } else {
+                    return PowerCommand.OFF;
                 }
             }
         }
-        return false;
+        return PowerCommand.NON;
     }
 
     @Override

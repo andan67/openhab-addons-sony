@@ -40,6 +40,7 @@ import org.openhab.binding.sony.internal.providers.SonyModelListener;
 import org.openhab.binding.sony.internal.providers.models.SonyDeviceCapability;
 import org.openhab.binding.sony.internal.providers.models.SonyServiceCapability;
 import org.openhab.binding.sony.internal.scalarweb.models.ScalarWebMethod;
+import org.openhab.binding.sony.internal.scalarweb.models.ScalarWebResult;
 import org.openhab.binding.sony.internal.scalarweb.models.ScalarWebService;
 import org.openhab.binding.sony.internal.scalarweb.protocols.ScalarWebLoginProtocol;
 import org.openhab.binding.sony.internal.scalarweb.protocols.ScalarWebProtocol;
@@ -221,7 +222,10 @@ public class ScalarWebHandler extends AbstractThingHandler<ScalarWebConfig> {
     }
 
     @Override
-    protected boolean handlePotentialPowerOnCommand(final ChannelUID channelUID, final Command command) {
+    protected PowerCommand handlePotentialPowerOnCommand(final ChannelUID channelUID, final Command command) {
+        Objects.requireNonNull(channelUID, "channelUID cannot be null");
+        Objects.requireNonNull(command, "command cannot be null");
+
         final Channel channel = getThing().getChannel(channelUID.getId());
         if (channel != null) {
             final ScalarWebChannel scalarChannel = new ScalarWebChannel(channelUID, channel);
@@ -231,12 +235,14 @@ public class ScalarWebHandler extends AbstractThingHandler<ScalarWebConfig> {
                     if (command == OnOffType.ON) {
                         SonyUtil.sendWakeOnLan(logger, getSonyConfig().getDeviceIpAddress(),
                                 getSonyConfig().getDeviceMacAddress());
-                        return true;
+                        return PowerCommand.ON;
+                    } else {
+                        return PowerCommand.OFF;
                     }
                 }
             }
         }
-        return false;
+        return PowerCommand.NON;
     }
 
     /**
@@ -290,6 +296,30 @@ public class ScalarWebHandler extends AbstractThingHandler<ScalarWebConfig> {
         logger.debug("Attempting connection to Scalar Web device...");
         try {
             SonyUtil.checkInterrupt();
+
+            // TODO Test
+            if (scalarClient.get() != null && protocolFactory.get() != null) {
+                logger.debug("Trying tu reuse available client and protools");
+                final @Nullable ScalarWebClient client = scalarClient.get();
+                // check if scalar web service is available
+                if (client != null && client.getService(ScalarWebService.GUIDE) != null) {
+                    final @Nullable ScalarWebService guideService = client.getService(ScalarWebService.GUIDE);
+                    if (guideService != null) {
+                        final ScalarWebResult result = guideService.execute(ScalarWebMethod.GETVERSIONS);
+                        if (!result.isError()) {
+                            logger.debug("Reuse of client and protocols successful");
+                            updateStatus(ThingStatus.ONLINE, ThingStatusDetail.NONE);
+                            this.scheduler.submit(() -> {
+                                // Refresh the state right away
+                                refreshState(true);
+                            });
+                            return;
+                        } else {
+                            logger.debug("Reuse of client and protocols not successful");
+                        }
+                    }
+                }
+            }
 
             final ScalarWebContext context = new ScalarWebContext(() -> getThing(), config, tracker, scheduler,
                     sonyDynamicStateProvider, webSocketClient, clientBuilder, transformationService, osgiProperties);
