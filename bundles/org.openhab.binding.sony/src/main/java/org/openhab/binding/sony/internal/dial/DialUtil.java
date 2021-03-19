@@ -34,6 +34,7 @@ import org.openhab.core.thing.binding.builder.ChannelBuilder;
  * This is a utility class for the DIAL app
  *
  * @author Tim Roberts - Initial contribution
+ * @author andan - Adaptions for OH3
  */
 @NonNullByDefault
 public class DialUtil {

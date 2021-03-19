@@ -69,7 +69,7 @@ public class IrccActionList {
         final List<@Nullable IrccAction> localActions = actions;
         if (localActions != null) {
             for (final IrccAction action : localActions) {
-                if (actionName.equalsIgnoreCase(action.getName())) {
+                if (action != null && actionName.equalsIgnoreCase(action.getName())) {
                     return action.getUrl();
                 }
             }
@@ -86,7 +86,7 @@ public class IrccActionList {
         final List<@Nullable IrccAction> localActions = actions;
         if (localActions != null) {
             for (final IrccAction action : localActions) {
-                if (action != null && action.getMode() != null && !action.getMode().isEmpty()
+                if (action != null && action.getMode() != null && Objects.requireNonNull(action.getMode()).isEmpty()
                         && IrccAction.REGISTER.equalsIgnoreCase(action.getName())) {
                     try {
                         return Integer.parseInt(Objects.requireNonNull(action.getMode()));

@@ -109,12 +109,12 @@ public class IrccSystemInformation {
         final List<Function> funcs = sf.functions;
         if (funcs != null) {
             for (final Function func : funcs) {
-                if (func != null && "wol".equalsIgnoreCase(func.name)) {
+                if ("wol".equalsIgnoreCase(func.name)) {
                     final List<@Nullable FunctionItem> localItems = func.items;
                     if (localItems != null) {
                         for (final FunctionItem fi : localItems) {
                             if (fi != null && "mac".equalsIgnoreCase(fi.field) && fi.value != null
-                                    && !fi.value.isEmpty()) {
+                                    && fi.value.isEmpty()) {
                                 return fi.value;
                             }
                         }

@@ -126,7 +126,8 @@ public class AbstractConfig {
      * @return true, if is wol
      */
     public boolean isWOL() {
-        return !(getDeviceMacAddress() != null && !getDeviceMacAddress().isBlank());
+        final @Nullable String deviceMacAddress = getDeviceMacAddress();
+        return !(deviceMacAddress != null && !deviceMacAddress.isBlank());
     }
 
     /**

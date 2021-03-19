@@ -61,7 +61,8 @@ public class IrccConfig extends AbstractConfig {
      * @return the commands map file
      */
     public @Nullable String getCommandsMapFile() {
-        return commandsMapFile != null && !commandsMapFile.isEmpty() ? commandsMapFile : discoveredCommandsMapFile;
+        final @Nullable String mapFile = commandsMapFile;
+        return mapFile != null && !mapFile.isEmpty() ? mapFile : discoveredCommandsMapFile;
     }
 
     /**

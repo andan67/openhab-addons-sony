@@ -615,7 +615,6 @@ public abstract class AbstractSonySource implements SonySource {
     /**
      * Helper class that represents a service name/model pair and provide equals/hashcode services for them
      */
-    @NonNullByDefault
     protected class ServiceModelName {
         /** The service name */
         private final String serviceName;

@@ -20,7 +20,6 @@ import java.util.Objects;
 import java.util.Set;
 
 import org.eclipse.jdt.annotation.Nullable;
-import org.openhab.binding.sony.internal.scalarweb.models.ScalarWebResult;
 import org.openhab.binding.sony.internal.scalarweb.models.api.SupportedApi;
 import org.openhab.binding.sony.internal.scalarweb.models.api.SupportedApiInfo;
 

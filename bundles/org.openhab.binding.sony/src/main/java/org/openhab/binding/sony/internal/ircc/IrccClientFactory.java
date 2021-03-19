@@ -55,7 +55,8 @@ public class IrccClientFactory {
 
     /** The typical IRCC values for TV and blurays */
     private static final String LIKELY_TVAVR_SCPD = "/sony/ircc/IRCCSCPD.xml";
-    private static final String LIKELY_TVAVR_IRCC = "/sony/ircc";
+    // private static final String LIKELY_TVAVR_IRCC = "/sony/ircc";
+    private static final String LIKELY_TVAVR_IRCC = "/sony/IRCC";
     private static final int LIKELY_BLURAY_PORT = 50001;
     private static final String LIKELY_BLURAY_SCPD = "/IRCCSCPD.xml";
     private static final String LIKELY_BLURAY_IRCC = "/upnp/control/IRCC";

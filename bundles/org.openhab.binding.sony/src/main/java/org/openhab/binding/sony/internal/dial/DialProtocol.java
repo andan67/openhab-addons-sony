@@ -55,6 +55,8 @@ import org.slf4j.LoggerFactory;
  * process the responses from the DIAL system.
  *
  * @author Tim Roberts - Initial contribution
+ * @author andan - Adaptions for OH3
+ *
  * @param <T> the generic type for the callback
  */
 @NonNullByDefault

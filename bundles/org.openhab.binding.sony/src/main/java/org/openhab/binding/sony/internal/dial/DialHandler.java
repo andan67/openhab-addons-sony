@@ -43,6 +43,7 @@ import org.slf4j.LoggerFactory;
  * and a DIAL system.
  *
  * @author Tim Roberts - Initial contribution
+ * @author andan - Adaptions for OH3
  */
 @NonNullByDefault
 public class DialHandler extends AbstractThingHandler<DialConfig> {
@@ -139,8 +140,8 @@ public class DialHandler extends AbstractThingHandler<DialConfig> {
     }
 
     @Override
-    protected boolean handlePotentialPowerOnCommand(final ChannelUID channelUID, final Command command) {
-        return false;
+    protected PowerCommand handlePotentialPowerOnCommand(final ChannelUID channelUID, final Command command) {
+        return PowerCommand.NON;
     }
 
     @Override

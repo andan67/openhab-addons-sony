@@ -76,8 +76,11 @@ public class ExpiringMap<K, V> implements AutoCloseable {
                     timeStamps.entrySet().removeIf(e -> {
                         if (e.getValue() + expireTime <= now) {
                             final K key = e.getKey();
-                            final V val = internalMap.remove(key);
-                            expireListeners.forEach(l -> l.expired(key, val));
+                            final @Nullable V val = internalMap.remove(key);
+                            // can't happen, but required to pass null safety checks
+                            if (val != null) {
+                                expireListeners.forEach(l -> l.expired(key, val));
+                            }
                             return true;
                         }
                         return false;

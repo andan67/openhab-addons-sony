@@ -21,6 +21,7 @@ import org.openhab.core.thing.type.ChannelTypeUID;
  * The class provides all the constants specific to the DIAL system.
  *
  * @author Tim Roberts - Initial contribution
+ * @author andan - Adaptions for OH3
  */
 @NonNullByDefault
 public class DialConstants {

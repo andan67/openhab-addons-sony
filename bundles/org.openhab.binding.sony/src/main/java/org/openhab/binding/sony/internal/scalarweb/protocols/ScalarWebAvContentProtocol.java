@@ -2885,6 +2885,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
                                     // ignore
                                 }
                             }
+                            scanner.close();
                         } catch (final Exception ex) {
                             logger.debug(
                                     "Exception '{}' while trying to read or process content list for source {} from path {}",

@@ -27,6 +27,7 @@ import com.thoughtworks.xstream.annotations.XStreamImplicit;
  * to access the device
  *
  * @author Tim Roberts - Initial contribution
+ * @author andan - Adaptions for OH3
  */
 @NonNullByDefault
 public class DialClient {

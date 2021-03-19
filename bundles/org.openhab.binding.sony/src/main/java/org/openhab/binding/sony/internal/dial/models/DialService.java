@@ -62,6 +62,7 @@ import com.thoughtworks.xstream.annotations.XStreamImplicit;
  * Please note this class is used strictly in the deserialization process and retrieval of the {@link DialApp}
  *
  * @author Tim Roberts - Initial contribution
+ * @author andan - Adaptions for OH3
  */
 @NonNullByDefault
 @XStreamAlias("service")

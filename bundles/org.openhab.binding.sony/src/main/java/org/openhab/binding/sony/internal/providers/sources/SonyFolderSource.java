@@ -150,7 +150,6 @@ public class SonyFolderSource extends AbstractSonySource {
      *
      * @author Tim Roberts - Initial contribution
      */
-    @NonNullByDefault
     private class Watcher implements Runnable {
         @Override
         public void run() {

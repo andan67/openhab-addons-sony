@@ -39,6 +39,7 @@ import org.slf4j.LoggerFactory;
  * This class represents a factory for creating {@link DialClient}
  *
  * @author Tim Roberts - Initial contribution
+ * @author andan - Adaptions for OH3
  */
 @NonNullByDefault
 public class DialClientFactory {
@@ -56,7 +57,6 @@ public class DialClientFactory {
         final Logger logger = LoggerFactory.getLogger(DialClientFactory.class);
 
         try {
-            final URL dialURL = new URL(dialUrl);
             if (dialUrl.isEmpty()) {
                 logger.debug("Creating default DIAL client for {}", dialUrl);
                 return createDefaultClient(dialUrl);

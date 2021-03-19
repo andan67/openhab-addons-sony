@@ -25,7 +25,6 @@ import javax.measure.Unit;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.sony.internal.net.NetUtil;
-import org.openhab.core.common.AbstractUID;
 import org.openhab.core.library.types.DecimalType;
 import org.openhab.core.library.types.OnOffType;
 import org.openhab.core.library.types.PercentType;
@@ -366,9 +365,10 @@ public class SonyUtil {
     }
 
     /**
+     * Converts a string to a Boolean object
      *
-     * @param str
-     * @return
+     * @param str a possibly null string representation of a boolean
+     * @return null if string is null, TRUE if string represents a true boolean, FALSE otherwise
      */
     public static @Nullable Boolean toBooleanObject(@Nullable String str) {
         if (str == null)
@@ -383,9 +383,10 @@ public class SonyUtil {
     }
 
     /**
+     * Checks if a string represents an integer number
      *
-     * @param str
-     * @return
+     * @param str the possibly null string
+     * @return true if string represents an integer number, false otherwise
      */
     public static boolean isNumeric(@Nullable String str) {
         if (str == null) {
@@ -400,9 +401,10 @@ public class SonyUtil {
     }
 
     /**
+     * Checks if a string represetns a (double) number
      *
-     * @param str
-     * @return
+     * @param str the possibly null string
+     * @return true if string represents a double number, false otherwise
      */
     public static boolean isNumber(@Nullable String str) {
         if (str == null) {
@@ -417,9 +419,10 @@ public class SonyUtil {
     }
 
     /**
+     * Capitalize string
      *
-     * @param str
-     * @return
+     * @param str the possibly null string
+     * @return empty string id string i null or empty, otherwise the capitalized string
      */
     public static String capitalize(@Nullable String str) {
         if (isEmpty(str)) {
@@ -429,27 +432,35 @@ public class SonyUtil {
     }
 
     /**
+     * Left padding of string with character
      *
-     * @param str
-     * @param padSize
-     * @param padChar
-     * @return
+     * @param str the string
+     * @param padSize the padding size
+     * @param padChar the padding character
+     * @return the left padded string
      */
     public static String leftPad(String str, int padSize, Character padChar) {
         return padChar.toString().repeat(Math.max(padSize - str.length(), 0)) + str;
     }
 
     /**
+     * Right padding of string with character
      *
-     * @param str
-     * @param padSize
-     * @param padChar
-     * @return
+     * @param str the string
+     * @param padSize the padding size
+     * @param padChar the padding character
+     * @return the right padded string
      */
     public static String rightPad(String str, int padSize, Character padChar) {
         return str + padChar.toString().repeat(Math.max(padSize - str.length(), 0));
     }
 
+    /**
+     * Trim string
+     *
+     * @param str possibly null string
+     * @return empty string if input string is null, otherwise trimmed string
+     */
     public static String trimToEmpty(@Nullable String str) {
         if (str == null) {
             return "";
@@ -459,10 +470,11 @@ public class SonyUtil {
     }
 
     /**
+     * Strip character sequence from start of a string
      *
-     * @param str
-     * @param stripChars
-     * @return
+     * @param str the string
+     * @param stripChars the strip characters
+     * @return the stripped string
      */
     public static String stripStart(final String str, final String stripChars) {
         final int strLen = str.length();
@@ -481,10 +493,11 @@ public class SonyUtil {
     }
 
     /**
+     * Strip character sequence from end of a string
      *
-     * @param str
-     * @param stripChars
-     * @return
+     * @param str the string
+     * @param stripChars the strip characters
+     * @return the stripped string
      */
     public static String stripEnd(final String str, final String stripChars) {
         int end = str.length();

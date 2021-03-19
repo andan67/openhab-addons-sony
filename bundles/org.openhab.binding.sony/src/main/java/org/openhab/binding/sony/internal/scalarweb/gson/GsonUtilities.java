@@ -111,7 +111,6 @@ public class GsonUtilities {
     /**
      * This class implements an exclusion strategy based on the Expose annotation
      */
-    @NonNullByDefault
     private static class ExposeExclusionStrategy implements ExclusionStrategy {
 
         /** Whether to check deserialization (true) or serialization (false) */

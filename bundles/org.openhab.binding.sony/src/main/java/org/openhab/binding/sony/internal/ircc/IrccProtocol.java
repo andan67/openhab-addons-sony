@@ -91,7 +91,7 @@ class IrccProtocol<T extends ThingCallback<String>> implements AutoCloseable {
     /** The callback that we use to (ehm) callback */
     private final T callback;
 
-    /** The {@link SonyTransport} to use */
+    /** The {@link SonyHttpTransport} to use */
     private final SonyHttpTransport transport;
 
     /** The transform service to use to transform commands with */

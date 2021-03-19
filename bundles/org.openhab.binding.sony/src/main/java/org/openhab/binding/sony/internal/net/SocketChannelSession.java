@@ -198,7 +198,6 @@ public class SocketChannelSession implements SocketSession {
      *
      * @author Tim Roberts
      */
-    @NonNullByDefault
     private class ResponseReader implements Runnable {
 
         /**
@@ -282,7 +281,6 @@ public class SocketChannelSession implements SocketSession {
      *
      * @author Tim Roberts
      */
-    @NonNullByDefault
     private class Dispatcher implements Runnable {
         /**
          * Runs the logic to dispatch any responses to the current listeners until interrupted

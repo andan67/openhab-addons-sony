@@ -24,6 +24,7 @@ import com.thoughtworks.xstream.io.xml.StaxDriver;
  * This class represents creates the various XML readers (using XStream) to deserialize various calls.
  *
  * @author Tim Roberts - Initial contribution
+ * @author andan - Adaptions for OH3
  *
  * @param <T> the generic type to cast the XML to
  */
