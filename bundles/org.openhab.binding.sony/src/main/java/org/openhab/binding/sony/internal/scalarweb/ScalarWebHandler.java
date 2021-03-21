@@ -299,7 +299,7 @@ public class ScalarWebHandler extends AbstractThingHandler<ScalarWebConfig> {
 
             // TODO Test
             if (scalarClient.get() != null && protocolFactory.get() != null) {
-                logger.debug("Trying tu reuse available client and protools");
+                logger.debug("Trying to reuse available client and protocols");
                 final @Nullable ScalarWebClient client = scalarClient.get();
                 // check if scalar web service is available
                 if (client != null && client.getService(ScalarWebService.GUIDE) != null) {
