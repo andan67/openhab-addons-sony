@@ -23,6 +23,7 @@ import org.openhab.binding.sony.internal.AbstractConfig;
  * Configuration class for the {@link IrccHandler}.
  *
  * @author Tim Roberts - Initial contribution
+ * @author andan - Adaptions for OH3
  */
 @NonNullByDefault
 public class IrccConfig extends AbstractConfig {

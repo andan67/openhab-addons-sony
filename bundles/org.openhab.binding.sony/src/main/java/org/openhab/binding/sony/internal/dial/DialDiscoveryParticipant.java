@@ -47,7 +47,7 @@ import org.osgi.service.component.annotations.Reference;
  * @author andan - Adaptions for OH3
  */
 @NonNullByDefault
-@Component(immediate = true, configurationPid = "discovery.sony-dial")
+@Component(configurationPid = "discovery.sony-dial")
 public class DialDiscoveryParticipant extends AbstractDiscoveryParticipant implements UpnpDiscoveryParticipant {
 
     /** The clientBuilder used in HttpRequest */

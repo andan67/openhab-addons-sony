@@ -52,6 +52,7 @@ import com.thoughtworks.xstream.io.HierarchicalStreamWriter;
  * </pre>
  *
  * @author Tim Roberts - Initial contribution
+ * @author andan - Adaptions for OH3
  */
 @NonNullByDefault
 @XStreamAlias("remoteCommandList")

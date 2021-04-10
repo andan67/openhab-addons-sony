@@ -43,6 +43,7 @@ import org.slf4j.LoggerFactory;
  * and the ircc system.
  *
  * @author Tim Roberts - Initial contribution
+ * @author andan - Adaptions for OH3, power on command handling
  */
 @NonNullByDefault
 public class IrccHandler extends AbstractThingHandler<IrccConfig> {

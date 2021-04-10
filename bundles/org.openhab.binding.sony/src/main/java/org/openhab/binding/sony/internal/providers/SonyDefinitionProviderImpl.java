@@ -63,7 +63,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author Tim Roberts - Initial contribution
  */
-@Component(immediate = true, service = { DynamicStateDescriptionProvider.class, SonyDynamicStateProvider.class,
+@Component(service = { DynamicStateDescriptionProvider.class, SonyDynamicStateProvider.class,
         SonyDefinitionProvider.class, ThingTypeProvider.class, ChannelGroupTypeProvider.class,
         SonyModelProvider.class }, properties = "OSGI-INF/SonyDefinitionProviderImpl.properties", configurationPid = "sony.sources")
 @NonNullByDefault

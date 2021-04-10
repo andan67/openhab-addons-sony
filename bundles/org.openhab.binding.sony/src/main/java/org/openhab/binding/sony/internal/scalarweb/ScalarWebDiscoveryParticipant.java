@@ -44,7 +44,7 @@ import org.osgi.service.component.annotations.Reference;
  * @author Tim Roberts - Initial contribution
  */
 @NonNullByDefault
-@Component(immediate = true, configurationPid = "discovery.sony-scalar")
+@Component(configurationPid = "discovery.sony-scalar")
 public class ScalarWebDiscoveryParticipant extends AbstractDiscoveryParticipant implements UpnpDiscoveryParticipant {
     // See footnotes in createResult for the purpose of this field
     private static final Map<ThingUID, @Nullable String> SCALARTOIRCC = new HashMap<>();

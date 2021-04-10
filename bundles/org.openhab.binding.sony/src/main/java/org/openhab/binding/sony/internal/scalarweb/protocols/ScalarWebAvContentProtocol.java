@@ -306,6 +306,9 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
     /** The cached sources by scheme */
     private final ConcurrentMap<String, Set<Source>> stateSources = new ConcurrentHashMap<>();
 
+    /** The cached uris by and source display number (used for presets) */
+    private final ConcurrentMap<String, ConcurrentMap<String, String>> displayNumberUriMapBySource = new ConcurrentHashMap<>();
+
     /** The cached terminals */
     private final AtomicReference<List<CurrentExternalTerminalsStatus_1_0>> stateTerminals = new AtomicReference<>(
             new ArrayList<>());
@@ -2073,7 +2076,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
                             && pciScheme.equalsIgnoreCase(srcScheme)) {
                         // set the value if the same source, otherwise move undef to it
                         stateChanged(PS_CHANNEL, srcSource,
-                                srcSource.equalsIgnoreCase(pciSource) ? SonyUtil.newStringType(pci.getUri())
+                                srcSource.equalsIgnoreCase(pciSource) ? SonyUtil.newStringType(pci.getDispNum())
                                         : UnDefType.UNDEF);
                     }
                 }
@@ -2818,18 +2821,27 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
     /**
      * Plays the preset channel specified by it's display name
      *
-     * @param channel a non-null, non-empty source id
-     * @param uri a non-null, non-empty uri
+     * @param channel a non-null, non-empty channel
+     * @param dispName a non-null, non-empty display name
      */
-    private void setPlayPresetChannel(final ScalarWebChannel channel, final String uri) {
+    private void setPlayPresetChannel(final ScalarWebChannel channel, final String dispName) {
         Objects.requireNonNull(channel);
-        SonyUtil.validateNotEmpty(uri, "command cannot be empty");
+        SonyUtil.validateNotEmpty(dispName, "dispName cannot be empty");
 
-        if (PS_REFRESH.equals(uri)) {
+        final String srcId = channel.getPathPart(0);
+        if (srcId == null || srcId.isEmpty()) {
+            logger.debug("{} command - channel has no srcId: {}", PS_CHANNEL, channel);
+            return;
+        }
+
+        if (PS_REFRESH.equals(dispName)) {
             // special command to refresh presets
             refreshPresetChannelStateDescription(Collections.singletonList(channel));
         } else {
-            setPlayContent(uri, null);
+            final String uri = displayNumberUriMapBySource.get(srcId).get(dispName);
+            if (uri != null && !uri.isEmpty()) {
+                setPlayContent(uri, null);
+            }
         }
     }
 
@@ -2848,6 +2860,15 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
                 continue;
             }
 
+            // clear cache
+            final ConcurrentMap<String, String> displayNumberUriMap;
+            if (displayNumberUriMapBySource.get(srcId) != null) {
+                displayNumberUriMap = displayNumberUriMapBySource.get(srcId);
+            } else {
+                displayNumberUriMap = new ConcurrentHashMap<>();
+                displayNumberUriMapBySource.put(srcId, displayNumberUriMap);
+            }
+
             final List<ContentListResult_1_0> presets = new ArrayList<>();
             processContentList(srcId, res -> {
                 presets.add(res);
@@ -2861,7 +2882,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
 
             if (!presets.isEmpty()) {
                 if (isPresetConfigurable) {
-                    HashMap<String, Integer> uriToRankMap = new HashMap<>();
+                    final HashMap<String, Integer> rankMap = new HashMap<>();
                     final String thingId = getContext().getThing().getUID().getId();
                     final Path path = Paths.get(OpenHAB.getUserDataFolder(), "config", "sony", "presets",
                             ScalarWebChannel.createChannelId(chl.getCategory(), chl.getId()) + "_" + thingId + ".csv");
@@ -2878,9 +2899,10 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
                                 try {
                                     final String line = scanner.nextLine();
                                     final String[] values = line.split(regexCSV);
+                                    final String dispNum = values[1].trim().replaceAll(regexQuotes, "");
                                     final String uri = values[3].trim().replaceAll(regexQuotes, "");
                                     final Integer rank = Integer.parseInt(values[4].trim().replaceAll(regexQuotes, ""));
-                                    uriToRankMap.put(uri, rank);
+                                    rankMap.put(dispNum, rank);
                                 } catch (final Exception ex) {
                                     // ignore
                                 }
@@ -2897,14 +2919,15 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
                         final String dispNum = e.getDispNum();
                         final String uri = e.getUri();
                         Optional<StateOption> si = Optional.empty();
-                        if (uri != null && !uri.isEmpty()) {
-                            si = Optional.of(new StateOption(uri, SonyUtil.defaultIfEmpty(title, dispNum)));
+                        if (dispNum != null && !dispNum.isEmpty() && uri != null && !uri.isEmpty()) {
+                            si = Optional.of(new StateOption(dispNum, SonyUtil.defaultIfEmpty(title, dispNum)));
+                            displayNumberUriMap.put(dispNum, uri);
                         }
                         return si;
                     }).filter(Optional::isPresent).map(Optional::get)
-                            .filter(a -> (uriToRankMap.getOrDefault(a.getValue(), Integer.MAX_VALUE)) >= 0)
+                            .filter(a -> (rankMap.getOrDefault(a.getValue(), Integer.MAX_VALUE)) >= 0)
                             .sorted(Comparator.<StateOption> comparingInt(a -> {
-                                Integer r = uriToRankMap.getOrDefault(a.getValue(), 0);
+                                Integer r = rankMap.getOrDefault(a.getValue(), 0);
                                 return r == 0 ? Integer.MAX_VALUE : r;
                             }).thenComparing(a -> SonyUtil.defaultIfEmpty(a.getLabel(), "")))
                             .collect(Collectors.toList());
@@ -2915,7 +2938,7 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
                     content.append("Source, DispNum, Title, Uri, Rank\n");
                     for (final ContentListResult_1_0 clr : presets) {
                         content.append(String.format("\"%s\",\"%s\",\"%s\",\"%s\",\"%s\"\n", srcId, clr.getDispNum(),
-                                clr.getTitle(), clr.getUri(), uriToRankMap.getOrDefault(clr.getUri(), 0)));
+                                clr.getTitle(), clr.getUri(), rankMap.getOrDefault(clr.getDispNum(), 0)));
                     }
                     try {
                         Files.createDirectories(path.getParent());
@@ -2930,8 +2953,9 @@ class ScalarWebAvContentProtocol<T extends ThingCallback<String>> extends Abstra
                         final String dispNum = e.getDispNum();
                         final String uri = e.getUri();
                         Optional<StateOption> si = Optional.empty();
-                        if (uri != null && !uri.isEmpty()) {
-                            si = Optional.of(new StateOption(uri, SonyUtil.defaultIfEmpty(title, dispNum)));
+                        if (dispNum != null && !dispNum.isEmpty() && uri != null && !uri.isEmpty()) {
+                            si = Optional.of(new StateOption(dispNum, SonyUtil.defaultIfEmpty(title, dispNum)));
+                            displayNumberUriMap.put(dispNum, uri);
                         }
                         return si;
                     }).filter(Optional::isPresent).map(Optional::get)

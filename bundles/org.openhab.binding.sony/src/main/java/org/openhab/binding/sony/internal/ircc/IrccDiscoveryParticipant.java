@@ -45,9 +45,10 @@ import org.osgi.service.component.annotations.Reference;
  * This implementation of the {@link UpnpDiscoveryParticipant} provides discovery of Sony IRCC protocol devices.
  *
  * @author Tim Roberts - Initial contribution
+ * @author andan - Adaptions for OH3
  */
 @NonNullByDefault
-@Component(immediate = true, configurationPid = "discovery.sony-ircc")
+@Component(configurationPid = "discovery.sony-ircc")
 public class IrccDiscoveryParticipant extends AbstractDiscoveryParticipant implements UpnpDiscoveryParticipant {
     /**
      * The clientBuilder used in HttpRequest

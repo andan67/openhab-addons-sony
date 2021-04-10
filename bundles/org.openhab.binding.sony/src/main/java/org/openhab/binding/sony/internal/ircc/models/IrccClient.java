@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
  * interface to query information and to manipulate the IRCC device.
  *
  * @author Tim Roberts - Initial contribution
+ * @author andan - Adaptions for OH3
  */
 @NonNullByDefault
 public class IrccClient {

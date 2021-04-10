@@ -47,6 +47,8 @@ import org.slf4j.LoggerFactory;
  * The class represents a factory for creating {@link IrccClient} classes and will attempt to detect basic information
  *
  * @author Tim Roberts - Initial contribution
+ * @author andan - Adaptions for OH3
+ *
  */
 @NonNullByDefault
 public class IrccClientFactory {

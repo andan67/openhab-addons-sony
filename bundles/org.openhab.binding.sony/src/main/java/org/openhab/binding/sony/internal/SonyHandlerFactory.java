@@ -49,7 +49,7 @@ import org.slf4j.LoggerFactory;
  * @author Tim Roberts - Initial contribution
  */
 @NonNullByDefault
-@Component(immediate = true, service = ThingHandlerFactory.class, configurationPid = "sony.things")
+@Component(service = ThingHandlerFactory.class, configurationPid = "sony.things")
 public class SonyHandlerFactory extends BaseThingHandlerFactory {
     /** The logger */
     protected Logger logger = LoggerFactory.getLogger(getClass());

@@ -92,7 +92,7 @@ class ScalarWebAudioProtocol<T extends ThingCallback<String>> extends AbstractSc
      *
      * @param factory the non-null factory to use
      * @param context the non-null context to use
-     * @param service the non-null service to use
+     * @param audioService the non-null audio service to use
      * @param callback the non-null callback to use
      */
     ScalarWebAudioProtocol(final ScalarWebProtocolFactory<T> factory, final ScalarWebContext context,
@@ -449,7 +449,7 @@ class ScalarWebAudioProtocol<T extends ThingCallback<String>> extends AbstractSc
         if (VersionUtilities.equals(version, ScalarWebMethod.V1_0)) {
             for (final VolumeInformation_1_0 vi : handleExecute(ScalarWebMethod.GETVOLUMEINFORMATION)
                     .asArray(VolumeInformation_1_0.class)) {
-                final Integer vol = vi.getVolume();
+                final @Nullable Integer vol = vi.getVolume();
                 if (vi != null) {
                     return vol;
                 }

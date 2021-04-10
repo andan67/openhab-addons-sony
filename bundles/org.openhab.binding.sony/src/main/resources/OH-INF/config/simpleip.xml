@@ -25,19 +25,19 @@
 			<default>eth0</default>
 			<advanced>true</advanced>
 		</parameter>
-		<parameter name="refresh" type="integer">
+		<parameter name="refresh" type="integer" unit="s">
 			<label>Refresh Interval</label>
 			<description>The interval, in seconds, to refresh the device state (-1 to disable)</description>
 			<default>30</default>
 			<advanced>true</advanced>
 		</parameter>
-		<parameter name="retryPolling" type="integer">
+		<parameter name="retryPolling" type="integer" unit="s">
 			<label>Retry Polling</label>
 			<description>The time, in seconds, to retry a connection attempt (-1 to disable)</description>
 			<default>10</default>
 			<advanced>true</advanced>
 		</parameter>
-		<parameter name="checkStatusPolling" type="integer">
+		<parameter name="checkStatusPolling" type="integer" unit="s">
 			<label>Status Check Interval</label>
 			<description>The time, in seconds, to check the device status (-1 to disable)</description>
 			<default>30</default>

@@ -46,7 +46,7 @@ import org.osgi.service.component.annotations.Reference;
  * @author Tim Roberts - Initial contribution
  */
 @NonNullByDefault
-@Component(immediate = true, configurationPid = "discovery.sony-simpleip")
+@Component(configurationPid = "discovery.sony-simpleip")
 public class SimpleIpDiscoveryParticipant extends AbstractDiscoveryParticipant implements UpnpDiscoveryParticipant {
     /**
      * Constructs the participant

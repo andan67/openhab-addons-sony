@@ -78,6 +78,8 @@ import org.slf4j.LoggerFactory;
  * that matches some enquery/notification results (like volume could be interpreted as 0!).
  *
  * @author Tim Roberts - Initial contribution
+ * @author andan - Adaptions for OH3
+ *
  * @param <T> the generic type for the callback
  */
 @NonNullByDefault

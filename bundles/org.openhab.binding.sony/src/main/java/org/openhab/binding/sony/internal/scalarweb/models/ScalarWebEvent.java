@@ -17,13 +17,12 @@ import java.util.Objects;
 import org.eclipse.jdt.annotation.NonNullByDefault;
 import org.eclipse.jdt.annotation.Nullable;
 import org.openhab.binding.sony.internal.SonyUtil;
-import org.openhab.binding.sony.internal.scalarweb.gson.ScalarWebEventDeserializer;
 
 import com.google.gson.JsonArray;
 
 /**
  * This class represents a web scalar event result (sent to us from the device). This result will be created by the
- * {@link ScalarWebEventDeserializer} when deserializing the event.
+ * {@link org.openhab.binding.sony.internal.scalarweb.gson.ScalarWebEventDeserializer} when deserializing the event.
  *
  * @author Tim Roberts - Initial contribution
  */
