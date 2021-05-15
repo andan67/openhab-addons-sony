@@ -43,9 +43,6 @@ import org.slf4j.LoggerFactory;
  */
 @NonNullByDefault
 public class HttpRequest implements AutoCloseable {
-    // TODO: Those constants are Jersey specific - once we move away from Jersey,
-    // this must be changed to https://stackoverflow.com/a/49736022 (assuming we have a JAX-RS 2.1 implementation).
-
     /** The logger */
     private final Logger logger = LoggerFactory.getLogger(HttpRequest.class);
 
@@ -59,15 +56,6 @@ public class HttpRequest implements AutoCloseable {
      * Instantiates a new http request
      */
     public HttpRequest(ClientBuilder clientBuilder) {
-        // NOTE: assumes jersey client (no JAX compliant way of doing this)
-        // NOTE2: jax 2.1 has a way but we don't use that
-        /*
-         * final ClientConfig configuration = new ClientConfig();
-         * configuration.property(ClientProperties.CONNECT_TIMEOUT, 15000);
-         * configuration.property(ClientProperties.READ_TIMEOUT, 15000);
-         */
-
-        // client = ClientBuilder.newClient().property(CONNECT_TIMEOUT, 15000).property(READ_TIMEOUT, 15000);
         client = clientBuilder.connectTimeout(15, TimeUnit.SECONDS).readTimeout(15, TimeUnit.SECONDS).build();
         if (logger.isDebugEnabled()) {
             client.register(new LoggingFilter(new Slf4LoggingAdapter(logger), true));

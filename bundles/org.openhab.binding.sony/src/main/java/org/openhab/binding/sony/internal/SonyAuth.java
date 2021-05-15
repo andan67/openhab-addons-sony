@@ -182,12 +182,17 @@ public class SonyAuth {
             }
         }
 
+        logger.debug("scalarActRegister result: device error code: {} , http error code: {}",
+                result.getDeviceErrorCode(), httpResponse.getHttpCode());
+
         if (result.getDeviceErrorCode() == ScalarWebError.NOTIMPLEMENTED
                 || (result.getDeviceErrorCode() == ScalarWebError.HTTPERROR
                         && httpResponse.getHttpCode() == HttpStatus.SERVICE_UNAVAILABLE_503)
                 || httpResponse.getHttpCode() == HttpStatus.UNAUTHORIZED_401
-                || httpResponse.getHttpCode() == HttpStatus.FORBIDDEN_403) {
+                || httpResponse.getHttpCode() == HttpStatus.FORBIDDEN_403
+                || httpResponse.getHttpCode() == HttpStatus.NOT_FOUND_404) {
             if (registrationUrl != null && !registrationUrl.isEmpty()) {
+                logger.debug("Trying ircc registration with url {}", registrationUrl);
                 final HttpResponse irccResponse = irccRegister(transport, accessCode);
                 if (irccResponse.getHttpCode() == HttpStatus.OK_200) {
                     return AccessResult.OK;
@@ -288,7 +293,9 @@ public class SonyAuth {
                 final String rqst = "?name=" + URLEncoder.encode(NetUtil.getDeviceName(), "UTF-8")
                         + "&registrationType=" + rType + "&deviceId="
                         + URLEncoder.encode(NetUtil.getDeviceId(), "UTF-8");
+                logger.debug("Calling ircc registration with request {}", rqst);
                 resp = transport.executeGet(registrationUrl + rqst, headers);
+                logger.debug("ircc registration http code {}", resp.getHttpCode());
                 if (resp.getHttpCode() == HttpStatus.OK_200 || resp.getHttpCode() == HttpStatus.UNAUTHORIZED_401) {
                     return resp;
                 }
@@ -296,7 +303,7 @@ public class SonyAuth {
                 resp = new HttpResponse(HttpStatus.SERVICE_UNAVAILABLE_503, e.toString());
             }
         }
-
+        logger.debug("ircc registration unavailable");
         return resp;
     }
 
