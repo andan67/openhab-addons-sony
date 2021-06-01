@@ -13,6 +13,7 @@
 package org.openhab.binding.sony.internal.ircc;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -97,6 +98,12 @@ public class IrccClientFactory {
         } else {
             try {
                 return queryIrccClient(irccUrl, logger, clientBuilder);
+            } catch (ConnectException e) {
+                logger.debug("Connect exception occurred querying IRCC client - give up connect: {}", e.getMessage(),
+                        e);
+                ;
+                // throw exception to give up connection try
+                throw e;
             } catch (final IOException | URISyntaxException e) {
                 logger.debug("Exception occurred querying IRCC client - trying default client: {}", e.getMessage(), e);
                 return getDefaultClient(irccUrl, logger, clientBuilder);

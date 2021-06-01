@@ -166,6 +166,7 @@ class IrccProtocol<T extends ThingCallback<String>> implements AutoCloseable {
         transport.setOption(TransportOptionAutoAuth.FALSE);
 
         final String accessCode = config.getAccessCode();
+        logger.debug("IRCC config accessCode: {}", accessCode);
 
         final SonyAuthChecker authChecker = new SonyAuthChecker(transport, accessCode);
         final CheckResult checkResult = authChecker.checkResult(() -> {
@@ -191,6 +192,7 @@ class IrccProtocol<T extends ThingCallback<String>> implements AutoCloseable {
             return new AccessResult(status);
         });
 
+        logger.debug("checkResult: {}", checkResult);
         if (CheckResult.OK_HEADER.equals(checkResult)) {
             if (accessCode == null || accessCode.isEmpty()) {
                 // This shouldn't happen - if our check result is OK_HEADER, then
@@ -206,24 +208,32 @@ class IrccProtocol<T extends ThingCallback<String>> implements AutoCloseable {
             SonyAuth.setupCookie(transport);
         } else if (AccessResult.NEEDSPAIRING.equals(checkResult)) {
             if (accessCode == null || accessCode.isEmpty()) {
+                logger.debug("Access code cannot be blank");
                 return new LoginUnsuccessfulResponse(ThingStatusDetail.CONFIGURATION_ERROR,
                         "Access code cannot be blank");
             } else {
+                logger.debug("NEEDSPAIRING, requesting access with effective access code: {}",
+                        IrccConstants.ACCESSCODE_RQST.equalsIgnoreCase(accessCode) ? null : accessCode);
                 final AccessResult result = sonyAuth.requestAccess(transport,
                         IrccConstants.ACCESSCODE_RQST.equalsIgnoreCase(accessCode) ? null : accessCode);
                 if (AccessResult.OK.equals(result)) {
+                    logger.debug("Requesting access OK");
                     SonyAuth.setupCookie(transport);
                 } else {
+                    logger.debug("Requesting access with error: {}", result.getMsg());
                     return new LoginUnsuccessfulResponse(ThingStatusDetail.CONFIGURATION_ERROR, result.getMsg());
                 }
             }
         } else {
+            logger.debug("Trying renewal registration");
             final AccessResult resp = sonyAuth.registerRenewal(transport);
             if (AccessResult.OK.equals(resp)) {
+                logger.debug("Renewal registration OK");
                 SonyAuth.setupCookie(transport);
             } else {
                 // Use configuration_error - prevents handler from continually trying to
                 // reconnect
+                logger.debug("Renewal registration NOT OK with error: {}", resp.getMsg());
                 return new LoginUnsuccessfulResponse(ThingStatusDetail.CONFIGURATION_ERROR,
                         "Error registering renewal: " + resp.getMsg());
             }

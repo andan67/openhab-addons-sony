@@ -137,6 +137,7 @@ public class SonyAuth {
      */
     private @Nullable String getRegistrationUrl() {
         final IrccClient irccClient = irccClientProvider == null ? null : irccClientProvider.getClient();
+        logger.debug("getRegistrationUrl irccClient: {}", irccClient);
         return irccClient == null ? null
                 : SonyUtil.defaultIfEmpty(irccClient.getUrlForAction(IrccClient.AN_REGISTER), null);
     }
@@ -176,6 +177,8 @@ public class SonyAuth {
         final HttpResponse httpResponse = result.getHttpResponse();
 
         final String registrationUrl = getRegistrationUrl();
+        logger.debug("registrationUrl: {}", registrationUrl);
+
         if (httpResponse.getHttpCode() == HttpStatus.UNAUTHORIZED_401) {
             if (registrationUrl == null || registrationUrl.isEmpty()) {
                 return accessCode == null ? AccessResult.PENDING : AccessResult.NOTACCEPTED;
@@ -191,9 +194,11 @@ public class SonyAuth {
                 || httpResponse.getHttpCode() == HttpStatus.UNAUTHORIZED_401
                 || httpResponse.getHttpCode() == HttpStatus.FORBIDDEN_403
                 || httpResponse.getHttpCode() == HttpStatus.NOT_FOUND_404) {
+            logger.debug("Trying ircc registration with url: {}", registrationUrl);
             if (registrationUrl != null && !registrationUrl.isEmpty()) {
                 logger.debug("Trying ircc registration with url {}", registrationUrl);
                 final HttpResponse irccResponse = irccRegister(transport, accessCode);
+                logger.debug("irccResponse.getHttpCode() {}", irccResponse.getHttpCode());
                 if (irccResponse.getHttpCode() == HttpStatus.OK_200) {
                     return AccessResult.OK;
                 } else if (irccResponse.getHttpCode() == HttpStatus.UNAUTHORIZED_401) {
@@ -265,8 +270,8 @@ public class SonyAuth {
      */
     private HttpResponse irccRegister(final SonyHttpTransport transport, final @Nullable String accessCode) {
         Objects.requireNonNull(transport, "transport cannot be null");
-
         final String registrationUrl = getRegistrationUrl();
+        logger.debug("Start irccRegister with registrationUrl; {} and accessCode; {}", registrationUrl, accessCode);
         if (registrationUrl == null || registrationUrl.isEmpty()) {
             return new HttpResponse(HttpStatus.SERVICE_UNAVAILABLE_503, "No registration URL");
         }
