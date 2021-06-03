@@ -13,10 +13,7 @@
 package org.openhab.binding.sony.internal.ircc;
 
 import java.io.IOException;
-import java.net.ConnectException;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
-import java.net.URL;
+import java.net.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -98,9 +95,9 @@ public class IrccClientFactory {
         } else {
             try {
                 return queryIrccClient(irccUrl, logger, clientBuilder);
-            } catch (ConnectException e) {
-                logger.debug("Connect exception occurred querying IRCC client - give up connect: {}", e.getMessage(),
-                        e);
+            } catch (final ConnectException | SocketTimeoutException e) {
+                logger.debug("Connect/SocketTimeout exception occurred querying IRCC client - give up connect: {}",
+                        e.getMessage(), e);
                 ;
                 // throw exception to give up connection try
                 throw e;
